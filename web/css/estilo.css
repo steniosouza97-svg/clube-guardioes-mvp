@@ -259,3 +259,5 @@ body.pub .faixa input:checked + span small { color: var(--preto); }
   .numero strong { font-size: 1.15rem; }
   .numero span { font-size: .75rem; line-height: 1.3; display: block; }
 }
+.vitrine-foto img { max-height: 440px; aspect-ratio: 4 / 5; object-position: center 60%; }
+@media (max-width: 860px) { .vitrine-foto img { aspect-ratio: 16 / 11; max-height: 300px; object-position: center 12%; } }

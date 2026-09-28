@@ -30,4 +30,4 @@ Objetivo: mostrar o fluxo principal rodando de ponta a ponta sobre o banco real 
 
 - Nunca usar e-mail, CPF ou telefone reais. O banco de demonstração é verificado pelo teste T20.
 - Não mostrar a chave secreta do Supabase nem qualquer chave da Asaas.
-- Não mostrar rosto de criança além da foto de costas da página, em linha com o Manual de Boas Práticas para Redes Sociais do Instituto.
+- Usar só imagens de crianças liberadas pelo Instituto (a foto da página já é liberada), em linha com o Manual de Boas Práticas para Redes Sociais.
