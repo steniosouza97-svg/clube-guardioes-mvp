@@ -19,7 +19,7 @@ As user stories US01 a US03 da semana 5 foram escritas para o fluxo de adesão d
 | 5 | O canal por onde cheguei (QR Code, Instagram, indicação) fica registrado | T16, E02 |
 | 6 | Recebo a mensagem de boas-vindas no ato | T01, E07 |
 | 7 | Meu CPF nunca fica gravado em texto aberto no banco do painel | T23, S10 |
-| 8 | A página não usa fotos de crianças e não promete dedução de Imposto de Renda | Revisão visual, E16 |
+| 8 | A página segue a identidade do Instituto, sem rosto de criança identificável, e não promete dedução de Imposto de Renda | Revisão visual, E16 |
 
 Em produção, depois do critério 6, a página encaminha para o checkout da Asaas, que cria a assinatura Pix (DT-04).
 

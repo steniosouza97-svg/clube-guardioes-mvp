@@ -18,5 +18,5 @@ O vídeo demonstrativo e as evidências de teste retratam uma versão exata do M
 
 - Nenhum dado real de doador no repositório nem na base de demonstração: e-mails `@example.com`, CPFs fictícios.
 - A chave secreta do Supabase e a chave de API da Asaas nunca entram em `web/` nem no repositório.
-- Nenhuma imagem de criança, conforme o Manual de Boas Práticas para Redes Sociais do Instituto.
+- Nenhum rosto de criança identificável sem autorização documentada dos responsáveis e do Instituto, conforme o Manual de Boas Práticas para Redes Sociais (a foto atual mostra crianças de costas).
 - Nenhuma promessa de dedução de Imposto de Renda.
