@@ -2,9 +2,9 @@
 # O plano gratuito pausa projetos com baixa atividade de banco por uma semana.
 # Esta rotina faz uma consulta leve a cada 3 dias. Custo: zero.
 #
-# Configurar em Settings > Secrets and variables > Actions:
-#   SUPABASE_URL       ex.: https://xxxx.supabase.co
-#   SUPABASE_ANON_KEY  chave publicável do projeto (sb_publishable_...)
+# Usa a URL e a chave PUBLICÁVEL do projeto (as mesmas de web/config.js).
+# Para outro projeto, cadastre os segredos SUPABASE_URL e SUPABASE_ANON_KEY
+# em Settings > Secrets and variables > Actions; eles têm prioridade.
 name: manter-supabase-ativo
 on:
   schedule:
@@ -15,10 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Consulta leve ao banco
+        env:
+          URL: ${{ secrets.SUPABASE_URL || 'https://fakihzzncafuqtgxnqbi.supabase.co' }}
+          KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_p9IqiIWRaOf3F4MV4hg4yw_ffvxzE3p' }}
         run: |
           code=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/origem?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+            "${URL}/rest/v1/origem?select=id&limit=1" \
+            -H "apikey: ${KEY}")
           echo "HTTP $code"
           # 200: o banco respondeu (a lista de canais é pública).
           [ "$code" = "200" ]
