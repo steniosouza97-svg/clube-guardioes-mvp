@@ -19,6 +19,7 @@ declare
     v_log  text[] := '{}';
     n      integer;
     bloq   boolean;
+    v_cpf  text := '700000010' || fn_cpf_digitos('700000010');   -- calculado antes de trocar de papel
 begin
     begin
         -- visitante anônimo
@@ -36,7 +37,7 @@ begin
         assert bloq, 'S02 anônimo executou função do painel';
         v_log := v_log || 'PASS S02 anônimo não executa funções do painel'::text;
 
-        assert fn_aderir_publico('Seguranca Anonimo', 'seguranca.anonimo@example.com', null,
+        assert fn_aderir_publico('Seguranca Anonimo', 'seguranca.anonimo@example.com', v_cpf, null,
                                  'Site institucional', 50, 5::smallint, true), 'S03 adesão pública falhou';
         v_log := v_log || 'PASS S03 anônimo consegue aderir pela página pública'::text;
 
@@ -47,10 +48,15 @@ begin
         assert bloq, 'S04 anônimo gravou direto na tabela';
         v_log := v_log || 'PASS S04 anônimo não grava direto nas tabelas'::text;
 
+        bloq := false;
+        begin perform fn_consultar_cpf('52998224725'); exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S09 anônimo consultou CPF';
+        v_log := v_log || 'PASS S09 anônimo não consulta CPF'::text;
+
         -- pessoa com login, mas fora da lista de voluntários
         perform set_config('role', 'authenticated', true);
         perform set_config('request.jwt.claims', '{"role":"authenticated","email":"curioso@example.com"}', true);
-        select count(*) into n from guardiao;
+        select count(*) into n from vw_situacao_guardiao;
         assert n = 0, 'S05 conta sem cadastro de voluntário leu Guardiões';
         bloq := false;
         begin perform fn_simular_gateway(current_date); exception when insufficient_privilege then bloq := true; end;
@@ -72,6 +78,17 @@ begin
         begin update assinatura set valor_mensal = 1000; exception when insufficient_privilege then bloq := true; end;
         assert bloq, 'S07 voluntário alterou tabela sem passar pelas funções';
         v_log := v_log || 'PASS S07 voluntário não altera tabelas sem passar pelas funções'::text;
+
+        bloq := false;
+        begin perform cpf_hash from guardiao limit 1; exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S10 voluntário leu a coluna de CPF cifrado';
+        bloq := false;
+        begin perform valor from privado.segredo; exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S10 voluntário leu a chave do CPF';
+        bloq := false;
+        begin perform fn_cpf_hash('52998224725'); exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S10 voluntário calculou impressão digital de CPF';
+        v_log := v_log || 'PASS S10 voluntário não lê o CPF cifrado, nem a chave, nem calcula impressões digitais'::text;
 
         bloq := false;
         begin perform fn_gerar_dados_sinteticos(); exception when insufficient_privilege then bloq := true; end;

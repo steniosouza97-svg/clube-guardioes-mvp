@@ -6,7 +6,7 @@ Clube Guardiões do Começo | Instituto Ebenézer | MVP funcional, semana 10
 
 A Asaas, gateway de pagamento já contratado pelo Instituto, é a **fonte da verdade** sobre doadores e pagamentos. Este banco guarda uma **cópia mínima e reconstruível** dessas informações, acrescida do que a Asaas não registra: origem do Guardião, régua de relacionamento e métricas do Clube. Se o banco for perdido, ele é reconstruído pela API da Asaas sem perda de doador ou pagamento.
 
-Dado pessoal mínimo, por LGPD: nome, e-mail, telefone e o registro do consentimento. Nenhum CPF, nenhum dado de cartão.
+Dado pessoal mínimo, por LGPD: nome, e-mail, telefone, CPF **cifrado** e o registro do consentimento. Nenhum dado de cartão. O CPF é o identificador único do Guardião, mas o banco só guarda a sua impressão digital com chave secreta (ver [DT-14](decisoes_tecnicas.md) e [LGPD](lgpd_pendencias.md)).
 
 ## Diagrama
 
@@ -24,6 +24,7 @@ erDiagram
     GUARDIAO { uuid id PK
                text nome
                text email UK
+               text cpf_hash UK
                text telefone
                boolean consentimento_lgpd
                date entrou_em
@@ -66,7 +67,7 @@ erDiagram
 
 | Tabela | O que representa | Regras garantidas pelo banco |
 |---|---|---|
-| `guardiao` | A pessoa que doa | E-mail único e em minúsculas; consentimento LGPD obrigatório |
+| `guardiao` | A pessoa que doa | CPF único, guardado só como impressão digital cifrada (`cpf_hash`); e-mail único e em minúsculas; consentimento LGPD obrigatório |
 | `assinatura` | O compromisso de doação mensal | No máximo uma ativa por Guardião; valor mínimo de R$ 10; vencimento entre os dias 1 e 28; cancelamento sempre com data e motivo |
 | `cobranca` | A cobrança de cada mês | Uma por assinatura e mês; status `pendente`, `pago`, `falhou`, `recuperado` ou `cancelado`; pagamento sempre com data; recuperada só após ao menos uma falha |
 | `comunicacao` | Cada mensagem da régua | Tipos `boas_vindas`, `agradecimento`, `recuperacao`, `impacto_mensal`, `cancelamento`; no máximo uma mensagem de impacto por Guardião por mês |
@@ -74,6 +75,7 @@ erDiagram
 | `origem` | Canal de aquisição | Mede o resultado das 56 horas mensais de aquisição |
 | `parametro` | Números de negócio editáveis | Custeio de 2025, metas, taxas e limite de tentativas, alteráveis sem mexer em código |
 | `voluntario` | Quem pode operar o painel | Só e-mails desta tabela, com login, veem dados e executam o fluxo |
+| `privado.segredo` | Chave secreta do CPF | Gerada na instalação; esquema sem acesso pela API |
 
 ## Correspondência com a Asaas
 
@@ -101,7 +103,9 @@ Os eventos tratados têm os nomes usados pela Asaas: `PAYMENT_RECEIVED` (pagamen
 
 | Função | Papel | Quem chama |
 |---|---|---|
-| `fn_aderir_publico` | Adesão pela página pública ou pelo voluntário | Visitante e voluntário |
+| `fn_aderir_publico` | Adesão pela página pública ou pelo voluntário, com CPF | Visitante e voluntário |
+| `fn_consultar_cpf` | Responde se um CPF já é Guardião, sem revelar o número | Voluntário |
+| `fn_cpf_valido`, `fn_cpf_hash` | Validam o CPF e calculam a impressão digital | Somente dentro do banco |
 | `fn_gerar_cobrancas` | Cobrança do mês (só no MVP; em produção, a Asaas cria) | Voluntário |
 | `fn_processar_evento` | Pix pago ou vencido, com idempotência | Webhook da Asaas (produção) ou simulador (MVP) |
 | `fn_simular_gateway` | Simula os avisos da Asaas para o mês inteiro | Voluntário, só na demonstração |

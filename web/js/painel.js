@@ -202,14 +202,26 @@
   async function registrarAdesao(ev) {
     ev.preventDefault();
     const msg = $("#a-msg");
+    if (!cpf.valido($("#a-cpf").value)) { msg.innerHTML = `<div class="msg erro">Confira o CPF informado.</div>`; return; }
     const { error } = await sb.rpc("fn_aderir_publico", {
-      p_nome: $("#a-nome").value.trim(), p_email: $("#a-email").value.trim(), p_telefone: $("#a-tel").value.trim() || null,
+      p_nome: $("#a-nome").value.trim(), p_email: $("#a-email").value.trim(), p_cpf: cpf.digitos($("#a-cpf").value), p_telefone: $("#a-tel").value.trim() || null,
       p_origem: $("#a-origem").value, p_valor: Number($("#a-valor").value), p_dia: Number($("#a-dia").value), p_consentimento: $("#a-consent").checked
     });
     if (error) { msg.innerHTML = `<div class="msg erro">${esc(mensagemErro(error))}</div>`; return; }
     msg.innerHTML = ""; ev.target.reset(); $("#dlg-adesao").close();
     aviso("ok", "Adesão registrada. Mensagem de boas-vindas enviada.");
     await Promise.all([carregarGuardioes(), carregarResumo(), carregarCanais()]);
+  }
+
+  // Consulta por CPF: o banco responde se existe, sem nunca devolver o número
+  async function consultarCpf(ev) {
+    ev.preventDefault();
+    const el = $("#resultado-cpf"), v = $("#consulta-cpf").value;
+    if (!cpf.valido(v)) { el.innerHTML = `<span style="color:var(--critico)">CPF inválido.</span>`; return; }
+    const linhas = await consulta(sb.rpc("fn_consultar_cpf", { p_cpf: cpf.digitos(v) }));
+    el.innerHTML = linhas.length
+      ? linhas.map(l => `${selo(l.situacao, NOME_SIT[l.situacao])} <strong>${esc(l.nome)}</strong> · ${fmt.brl(l.valor_mensal)} · ${esc(l.origem)}`).join("<br>")
+      : "Nenhum Guardião com este CPF.";
   }
 
   // ------------------------------------------------------------ CANAIS
@@ -313,6 +325,8 @@
     $("#tab-guardioes").addEventListener("click", ev => { const a = ev.target.closest("[data-detalhe]"); if (a) { ev.preventDefault(); detalheGuardiao(a.dataset.detalhe); } });
     $("#btn-nova-adesao").addEventListener("click", () => $("#dlg-adesao").showModal());
     $("#form-adesao-painel").addEventListener("submit", registrarAdesao);
+    $("#form-consulta-cpf").addEventListener("submit", consultarCpf);
+    cpf.mascara($("#a-cpf")); cpf.mascara($("#consulta-cpf"));
     $("#competencia").addEventListener("change", carregarMes);
     $("#filtro-cob").addEventListener("change", carregarMes);
     $("#btn-gerar").addEventListener("click", ev => acaoMes(ev.currentTarget, "fn_gerar_cobrancas", { p_competencia: competencia() },

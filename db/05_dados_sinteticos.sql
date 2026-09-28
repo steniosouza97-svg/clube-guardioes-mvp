@@ -12,7 +12,8 @@
 --   - ticket próximo de R$ 80 e churn próximo de 2% ao mês
 --
 -- Nenhum dado pessoal real: nomes aleatórios, e-mails no domínio
--- reservado example.com, telefones fictícios, ids externos "sint".
+-- reservado example.com, telefones fictícios, CPFs fictícios da série
+-- 800.000.xxx (gravados só cifrados), ids externos "sint".
 -- Mesma semente e mesma data geram os mesmos dados.
 --
 -- NUNCA executar em produção. A função se recusa a rodar se encontrar
@@ -114,11 +115,13 @@ begin
             v_valor := case when r < 0.18 then 30 when r < 0.56 then 60 when r < 0.80 then 80
                             when r < 0.96 then 120 else 300 end;
 
-            insert into guardiao (nome, email, telefone, origem_id, consentimento_lgpd, consentimento_em,
+            insert into guardiao (nome, email, cpf_hash, telefone, origem_id, consentimento_lgpd, consentimento_em,
                                   entrou_em, id_externo_gateway)
             values (v_nome || ' ' || v_sobren,
                     translate(lower(v_nome || '.' || v_sobren), 'áéíóúãõçâêô', 'aeiouaocaeo')
                         || '.' || lpad(n_g::text, 4, '0') || '@example.com',
+                    -- CPF fictício com dígitos verificadores válidos (série 800.000.xxx), gravado só cifrado
+                    fn_cpf_hash(lpad((800000000 + n_g)::text, 9, '0') || fn_cpf_digitos(lpad((800000000 + n_g)::text, 9, '0'))),
                     '(11) 90000-' || lpad(n_g::text, 4, '0'),
                     (select id from origem where nome = v_origem),
                     true,

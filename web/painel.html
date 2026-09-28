@@ -77,6 +77,11 @@
           <select id="filtro-sit"><option value="">Todas</option><option value="ativo">Ativo</option><option value="em_risco">Em risco</option><option value="cancelado">Cancelado</option></select></div>
         <div class="campo"><label for="filtro-origem">Canal</label><select id="filtro-origem"><option value="">Todos</option></select></div>
       </div>
+      <form class="filtros" id="form-consulta-cpf" style="background:#fff;border:1px solid var(--linha);border-radius:var(--raio);padding:.75rem">
+        <div class="campo"><label for="consulta-cpf">Este CPF já é Guardião?</label><input id="consulta-cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14"></div>
+        <button class="btn sec" type="submit">Consultar</button>
+        <div id="resultado-cpf" aria-live="polite" style="align-self:center;font-size:.9rem"></div>
+      </form>
       <p id="contagem-guardioes" style="font-size:.85rem;color:var(--tinta-2);margin:.25rem 0 .5rem"></p>
       <div class="tabela-wrap"><table id="tab-guardioes"></table></div>
     </section>
@@ -128,13 +133,14 @@
     <p style="font-size:.85rem;color:var(--tinta-2);margin-top:0">Para quem aderiu pessoalmente, por exemplo em evento ou pelo QR Code na comunidade.</p>
     <div class="campo"><label for="a-nome">Nome</label><input id="a-nome" type="text" required maxlength="120"></div>
     <div class="campo"><label for="a-email">E-mail</label><input id="a-email" type="email" required></div>
+    <div class="campo"><label for="a-cpf">CPF</label><input id="a-cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required></div>
     <div class="campo"><label for="a-tel">WhatsApp</label><input id="a-tel" type="tel" maxlength="30"></div>
     <div class="grade-2">
       <div class="campo"><label for="a-valor">Valor mensal (R$)</label><input id="a-valor" type="number" min="10" max="5000" value="80" required></div>
       <div class="campo"><label for="a-dia">Dia do Pix</label><select id="a-dia"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></div>
     </div>
     <div class="campo"><label for="a-origem">Canal</label><select id="a-origem"></select></div>
-    <label class="consent campo"><input type="checkbox" id="a-consent"><span>A pessoa autorizou o uso dos dados para a doação mensal e as notícias do Clube (LGPD).</span></label>
+    <label class="consent campo"><input type="checkbox" id="a-consent"><span>A pessoa autorizou o uso de nome, CPF, e-mail e WhatsApp para a doação mensal e as notícias do Clube (LGPD).</span></label>
     <button class="btn" type="submit">Registrar</button>
     <div id="a-msg" aria-live="polite"></div>
   </form>

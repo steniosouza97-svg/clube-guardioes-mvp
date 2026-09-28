@@ -6,3 +6,10 @@ PASS T05 cobrança mensal gerada para todos os 276 Guardiões ativos, sem duplic
 PASS T06 pagamento aprovado marca a cobrança como paga e envia agradecimento
 FALHA T07 evento repetido não foi detectado
 == Resultado esperado: a suíte para no T07. Confirmado.
+
+== Controle negativo 2: a suíte detecta CPF cifrado sem chave secreta?
+== Sabotagem: fn_cpf_hash trocada por SHA-256 simples, sem chave (reversível por força bruta)
+...
+PASS T22 duplicidade barrada pelo CPF, mesmo com outro e-mail, e e-mail não troca de dono
+FALHA T23 cpf_hash sem chave secreta (reversível por força bruta)
+== Resultado esperado: a suíte para no T23. Confirmado.

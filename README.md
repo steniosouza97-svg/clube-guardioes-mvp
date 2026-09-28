@@ -44,6 +44,7 @@ Documentação de handover:
 - [Principais decisões técnicas](docs/decisoes_tecnicas.md)
 - [Casos de teste e evidências](docs/casos_de_teste.md)
 - [Roteiro do vídeo demonstrativo](docs/roteiro_video.md)
+- [Privacidade e LGPD: feito e pendências](docs/lgpd_pendencias.md)
 
 ## Instalação no Supabase (uma vez, cerca de 20 minutos)
 
@@ -75,8 +76,8 @@ Documentação de handover:
 **No Supabase (SQL Editor):**
 
 ```sql
-select * from qa.fn_rodar_testes();       -- 20 testes do fluxo
-select * from qa.fn_testes_seguranca();   -- 8 testes de acesso
+select * from qa.fn_rodar_testes();       -- 24 testes do fluxo
+select * from qa.fn_testes_seguranca();   -- 10 testes de acesso
 ```
 
 Cada linha traz `PASS`, `INFO` ou `FALHA`. Os testes rodam num bloco desfeito ao final: nenhum dado é alterado. Usam um mês futuro sem movimento, então podem ser repetidos a qualquer momento, inclusive depois da demonstração.
@@ -88,9 +89,9 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 ./tests/rodar_testes.sh              # recria o banco, carrega tudo e roda as duas suítes
 ```
 
-**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 16 passos no navegador com Playwright: adesão, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
+**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 18 passos no navegador com Playwright: adesão com CPF, consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais: 20 de 20 testes do fluxo e 8 de 8 de acesso no Supabase e localmente, 16 de 16 passos de interface, e um controle negativo que prova que a suíte detecta defeitos.
+Evidências atuais: 24 de 24 testes do fluxo e 10 de 10 de acesso no Supabase e localmente, 18 de 18 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF).
 
 ## Publicar a interface
 
@@ -108,6 +109,17 @@ Depois de publicar, gerar os links de cada canal para medir a aquisição:
 | Indicação de Guardião | `.../index.html?origem=indicacao` |
 | Campanha Dia das Crianças | `.../index.html?origem=criancas` |
 | Campanha de Natal | `.../index.html?origem=natal` |
+
+## Zerar a demonstração
+
+Antes de cada ensaio ou gravação, no SQL Editor do Supabase:
+
+```sql
+truncate evento_gateway, comunicacao, cobranca, assinatura, guardiao restart identity;
+select fn_gerar_dados_sinteticos();
+```
+
+O resultado deve ser "305 Guardiões (275 ativos)". Voluntários, logins e a chave do CPF são preservados. Na demonstração, use e-mails `@example.com` e CPFs fictícios válidos, por exemplo `600.000.001-40`, `600.000.002-21` ou `600.000.003-02`.
 
 ## Operação depois da semana 10
 
@@ -141,6 +153,8 @@ Uma Edge Function do Supabase recebe o webhook da Asaas, valida o token configur
 ## Dados e privacidade
 
 - Dados sintéticos: nomes aleatórios, e-mails no domínio reservado `example.com`, telefones fictícios. Nenhum dado real de doador está neste repositório. O teste T20 verifica isso.
-- Em produção: nome, e-mail, WhatsApp e registro do consentimento LGPD. Nenhum CPF, nenhum dado de cartão.
+- Em produção: nome, CPF, e-mail, WhatsApp e registro do consentimento LGPD. Nenhum dado de cartão.
+- **CPF cifrado:** o CPF é obrigatório e identifica o Guardião (decisão da semana 5; a Asaas também o exige). O banco guarda só a impressão digital HMAC-SHA256 com chave secreta: barra duplicidade e responde "este CPF já é Guardião?", mas não permite ler o número. O CPF completo fica só na Asaas. Detalhes em [DT-14](docs/decisoes_tecnicas.md).
+- **Pendências de LGPD para operar com doadores reais** (política de privacidade, canal do titular, prazo de guarda, procedimento de exclusão, entre outras): [docs/lgpd_pendencias.md](docs/lgpd_pendencias.md).
 - A interface não usa fotos de crianças, em linha com o Manual de Boas Práticas para Redes Sociais do Instituto.
 - A página não promete dedução de Imposto de Renda: doação direta ao Instituto não é dedutível.

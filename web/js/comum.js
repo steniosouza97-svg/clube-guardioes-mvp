@@ -24,12 +24,30 @@
   // Escapa texto antes de inserir em HTML (dados vêm de formulários públicos)
   window.esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+  // CPF: mesma regra do banco (fn_cpf_valido), para avisar antes de enviar
+  window.cpf = {
+    digitos: v => String(v || "").replace(/\D/g, ""),
+    valido: v => {
+      const d = String(v || "").replace(/\D/g, "");
+      if (!/^\d{11}$/.test(d) || /^(\d)\1{10}$/.test(d)) return false;
+      const dv = n => { let s = 0; for (let i = 0; i < n; i++) s += +d[i] * (n + 1 - i); const r = s % 11; return r < 2 ? 0 : 11 - r; };
+      return dv(9) === +d[9] && dv(10) === +d[10];
+    },
+    // formata enquanto digita: 000.000.000-00
+    mascara: el => el.addEventListener("input", () => {
+      const d = el.value.replace(/\D/g, "").slice(0, 11);
+      el.value = d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+    })
+  };
+
   // Traduz erros do banco para mensagens de gente
   window.mensagemErro = e => {
     const m = (e && (e.message || e.error_description || e.msg)) || String(e);
     if (/Consentimento LGPD/.test(m)) return "Para aderir, é preciso autorizar o uso dos seus dados.";
     if (/E-mail inválido/.test(m)) return "Confira o e-mail informado.";
-    if (/já possui assinatura ativa/.test(m)) return "Este e-mail já é de um Guardião ativo. Obrigado!";
+    if (/CPF inválido/.test(m)) return "Confira o CPF informado.";
+    if (/já possui assinatura ativa/.test(m)) return "Este CPF já é de um Guardião ativo. Obrigado!";
+    if (/E-mail já cadastrado para outro CPF/.test(m)) return "Este e-mail já está cadastrado com outro CPF.";
     if (/Valor mensal/.test(m)) return "Escolha um valor mensal entre R$ 10 e R$ 5.000.";
     if (/Acesso restrito/.test(m)) return "Seu usuário não está cadastrado como voluntário do Clube.";
     if (/Invalid login credentials/.test(m)) return "E-mail ou senha incorretos.";

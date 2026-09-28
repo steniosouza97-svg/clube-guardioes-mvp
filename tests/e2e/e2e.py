@@ -4,6 +4,15 @@ from playwright.sync_api import sync_playwright, expect
 
 BASE = "http://localhost:8080"
 LOG, ERROS_CONSOLE = [], []
+def cpf_valido(base9):
+    """CPF fictício com dígitos verificadores corretos, a partir de 9 dígitos."""
+    d = [int(x) for x in base9]
+    for n in (9, 10):
+        r = sum(d[i] * (n + 1 - i) for i in range(n)) % 11
+        d.append(0 if r < 2 else 11 - r)
+    return "".join(map(str, d))
+CPF_MARIA, CPF_JOAO, CPF_OUTRO = cpf_valido("600000001"), cpf_valido("600000002"), cpf_valido("600000003")
+
 def ok(msg): LOG.append("PASS " + msg); print("PASS", msg)
 def sql(q): return subprocess.run(["psql", "-d", os.environ.get("DB", "clube_e2e"), "-Atc", q], capture_output=True, text=True).stdout.strip()
 
@@ -21,18 +30,29 @@ with sync_playwright() as p:
     pg.click("text=Quero doar todo mês")
     expect(pg.locator("#resultado .msg.erro")).to_contain_text("nome")
     pg.fill("#nome", "Maria Demonstração"); pg.fill("#email", "maria.demo@example.com"); pg.fill("#telefone", "(11) 98888-7777")
+    pg.fill("#cpf", CPF_MARIA[:10] + str((int(CPF_MARIA[10]) + 1) % 10))
+    pg.click("text=Quero doar todo mês")
+    expect(pg.locator("#resultado .msg.erro")).to_contain_text("CPF")
+    pg.fill("#cpf", ""); pg.type("#cpf", CPF_MARIA)
+    assert pg.input_value("#cpf") == f"{CPF_MARIA[:3]}.{CPF_MARIA[3:6]}.{CPF_MARIA[6:9]}-{CPF_MARIA[9:]}", pg.input_value("#cpf")
     pg.click("text=Quero doar todo mês")
     expect(pg.locator("#resultado .msg.erro")).to_contain_text("autorizar")
-    ok("E01 formulário valida nome e exige consentimento LGPD antes de enviar")
+    ok("E01 formulário valida nome, CPF (dígito verificador, com máscara) e exige consentimento LGPD")
     pg.check("#consent"); pg.locator("label.faixa", has_text="Outro").click(); pg.fill("#valor-outro", "150")
     pg.select_option("#dia", "15"); pg.click("text=Quero doar todo mês")
     expect(pg.locator("#resultado .msg.ok")).to_contain_text("Bem-vindo ao Clube, Maria")
     pg.screenshot(path="evidencias/e2e/02_adesao_confirmada.png", full_page=True)
     assert sql("select o.nome||'|'||a.valor_mensal||'|'||a.dia_vencimento from guardiao g join origem o on o.id=g.origem_id join assinatura a on a.guardiao_id=g.id where g.email='maria.demo@example.com'") == "QR Code na comunidade|150.00|15"
-    ok("E02 adesão pública grava Guardião com valor, dia e canal de origem (QR Code)")
-    pg.fill("#nome", "Maria Demonstração"); pg.fill("#email", "MARIA.DEMO@example.com"); pg.check("#consent"); pg.click("text=Quero doar todo mês")
-    expect(pg.locator("#resultado .msg.erro")).to_contain_text("já é de um Guardião ativo")
-    ok("E03 segunda adesão com o mesmo e-mail é recusada com mensagem clara")
+    assert sql(f"select count(*) from guardiao g where g::text like '%{CPF_MARIA}%' or g::text like '%{CPF_MARIA[:3]}.{CPF_MARIA[3:6]}%'") == "0", "CPF gravado em texto aberto"
+    assert len(sql("select cpf_hash from guardiao where email='maria.demo@example.com'")) == 64
+    ok("E02 adesão pública grava Guardião com valor, dia, canal (QR Code) e CPF só cifrado")
+    pg.fill("#nome", "Maria Outro Email"); pg.fill("#email", "maria.outro@example.com"); pg.type("#cpf", CPF_MARIA); pg.check("#consent")
+    pg.click("text=Quero doar todo mês")
+    expect(pg.locator("#resultado .msg.erro")).to_contain_text("Este CPF já é de um Guardião ativo")
+    pg.fill("#nome", "Maria Demonstração"); pg.fill("#email", "MARIA.DEMO@example.com"); pg.fill("#cpf", ""); pg.type("#cpf", CPF_OUTRO); pg.check("#consent")
+    pg.click("text=Quero doar todo mês")
+    expect(pg.locator("#resultado .msg.erro")).to_contain_text("outro CPF")
+    ok("E03 mesmo CPF com outro e-mail é recusado; e-mail já usado não aceita outro CPF")
 
     # ---------------- E04 acesso ao painel
     pg.goto(f"{BASE}/painel.html")
@@ -64,6 +84,12 @@ with sync_playwright() as p:
     pg.screenshot(path="evidencias/e2e/04_detalhe_guardiao.png")
     pg.click("#dlg-guardiao [data-fechar]")
     ok("E07 busca encontra a nova Guardiã e o histórico mostra a mensagem de boas-vindas")
+    pg.type("#consulta-cpf", CPF_MARIA); pg.click("#form-consulta-cpf button")
+    expect(pg.locator("#resultado-cpf")).to_contain_text("Maria Demonstração")
+    pg.fill("#consulta-cpf", ""); pg.type("#consulta-cpf", CPF_OUTRO); pg.click("#form-consulta-cpf button")
+    expect(pg.locator("#resultado-cpf")).to_contain_text("Nenhum Guardião")
+    pg.screenshot(path="evidencias/e2e/04b_consulta_cpf.png")
+    ok("E07b voluntário consulta se um CPF já é Guardião, sem ver o número guardado")
 
     # ---------------- E08 operação do mês
     pg.click("[data-aba=operacao]")
@@ -122,7 +148,7 @@ with sync_playwright() as p:
     ok("E14 cancelamento a pedido exige confirmação e registra o motivo")
 
     # ---------------- E15 adesão registrada pelo voluntário
-    pg.click("#btn-nova-adesao"); pg.fill("#a-nome", "João Evento"); pg.fill("#a-email", "joao.evento@example.com")
+    pg.click("#btn-nova-adesao"); pg.fill("#a-nome", "João Evento"); pg.fill("#a-email", "joao.evento@example.com"); pg.type("#a-cpf", CPF_JOAO)
     pg.fill("#a-valor", "60"); pg.select_option("#a-origem", "Campanha Dia das Crianças"); pg.check("#a-consent")
     pg.click("#form-adesao-painel button[type=submit]")
     expect(pg.locator("#painel-msg")).to_contain_text("Adesão registrada")

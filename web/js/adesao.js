@@ -12,6 +12,8 @@
   const outro = document.getElementById("campo-outro");
   const res = document.getElementById("resultado");
   const btn = document.getElementById("btn-aderir");
+  const campoCpf = document.getElementById("cpf");
+  cpf.mascara(campoCpf);
 
   form.querySelectorAll("input[name=valor]").forEach(r =>
     r.addEventListener("change", () => { outro.hidden = r.value !== "outro" || !r.checked; }));
@@ -29,12 +31,13 @@
 
     if (nome.length < 2) return mostrar("erro", "Informe seu nome.");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return mostrar("erro", "Confira o e-mail informado.");
+    if (!cpf.valido(campoCpf.value)) return mostrar("erro", "Confira o CPF informado.");
     if (!valor || valor < 10 || valor > 5000) return mostrar("erro", "Escolha um valor mensal entre R$ 10 e R$ 5.000.");
     if (!consent) return mostrar("erro", "Para aderir, é preciso autorizar o uso dos seus dados.");
 
     btn.disabled = true; btn.textContent = "Registrando...";
     const { error } = await sb.rpc("fn_aderir_publico", {
-      p_nome: nome, p_email: email, p_telefone: telefone || null, p_origem: origem,
+      p_nome: nome, p_email: email, p_cpf: cpf.digitos(campoCpf.value), p_telefone: telefone || null, p_origem: origem,
       p_valor: valor, p_dia: Number(document.getElementById("dia").value), p_consentimento: consent
     });
     btn.disabled = false; btn.textContent = "Quero doar todo mês";

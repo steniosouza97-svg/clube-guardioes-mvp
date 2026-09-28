@@ -43,6 +43,16 @@ declare
     v_res    jsonb;
     v_num    numeric;
     v_num2   numeric;
+    -- CPFs fictícios válidos para os testes (série 700.000.0xx)
+    c1 text := '700000001' || fn_cpf_digitos('700000001');
+    c2 text := '700000002' || fn_cpf_digitos('700000002');
+    c3 text := '700000003' || fn_cpf_digitos('700000003');
+    c4 text := '700000004' || fn_cpf_digitos('700000004');
+    c5 text := '700000005' || fn_cpf_digitos('700000005');
+    c6 text := '700000006' || fn_cpf_digitos('700000006');
+    c7 text := '700000007' || fn_cpf_digitos('700000007');
+    c8 text := '700000008' || fn_cpf_digitos('700000008');
+    c9 text := '700000009' || fn_cpf_digitos('700000009');
 begin
     select max(competencia) into v_ult from cobranca;
     v_comp := (date_trunc('month', coalesce(v_ult, current_date)) + interval '3 months')::date;
@@ -52,7 +62,7 @@ begin
     begin   -- bloco dos testes do fluxo: desfeito ao final
 
         -- T01 adesão
-        v_a1 := fn_aderir('Teste Guardião', 'Teste.Um@Example.com', '(11) 90000-9999', 'QR Code na comunidade',
+        v_a1 := fn_aderir('Teste Guardião', 'Teste.Um@Example.com', c1, '(11) 90000-9999', 'QR Code na comunidade',
                           80, 10::smallint, 'pix', true, v_comp - 10);
         select guardiao_id into v_g1 from assinatura where id = v_a1 and status = 'ativa';
         assert v_g1 is not null, 'T01 assinatura ativa não criada';
@@ -64,7 +74,7 @@ begin
         -- T02 sem consentimento
         falhou := false;
         begin
-            perform fn_aderir('Sem Consentimento', 'sem.consentimento@example.com', null, 'Instagram',
+            perform fn_aderir('Sem Consentimento', 'sem.consentimento@example.com', c2, null, 'Instagram',
                               60, 5::smallint, 'pix', false, v_comp - 10);
         exception when others then
             falhou := sqlerrm like '%Consentimento LGPD%';
@@ -75,7 +85,7 @@ begin
         -- T03 e-mail inválido
         falhou := false;
         begin
-            perform fn_aderir('Email Ruim', 'email-sem-arroba', null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
+            perform fn_aderir('Email Ruim', 'email-sem-arroba', c3, null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
         exception when others then
             falhou := sqlerrm like '%E-mail inválido%';
         end;
@@ -85,12 +95,12 @@ begin
         -- T04 duas assinaturas ativas
         falhou := false;
         begin
-            perform fn_aderir('Teste Guardião', 'teste.um@example.com', null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
+            perform fn_aderir('Teste Guardião', 'teste.um@example.com', c1, null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
         exception when others then
             falhou := sqlerrm like '%já possui assinatura ativa%';
         end;
         assert falhou, 'T04 segunda assinatura ativa foi aceita';
-        v_log := v_log || 'PASS T04 Guardião não pode ter duas assinaturas ativas'::text;
+        v_log := v_log || 'PASS T04 o mesmo CPF não pode ter duas assinaturas ativas'::text;
 
         -- T05 cobrança mensal
         select count(*) into ativos from assinatura where status = 'ativa';
@@ -116,7 +126,7 @@ begin
         v_log := v_log || 'PASS T07 evento repetido do gateway não produz efeito duas vezes (idempotência)'::text;
 
         -- T08 falha
-        v_a := fn_aderir('Teste Falha', 'teste.falha@example.com', '(11) 90000-9998', 'Instagram',
+        v_a := fn_aderir('Teste Falha', 'teste.falha@example.com', c4, '(11) 90000-9998', 'Instagram',
                          60, 5::smallint, 'pix', true, v_comp - 10);
         perform fn_gerar_cobrancas(v_comp);
         select id into v_c from cobranca where assinatura_id = v_a and competencia = v_comp;
@@ -135,7 +145,7 @@ begin
         v_log := v_log || 'PASS T09 pagamento após falha marca a cobrança como recuperada e tira o Guardião do alerta'::text;
 
         -- T10 inadimplência
-        v_a := fn_aderir('Teste Inadimplente', 'teste.inadimplente@example.com', null, 'WhatsApp',
+        v_a := fn_aderir('Teste Inadimplente', 'teste.inadimplente@example.com', c5, null, 'WhatsApp',
                          30, 15::smallint, 'pix', true, v_comp - 10);
         perform fn_gerar_cobrancas(v_comp);
         select id into v_cinad from cobranca where assinatura_id = v_a and competencia = v_comp;
@@ -149,7 +159,7 @@ begin
         v_log := v_log || 'PASS T10 três falhas seguidas cancelam a assinatura por inadimplência'::text;
 
         -- T11 cancelamento voluntário
-        v_a := fn_aderir('Teste Cancela', 'teste.cancela@example.com', null, 'Site institucional',
+        v_a := fn_aderir('Teste Cancela', 'teste.cancela@example.com', c6, null, 'Site institucional',
                          120, 20::smallint, 'pix', true, v_comp - 10);
         perform fn_gerar_cobrancas(v_comp);
         perform fn_cancelar(v_a, 'voluntario', v_comp + 11);
@@ -164,7 +174,7 @@ begin
 
         -- T12 retorno de ex-Guardião
         select guardiao_id into v_g from assinatura where id = v_a;
-        v_a := fn_aderir('Teste Cancela', 'teste.cancela@example.com', null, 'Site institucional',
+        v_a := fn_aderir('Teste Cancela', 'teste.cancela@example.com', c6, null, 'Site institucional',
                          60, 20::smallint, 'pix', true, v_prox + 19);
         assert (select guardiao_id from assinatura where id = v_a) = v_g, 'T12 reativação criou um novo Guardião';
         assert (select count(*) from assinatura where guardiao_id = v_g) = 2, 'T12 histórico da assinatura anterior perdido';
@@ -193,7 +203,7 @@ begin
         v_log := v_log || 'PASS T15 aviso de atraso para assinatura já cancelada é ignorado sem erro'::text;
 
         -- T16 adesão pela página pública
-        ok := fn_aderir_publico('Visitante Site', 'Visitante.Site@Example.com', '(11) 90000-9990',
+        ok := fn_aderir_publico('Visitante Site', 'Visitante.Site@Example.com', c7, '(11) 90000-9990',
                                 'QR Code na comunidade', 80, 10::smallint, true);
         assert ok, 'T16 adesão pública não retornou sucesso';
         assert exists (select 1 from vw_situacao_guardiao where email = 'visitante.site@example.com'
@@ -201,7 +211,7 @@ begin
                'T16 adesão pública não registrada com a origem';
         falhou := false;
         begin
-            perform fn_aderir_publico('Valor Alto', 'valor.alto@example.com', null, null, 99999, 10::smallint, true);
+            perform fn_aderir_publico('Valor Alto', 'valor.alto@example.com', c8, null, null, 99999, 10::smallint, true);
         exception when others then falhou := true;
         end;
         assert falhou, 'T16 adesão pública aceitou valor fora do limite';
@@ -231,6 +241,53 @@ begin
         assert falhou, 'T18 gerador rodou sobre base já populada';
         v_log := v_log || 'PASS T18 gerador de dados sintéticos se recusa a rodar sobre base existente'::text;
 
+        -- T21 CPF inválido
+        falhou := false;
+        begin
+            perform fn_aderir('CPF Errado', 'cpf.errado@example.com', left(c9, 10) || ((right(c9, 1)::int + 1) % 10)::text,
+                              null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
+        exception when others then falhou := sqlerrm like '%CPF inválido%';
+        end;
+        assert falhou, 'T21 CPF com dígito verificador errado foi aceito';
+        falhou := false;
+        begin
+            perform fn_aderir('CPF Repetido', 'cpf.repetido@example.com', '111.111.111-11', null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
+        exception when others then falhou := sqlerrm like '%CPF inválido%';
+        end;
+        assert falhou, 'T21 CPF com dígitos todos iguais foi aceito';
+        assert fn_cpf_valido('529.982.247-25') and not fn_cpf_valido('529.982.247-24') and not fn_cpf_valido('123'),
+               'T21 validação de CPF incorreta';
+        v_log := v_log || 'PASS T21 CPF inválido é recusado (dígito verificador, números repetidos, tamanho)'::text;
+
+        -- T22 duplicidade por CPF
+        falhou := false;
+        begin
+            perform fn_aderir('Outro Email Mesmo CPF', 'outro.email@example.com', c1, null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
+        exception when others then falhou := sqlerrm like '%CPF já possui assinatura ativa%';
+        end;
+        assert falhou, 'T22 mesmo CPF com outro e-mail foi aceito';
+        falhou := false;
+        begin
+            perform fn_aderir('Mesmo Email Outro CPF', 'teste.um@example.com', c9, null, 'Instagram', 60, 5::smallint, 'pix', true, v_comp - 10);
+        exception when others then falhou := sqlerrm like '%E-mail já cadastrado para outro CPF%';
+        end;
+        assert falhou, 'T22 mesmo e-mail com outro CPF foi aceito';
+        assert (select count(*) from guardiao where email = 'teste.um@example.com') = 1, 'T22 Guardião duplicado';
+        v_log := v_log || 'PASS T22 duplicidade barrada pelo CPF, mesmo com outro e-mail, e e-mail não troca de dono'::text;
+
+        -- T23 CPF nunca gravado em texto aberto
+        assert not exists (select 1 from guardiao g where g::text like '%' || c1 || '%' or g::text like '%' || left(c1, 3) || '.' || substr(c1, 4, 3) || '%'),
+               'T23 CPF encontrado em texto aberto na tabela guardiao';
+        assert (select cpf_hash from guardiao where id = v_g1) ~ '^[0-9a-f]{64}$', 'T23 cpf_hash fora do formato';
+        assert (select cpf_hash from guardiao where id = v_g1) <> encode(extensions.digest(c1, 'sha256'), 'hex'),
+               'T23 cpf_hash sem chave secreta (reversível por força bruta)';
+        v_log := v_log || 'PASS T23 CPF gravado só como impressão digital com chave secreta, nunca em texto aberto'::text;
+
+        -- T24 consulta por CPF
+        assert (select nome from fn_consultar_cpf(c1)) = 'Teste Guardião', 'T24 consulta não encontrou o Guardião';
+        assert not exists (select 1 from fn_consultar_cpf(c9)), 'T24 consulta encontrou CPF não cadastrado';
+        v_log := v_log || 'PASS T24 consulta por CPF encontra o Guardião sem revelar o número'::text;
+
         raise exception 'QA_DESFAZER';
     exception when assert_failure or others then
         if sqlerrm <> 'QA_DESFAZER' then
@@ -257,9 +314,10 @@ begin
                               and not exists (select 1 from evento_gateway e
                                                where e.cobranca_id = c.id and e.tipo = 'PAYMENT_RECEIVED')),
                'T20 cobrança paga sem evento de pagamento do gateway';
+        assert (select count(distinct cpf_hash) from guardiao) = (select count(*) from guardiao), 'T20 CPF repetido na base';
         assert not exists (select 1 from guardiao where email not like '%@example.com'),
                'T20 base de demonstração contém e-mail fora do domínio reservado';
-        v_log := v_log || 'PASS T20 integridade: uma assinatura ativa por Guardião, todo pagamento rastreável, nenhum dado pessoal real'::text;
+        v_log := v_log || 'PASS T20 integridade: uma assinatura ativa por Guardião, um CPF por Guardião, todo pagamento rastreável, nenhum dado pessoal real'::text;
     exception when assert_failure or others then
         v_log := v_log || ('FALHA ' || sqlerrm);
     end;

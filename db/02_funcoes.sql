@@ -37,9 +37,61 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------- CPF
+-- O CPF é o identificador único do Guardião (a Asaas também o exige).
+-- O banco nunca grava o número: guarda só a impressão digital HMAC-SHA256
+-- calculada com a chave secreta de privado.segredo. O mesmo CPF gera
+-- sempre o mesmo código, o que permite barrar duplicidade, mas o código
+-- não permite recuperar o número.
+
+-- Dígitos verificadores a partir dos 9 primeiros dígitos
+create or replace function fn_cpf_digitos(p_base text) returns text
+language plpgsql immutable set search_path = public as $$
+declare s int := 0; d1 int; d2 int; i int;
+begin
+    for i in 1..9 loop s := s + substr(p_base, i, 1)::int * (11 - i); end loop;
+    d1 := case when s % 11 < 2 then 0 else 11 - s % 11 end;
+    s := 0;
+    for i in 1..9 loop s := s + substr(p_base, i, 1)::int * (12 - i); end loop;
+    s := s + d1 * 2;
+    d2 := case when s % 11 < 2 then 0 else 11 - s % 11 end;
+    return d1::text || d2::text;
+end;
+$$;
+
+-- CPF válido: 11 dígitos, não repetidos, dígitos verificadores corretos (aceita pontuação)
+create or replace function fn_cpf_valido(p_cpf text) returns boolean
+language plpgsql immutable set search_path = public as $$
+declare d text := regexp_replace(coalesce(p_cpf, ''), '\D', '', 'g');
+begin
+    if d !~ '^[0-9]{11}$' or d ~ '^(\d)\1{10}$' then
+        return false;
+    end if;
+    return right(d, 2) = fn_cpf_digitos(left(d, 9));
+end;
+$$;
+
+-- Impressão digital do CPF. Só roda dentro do banco: nenhum papel externo a executa.
+create or replace function fn_cpf_hash(p_cpf text) returns text
+language plpgsql stable security definer set search_path = public as $$
+declare v_chave text;
+begin
+    if not fn_cpf_valido(p_cpf) then
+        raise exception 'CPF inválido: confira os números';
+    end if;
+    select valor into v_chave from privado.segredo where chave = 'cpf_hmac';
+    if v_chave is null then
+        raise exception 'Chave de cifragem do CPF não configurada';
+    end if;
+    return encode(extensions.hmac(regexp_replace(p_cpf, '\D', '', 'g'), v_chave, 'sha256'), 'hex');
+end;
+$$;
+
+-- ---------------------------------------------------------------- adesão
 create or replace function fn_aderir(
     p_nome          text,
     p_email         text,
+    p_cpf           text,
     p_telefone      text,
     p_origem        text,
     p_valor         numeric,
@@ -48,12 +100,14 @@ create or replace function fn_aderir(
     p_consentimento boolean default false,
     p_data          date    default current_date
 ) returns uuid
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 declare
     v_origem     smallint;
     v_guardiao   uuid;
+    v_outro      uuid;
     v_assinatura uuid;
     v_email      text := lower(trim(p_email));
+    v_cpf_hash   text;
 begin
     if not coalesce(p_consentimento, false) then
         raise exception 'Consentimento LGPD é obrigatório para aderir ao Clube';
@@ -61,19 +115,35 @@ begin
     if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
         raise exception 'E-mail inválido: %', p_email;
     end if;
+    if not fn_cpf_valido(p_cpf) then
+        raise exception 'CPF inválido: confira os números';
+    end if;
+    v_cpf_hash := fn_cpf_hash(p_cpf);
 
     select id into v_origem from origem where nome = p_origem and ativa;
     if v_origem is null then
         raise exception 'Origem desconhecida ou inativa: %', p_origem;
     end if;
 
-    select id into v_guardiao from guardiao where email = v_email;
+    -- O CPF identifica a pessoa. O e-mail não pode pertencer a outro CPF.
+    select id into v_guardiao from guardiao where cpf_hash = v_cpf_hash;
+    select id into v_outro    from guardiao where email = v_email;
+    if v_outro is not null and v_outro is distinct from v_guardiao then
+        raise exception 'E-mail já cadastrado para outro CPF: %', v_email;
+    end if;
+
     if v_guardiao is null then
-        insert into guardiao (nome, email, telefone, origem_id, consentimento_lgpd, entrou_em)
-        values (trim(p_nome), v_email, p_telefone, v_origem, true, p_data)
+        insert into guardiao (nome, email, cpf_hash, telefone, origem_id, consentimento_lgpd, entrou_em)
+        values (trim(p_nome), v_email, v_cpf_hash, p_telefone, v_origem, true, p_data)
         returning id into v_guardiao;
     elsif exists (select 1 from assinatura where guardiao_id = v_guardiao and status = 'ativa') then
-        raise exception 'Guardião % já possui assinatura ativa', v_email;
+        raise exception 'Este CPF já possui assinatura ativa no Clube';
+    else
+        -- ex-Guardião voltando: mantém o histórico e atualiza o contato
+        update guardiao
+           set email = v_email, telefone = coalesce(p_telefone, telefone),
+               consentimento_lgpd = true, consentimento_em = now()
+         where id = v_guardiao;
     end if;
 
     insert into assinatura (guardiao_id, valor_mensal, dia_vencimento, meio_pagamento, iniciada_em)
@@ -84,6 +154,20 @@ begin
     values (v_guardiao, 'boas_vindas', p_data::timestamptz);
 
     return v_assinatura;
+end;
+$$;
+
+-- Consulta do voluntário: este CPF já é Guardião? Responde sem revelar o número.
+create or replace function fn_consultar_cpf(p_cpf text)
+returns table (nome text, email text, situacao text, valor_mensal numeric, origem text)
+language plpgsql stable security definer set search_path = public as $$
+begin
+    perform exigir_voluntario();
+    return query
+        select v.nome, v.email, v.situacao, v.valor_mensal, v.origem
+          from vw_situacao_guardiao v
+          join guardiao g on g.id = v.guardiao_id
+         where g.cpf_hash = fn_cpf_hash(p_cpf);
 end;
 $$;
 
@@ -227,6 +311,7 @@ $$;
 create or replace function fn_aderir_publico(
     p_nome          text,
     p_email         text,
+    p_cpf           text,
     p_telefone      text,
     p_origem        text,
     p_valor         numeric,
@@ -241,7 +326,7 @@ begin
     if length(coalesce(p_nome, '')) > 120 or length(coalesce(p_telefone, '')) > 30 then
         raise exception 'Dados de contato inválidos';
     end if;
-    perform fn_aderir(p_nome, p_email, p_telefone, coalesce(p_origem, 'Site institucional'),
+    perform fn_aderir(p_nome, p_email, p_cpf, p_telefone, coalesce(p_origem, 'Site institucional'),
                       p_valor, p_dia, 'pix', p_consentimento, current_date);
     return true;
 end;
@@ -287,10 +372,9 @@ end;
 $$;
 
 -- Todas as funções com search_path fixo
-alter function fn_aderir(text, text, text, text, numeric, smallint, text, boolean, date) set search_path = public;
 alter function fn_gerar_cobrancas(date)                                   set search_path = public;
 alter function fn_cancelar(uuid, text, date)                              set search_path = public;
 alter function fn_processar_evento(text, uuid, text, timestamptz)         set search_path = public;
 alter function fn_enviar_impacto_mensal(date, timestamptz)                set search_path = public;
-alter function fn_aderir_publico(text, text, text, text, numeric, smallint, boolean) set search_path = public;
+alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) set search_path = public;
 alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    set search_path = public;

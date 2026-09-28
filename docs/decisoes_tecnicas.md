@@ -1,6 +1,6 @@
 # Principais decisões técnicas
 
-Clube Guardiões do Começo | Instituto Ebenézer | registro atualizado em 28/09/2026
+Clube Guardiões do Começo | Instituto Ebenézer | registro atualizado em 28/09/2026 (CPF cifrado incluído na DT-14)
 
 Cada decisão traz o contexto, a escolha, as alternativas descartadas e a consequência para quem vai operar a solução depois dos autores.
 
@@ -48,9 +48,9 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 
 ## DT-06. Regra de dados: a Asaas é a fonte da verdade
 
-**Decisão.** O banco guarda uma cópia mínima e reconstruível. Nenhum CPF, nenhum dado de cartão. Consentimento LGPD obrigatório na adesão, garantido por restrição do banco.
+**Decisão.** O banco guarda uma cópia mínima e reconstruível. Nenhum dado de cartão. O CPF só entra cifrado (DT-14). Consentimento LGPD obrigatório na adesão, garantido por restrição do banco.
 
-**Consequência.** Perder o banco não perde doador nem pagamento: a base é reconstruída pela API da Asaas.
+**Consequência.** Perder o banco não perde doador nem pagamento: a base é reconstruída pela API da Asaas, onde está o CPF completo.
 
 ## DT-07. Cancelamento automático após três falhas
 
@@ -105,3 +105,25 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 ## DT-13. O que não foi construído, de propósito
 
 CRM próprio, motor de campanhas e sistema de embaixadores. Seriam sistemas que o Instituto não conseguiria manter sem os autores. A segmentação e o histórico de doador usam o que a Asaas já oferece.
+
+## DT-14. CPF como identificador único, guardado cifrado
+
+**Contexto.** A entrega da semana 5 definiu o CPF como campo obrigatório: é o melhor identificador único para evitar doador duplicado e para integrar um CRM no futuro. A Asaas também exige CPF para cadastrar o cliente e emitir cobrança. Uma versão intermediária deste MVP havia retirado o CPF por cautela com a LGPD, sem registrar que isso alterava uma decisão já entregue; esta decisão corrige isso.
+
+**Decisão.** O CPF é obrigatório na adesão e identifica o Guardião. O banco do painel guarda apenas a impressão digital do CPF (HMAC-SHA256) calculada com uma chave secreta aleatória, gerada na instalação e guardada no esquema `privado`, sem acesso pela API. O número completo fica só na Asaas.
+
+**Como funciona.** O mesmo CPF gera sempre o mesmo código. Isso permite:
+- barrar a segunda adesão da mesma pessoa, mesmo com outro e-mail (T22);
+- reconhecer o ex-Guardião que volta e preservar seu histórico (T12);
+- responder ao voluntário se um CPF já é Guardião, sem revelar o número (T24, função `fn_consultar_cpf`).
+
+O código não permite recuperar o número. Sem a chave, nem por força bruta: por isso não se usa um resumo simples (SHA-256 puro), que seria revertido testando os cerca de um bilhão de CPFs possíveis. O controle negativo 2 prova que a suíte detecta essa troca.
+
+**Descartado.**
+- CPF em texto aberto no banco: um vazamento exporia o CPF de todos os doadores de um banco operado por voluntários em plano gratuito.
+- Criptografia reversível: permitiria ler o CPF de volta, o que o painel não precisa; quando for preciso o número (emitir recibo, cruzar com CRM), ele é consultado na Asaas pelo código do cliente.
+- Sem CPF: contradiz a semana 5 e deixa passar duplicidades.
+
+**LGPD.** É pseudonimização (art. 13, §4º): o dado continua sendo pessoal. A cifragem atende aos princípios de necessidade e segurança, mas a conformidade completa depende das pendências institucionais listadas em [lgpd_pendencias.md](lgpd_pendencias.md).
+
+**Em produção.** O CPF passa a ser pedido no checkout da Asaas, e o banco recebe apenas a impressão digital calculada no registro do cliente. Recomenda-se mover a chave para o cofre do Supabase (Vault).

@@ -34,7 +34,14 @@ create policy leitura_voluntario on evento_gateway for select to authenticated u
 -- 2. Privilégios de tabela explícitos (não depender dos padrões do projeto)
 revoke all on all tables in schema public from anon, authenticated;
 grant usage on schema public to anon, authenticated;
-grant select on parametro, origem, guardiao, assinatura, cobranca, comunicacao, evento_gateway to authenticated;
+grant select on parametro, origem, assinatura, cobranca, comunicacao, evento_gateway to authenticated;
+-- Guardião: o voluntário lê tudo, menos o CPF cifrado (coluna cpf_hash fica de fora)
+grant select (id, nome, email, telefone, origem_id, consentimento_lgpd, consentimento_em,
+              entrou_em, id_externo_gateway, criado_em) on guardiao to authenticated;
+
+-- Esquema privado (chave do CPF): nenhum acesso externo
+revoke all on schema privado from anon, authenticated;
+revoke all on all tables in schema privado from anon, authenticated;
 grant select on origem to anon;
 
 -- 3. Views: respeitam as políticas de quem consulta; só o voluntário lê
@@ -49,22 +56,24 @@ grant select on vw_situacao_guardiao, vw_alerta_churn, vw_metricas_mensais, vw_p
 
 -- 4. Funções: executam com o dono do banco (security definer) para gravar
 --    passando pelas regras, e só são chamáveis por quem deve chamá-las
-alter function fn_aderir(text, text, text, text, numeric, smallint, text, boolean, date) security definer;
+alter function fn_aderir(text, text, text, text, text, numeric, smallint, text, boolean, date) security definer;
 alter function fn_gerar_cobrancas(date)                                   security definer;
 alter function fn_cancelar(uuid, text, date)                              security definer;
 alter function fn_processar_evento(text, uuid, text, timestamptz)         security definer;
 alter function fn_enviar_impacto_mensal(date, timestamptz)                security definer;
-alter function fn_aderir_publico(text, text, text, text, numeric, smallint, boolean) security definer;
+alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) security definer;
 alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    security definer;
 
 revoke all on all functions in schema public from public, anon, authenticated;
 
-grant execute on function fn_aderir_publico(text, text, text, text, numeric, smallint, boolean) to anon, authenticated;
+grant execute on function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) to anon, authenticated;
+grant execute on function fn_consultar_cpf(text)                                    to authenticated;
 grant execute on function eh_voluntario() to authenticated;
 grant execute on function fn_gerar_cobrancas(date)                                   to authenticated;
 grant execute on function fn_cancelar(uuid, text, date)                              to authenticated;
 grant execute on function fn_processar_evento(text, uuid, text, timestamptz)         to authenticated;
 grant execute on function fn_enviar_impacto_mensal(date, timestamptz)                to authenticated;
 grant execute on function fn_simular_gateway(date, numeric, numeric, timestamptz)    to authenticated;
--- fn_aderir (interna, usada por fn_aderir_publico) e fn_gerar_dados_sinteticos:
+-- fn_aderir (interna, usada por fn_aderir_publico), fn_cpf_hash, fn_cpf_valido,
+-- fn_cpf_digitos e fn_gerar_dados_sinteticos:
 -- sem grant. Só pelo SQL Editor.

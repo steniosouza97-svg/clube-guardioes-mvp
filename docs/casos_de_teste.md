@@ -6,11 +6,11 @@ Três camadas de teste, todas automatizadas:
 
 | Camada | Onde roda | Quantidade | Resultado |
 |---|---|---|---|
-| Fluxo principal (banco) | Supabase e PostgreSQL local | 20 testes | 20 aprovados |
-| Regras de acesso (banco) | Supabase e PostgreSQL local | 8 testes | 8 aprovados |
-| Interface ponta a ponta | Chromium sobre réplica local do Supabase | 16 passos | 16 aprovados |
+| Fluxo principal (banco) | Supabase e PostgreSQL local | 24 testes | 24 aprovados |
+| Regras de acesso (banco) | Supabase e PostgreSQL local | 10 testes | 10 aprovados |
+| Interface ponta a ponta | Chromium sobre réplica local do Supabase | 18 passos | 18 aprovados |
 
-Mais um **controle negativo**, que prova que os testes detectam defeitos.
+Mais dois **controles negativos**, que provam que os testes detectam defeitos.
 
 ## Como rodar
 
@@ -28,6 +28,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | Etapa do fluxo | Slide 5 do deck | Banco | Interface |
 |---|---|---|---|
 | Adesão | Passo 1 | T01 a T04, T12, T16 | E01, E02, E03, E15 |
+| CPF: validação, duplicidade, cifragem, consulta | Passo 1 | T21 a T24 | E01, E02, E03, E07b |
 | Cobrança mensal | Passo 1 | T05 | E08 |
 | Pix pago e agradecimento | Passo 2 | T06, T07, T17 | E09 |
 | Notícia mensal de impacto | Passo 3 | T13 | E13 |
@@ -35,7 +36,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | Cancelamento | Passo 4 | T10, T11, T15 | E12, E14 |
 | Painel e prestação de contas | Slides 8, 9 e 11 | T14 | E05, E06, E07 |
 | Qualidade e integridade dos dados | Handover | T18, T19, T20 | E17 |
-| Acesso e privacidade | Handover | S01 a S08 | E04 |
+| Acesso e privacidade | Handover | S01 a S10 | E04 |
 | Uso no celular | Handover | | E16 |
 
 ## Fluxo principal (banco)
@@ -45,7 +46,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T01 | Adesão com dados válidos e consentimento | Guardião criado, e-mail normalizado, assinatura ativa, boas-vindas |
 | T02 | Adesão sem consentimento LGPD | Rejeitada |
 | T03 | Adesão com e-mail inválido | Rejeitada |
-| T04 | Segunda adesão com assinatura ainda ativa | Rejeitada |
+| T04 | Segunda adesão do mesmo CPF com assinatura ainda ativa | Rejeitada |
 | T05 | Gerar cobranças do mês duas vezes | Uma cobrança por Guardião ativo, sem duplicar, no dia escolhido |
 | T06 | Pix pago | Cobrança paga, agradecimento enviado |
 | T07 | O mesmo aviso de pagamento chega de novo | Nenhum efeito adicional (idempotência) |
@@ -61,7 +62,11 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T17 | Simulador do gateway no mês inteiro | Nenhuma cobrança fica pendente; um aviso por cobrança, pelo caminho do webhook |
 | T18 | Gerador sobre base já populada | Recusa rodar |
 | T19 | Calibração dos dados sintéticos | Ticket entre R$ 70 e R$ 90, churn entre 1% e 4%, base a até 15% do plano |
-| T20 | Integridade | Uma assinatura ativa por Guardião, todo pagamento com aviso do gateway, nenhum e-mail real |
+| T20 | Integridade | Uma assinatura ativa por Guardião, um CPF por Guardião, todo pagamento com aviso do gateway, nenhum e-mail real |
+| T21 | CPF com dígito verificador errado, com números repetidos ou curto | Recusado |
+| T22 | Mesmo CPF com outro e-mail; mesmo e-mail com outro CPF | Os dois recusados; nenhum Guardião duplicado |
+| T23 | Como o CPF fica guardado | Nunca em texto aberto; só impressão digital com chave secreta (não é SHA-256 simples) |
+| T24 | Voluntário consulta um CPF | Encontra o Guardião cadastrado; CPF não cadastrado retorna vazio |
 
 ## Regras de acesso (banco)
 
@@ -75,18 +80,21 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | S06 | Voluntário cadastrado | Lê o painel e executa o fluxo |
 | S07 | Voluntário altera tabela sem passar pelas funções | Bloqueado |
 | S08 | Chamar o gerador de dados sintéticos pela API | Bloqueado |
+| S09 | Anônimo consulta CPF | Bloqueado |
+| S10 | Voluntário tenta ler o CPF cifrado, a chave ou calcular impressões digitais | Bloqueado nos três casos |
 
 ## Interface ponta a ponta
 
 | ID | Passo | Resultado esperado |
 |---|---|---|
-| E01 | Enviar a adesão sem nome e sem consentimento | Mensagens de validação |
-| E02 | Aderir pelo link do QR Code com valor livre de R$ 150 | Guardião gravado com valor, dia e canal QR Code |
-| E03 | Aderir de novo com o mesmo e-mail em maiúsculas | Recusado com mensagem clara |
+| E01 | Enviar a adesão sem nome, com CPF inválido e sem consentimento | Mensagens de validação; CPF formatado enquanto digita |
+| E02 | Aderir pelo link do QR Code com valor livre de R$ 150 | Guardião gravado com valor, dia e canal QR Code; CPF só cifrado |
+| E03 | Mesmo CPF com outro e-mail; mesmo e-mail com outro CPF | Os dois recusados com mensagem clara |
 | E04 | Entrar com senha errada e com conta não voluntária | Acesso negado nos dois casos |
 | E05 | Entrar como voluntário | Resumo com o mesmo número de ativos do banco |
 | E06 | Baixar o CSV de métricas | 12 meses para a prestação de contas |
 | E07 | Buscar a nova Guardiã e abrir o histórico | Mostra a mensagem de boas-vindas |
+| E07b | Consultar um CPF no painel | Encontra a Guardiã; CPF não cadastrado retorna "nenhum" |
 | E08 | Gerar cobranças de out/2026 duas vezes | 276 criadas, segunda vez não duplica |
 | E09 | Simular a Asaas no mês | Todas processadas; nenhuma pendente |
 | E10 | Abrir o alerta de churn | Lista com prioridade e link de WhatsApp pronto |
@@ -98,9 +106,12 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | E16 | Abrir a adesão no celular | Cabe na tela, sem rolagem lateral |
 | E17 | Todo o roteiro | Nenhum erro de JavaScript no console |
 
-## Controle negativo
+## Controles negativos
 
-A idempotência do webhook foi deliberadamente quebrada numa cópia do banco. A suíte parou no T07 com "evento repetido não foi detectado". Um teste que nunca falha não prova nada; este prova.
+1. A idempotência do webhook foi deliberadamente quebrada numa cópia do banco. A suíte parou no T07 com "evento repetido não foi detectado".
+2. A cifragem do CPF foi trocada por um SHA-256 simples, sem chave. A suíte parou no T23 com "cpf_hash sem chave secreta".
+
+Um teste que nunca falha não prova nada; estes provam.
 
 ## Defeitos encontrados pelos testes
 
@@ -115,8 +126,8 @@ A idempotência do webhook foi deliberadamente quebrada numa cópia do banco. A 
 
 | Arquivo | Conteúdo |
 |---|---|
-| `evidencias/testes_supabase_2026-09-28.log` | Execução no Supabase: 20 de fluxo e 8 de acesso aprovados |
-| `evidencias/testes_local_2026-09-28_1236.log` | Mesma execução em PostgreSQL 16 local |
-| `evidencias/controle_negativo_2026-09-28.log` | Controle negativo |
-| `evidencias/e2e/resultado_e2e.log` | Os 16 passos de interface aprovados |
+| `evidencias/testes_supabase_2026-09-28.log` | Execução no Supabase: 24 de fluxo e 10 de acesso aprovados |
+| `evidencias/testes_local_2026-09-28_1612.log` | Mesma execução em PostgreSQL 16 local |
+| `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
+| `evidencias/e2e/resultado_e2e.log` | Os 18 passos de interface aprovados |
 | `evidencias/e2e/*.png` | Capturas de tela de cada tela do roteiro |

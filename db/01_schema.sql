@@ -5,8 +5,23 @@
 --
 -- Regra de dados: a Asaas (gateway de pagamento) é a fonte da verdade.
 -- Este banco guarda uma cópia mínima e reconstruível a partir dela.
--- Não armazenar dado de cartão nem CPF.
+-- Não armazenar dado de cartão. O CPF só é guardado cifrado (cpf_hash).
 -- =====================================================================
+
+-- Criptografia: pgcrypto (no Supabase já vem instalada no esquema extensions)
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
+
+-- Segredos do banco, fora do alcance da API: nenhum papel externo acessa este esquema.
+-- A chave do CPF é gerada aleatoriamente na instalação e nunca sai do banco.
+create schema if not exists privado;
+revoke all on schema privado from public;
+create table privado.segredo (
+    chave  text primary key,
+    valor  text not null
+);
+insert into privado.segredo (chave, valor)
+values ('cpf_hmac', encode(extensions.gen_random_bytes(32), 'hex'));
 
 -- Parâmetros de negócio editáveis pelo Instituto, sem mexer em código
 create table parametro (
@@ -31,6 +46,8 @@ create table guardiao (
     id                  uuid primary key default gen_random_uuid(),
     nome                text not null check (length(trim(nome)) >= 2),
     email               text not null unique check (email = lower(email)),
+    cpf_hash            text not null unique check (cpf_hash ~ '^[0-9a-f]{64}$'),
+                            -- CPF cifrado (HMAC-SHA256 com chave secreta). O número nunca é gravado.
     telefone            text,
     origem_id           smallint not null references origem (id),
     consentimento_lgpd  boolean not null check (consentimento_lgpd),
