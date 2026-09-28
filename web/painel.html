@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do Clube | Instituto Ebenézer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2216%22 fill=%22%231b6b3a%22/%3E%3Cpath d=%22M16 8c-4 4-6 7-6 10a6 6 0 0 0 12 0c0-3-2-6-6-10z%22 fill=%22%23fff%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="tela-login" class="login cartao" hidden>
+  <h1>Painel do Clube Guardiões</h1>
+  <p style="color:var(--tinta-2);font-size:.9rem">Acesso restrito aos voluntários cadastrados pelo Instituto.</p>
+  <form id="form-login">
+    <div class="campo"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="username" required></div>
+    <div class="campo"><label for="login-senha">Senha</label><input id="login-senha" type="password" autocomplete="current-password" required></div>
+    <button class="btn" style="width:100%" type="submit">Entrar</button>
+    <div id="login-msg" aria-live="polite"></div>
+  </form>
+</section>
+
+<!-- ============ PAINEL ============ -->
+<div id="tela-painel" hidden>
+  <header class="painel-topo">
+    <div class="cont">
+      <div class="marca">Clube Guardiões do Começo<small>Painel do voluntário</small></div>
+      <div class="quem"><span id="quem-email"></span><button class="btn sec peq" id="btn-sair">Sair</button></div>
+    </div>
+  </header>
+  <nav class="abas" aria-label="Seções do painel">
+    <div class="cont" role="tablist">
+      <button role="tab" data-aba="resumo" aria-selected="true">Resumo</button>
+      <button role="tab" data-aba="alerta" aria-selected="false">Alerta de churn <span class="badge" id="badge-alerta" hidden></span></button>
+      <button role="tab" data-aba="guardioes" aria-selected="false">Guardiões</button>
+      <button role="tab" data-aba="canais" aria-selected="false">Canais</button>
+      <button role="tab" data-aba="operacao" aria-selected="false">Operação do mês</button>
+    </div>
+  </nav>
+
+  <main class="painel">
+    <div id="painel-msg" aria-live="polite"></div>
+
+    <!-- RESUMO -->
+    <section class="aba" id="aba-resumo" role="tabpanel">
+      <div class="cabecalho-aba">
+        <div><h2>Resumo</h2><p id="resumo-ref">Último mês fechado</p></div>
+        <button class="btn sec peq" id="btn-exportar">Baixar métricas mensais (CSV) para prestação de contas</button>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="grade-2">
+        <div class="grafico" id="graf-base"><h3>Guardiões ativos no fim de cada mês</h3><p class="nota">Linha tracejada: meta de 100 Guardiões</p></div>
+        <div class="grafico" id="graf-receita"><h3>Receita recorrente recebida por mês</h3><p class="nota">Linha tracejada: custeio mensal realizado em 2025</p></div>
+      </div>
+      <h3 style="margin-top:1.25rem;font-size:1rem">Métricas mensais</h3>
+      <div class="tabela-wrap"><table id="tab-metricas"></table></div>
+    </section>
+
+    <!-- ALERTA -->
+    <section class="aba" id="aba-alerta" role="tabpanel" hidden>
+      <div class="cabecalho-aba">
+        <div><h2>Alerta de churn</h2><p>Guardiões com Pix vencido e não pago. A Asaas já enviou a mensagem de recuperação; os de prioridade alta pedem contato pessoal.</p></div>
+      </div>
+      <div class="tabela-wrap"><table id="tab-alerta"></table></div>
+    </section>
+
+    <!-- GUARDIÕES -->
+    <section class="aba" id="aba-guardioes" role="tabpanel" hidden>
+      <div class="cabecalho-aba">
+        <div><h2>Guardiões</h2><p>Clique em um nome para ver o histórico de cobranças e mensagens.</p></div>
+        <button class="btn peq" id="btn-nova-adesao">Registrar adesão</button>
+      </div>
+      <div class="filtros">
+        <div class="campo"><label for="busca">Buscar</label><input id="busca" type="text" placeholder="Nome ou e-mail"></div>
+        <div class="campo"><label for="filtro-sit">Situação</label>
+          <select id="filtro-sit"><option value="">Todas</option><option value="ativo">Ativo</option><option value="em_risco">Em risco</option><option value="cancelado">Cancelado</option></select></div>
+        <div class="campo"><label for="filtro-origem">Canal</label><select id="filtro-origem"><option value="">Todos</option></select></div>
+      </div>
+      <p id="contagem-guardioes" style="font-size:.85rem;color:var(--tinta-2);margin:.25rem 0 .5rem"></p>
+      <div class="tabela-wrap"><table id="tab-guardioes"></table></div>
+    </section>
+
+    <!-- CANAIS -->
+    <section class="aba" id="aba-canais" role="tabpanel" hidden>
+      <div class="cabecalho-aba">
+        <div><h2>Resultado por canal de aquisição</h2><p>Mede onde as 56 horas mensais de aquisição dão mais retorno.</p></div>
+      </div>
+      <div class="tabela-wrap"><table id="tab-canais"></table></div>
+    </section>
+
+    <!-- OPERAÇÃO -->
+    <section class="aba" id="aba-operacao" role="tabpanel" hidden>
+      <div class="cabecalho-aba">
+        <div><h2>Operação do mês</h2><p>A rotina mensal do Clube, em três passos.</p></div>
+        <div class="campo" style="margin:0;min-width:200px"><label for="competencia">Mês de competência</label><input id="competencia" type="month"></div>
+      </div>
+      <div class="acoes-mes">
+        <div class="acao"><h3>1. Gerar cobranças</h3><p>Cria o Pix do mês para cada Guardião ativo. Em produção, a própria assinatura da Asaas faz isso.</p>
+          <button class="btn" id="btn-gerar">Gerar cobranças do mês</button></div>
+        <div class="acao" id="acao-simular"><span class="tag">Somente demonstração</span><h3>2. Simular a Asaas</h3>
+          <p>Emite os avisos de pagamento e de atraso que a Asaas enviaria, pelo mesmo caminho do webhook real.</p>
+          <button class="btn" id="btn-simular">Simular pagamentos do mês</button></div>
+        <div class="acao"><h3>3. Enviar notícia de impacto</h3><p>Registra a mensagem mensal de prestação de contas para todos os Guardiões ativos, uma vez por mês.</p>
+          <button class="btn" id="btn-impacto">Enviar notícia do mês</button></div>
+      </div>
+      <div class="kpis" id="kpis-mes"></div>
+      <div class="filtros">
+        <div class="campo"><label for="filtro-cob">Status da cobrança</label>
+          <select id="filtro-cob"><option value="">Todos</option><option value="pendente">Pendente</option><option value="pago">Pago</option>
+            <option value="falhou">Falhou</option><option value="recuperado">Recuperado</option><option value="cancelado">Cancelado</option></select></div>
+      </div>
+      <div class="tabela-wrap"><table id="tab-cobrancas"></table></div>
+    </section>
+  </main>
+</div>
+
+<!-- detalhe do Guardião -->
+<dialog id="dlg-guardiao" aria-labelledby="dlg-g-titulo">
+  <div class="dlg-cab"><h2 id="dlg-g-titulo" style="font-size:1.1rem;margin:0"></h2><button class="btn sec peq" data-fechar>Fechar</button></div>
+  <div class="dlg-corpo" id="dlg-g-corpo"></div>
+</dialog>
+
+<!-- adesão pelo voluntário -->
+<dialog id="dlg-adesao" aria-labelledby="dlg-a-titulo">
+  <div class="dlg-cab"><h2 id="dlg-a-titulo" style="font-size:1.1rem;margin:0">Registrar adesão</h2><button class="btn sec peq" data-fechar>Fechar</button></div>
+  <form class="dlg-corpo" id="form-adesao-painel">
+    <p style="font-size:.85rem;color:var(--tinta-2);margin-top:0">Para quem aderiu pessoalmente, por exemplo em evento ou pelo QR Code na comunidade.</p>
+    <div class="campo"><label for="a-nome">Nome</label><input id="a-nome" type="text" required maxlength="120"></div>
+    <div class="campo"><label for="a-email">E-mail</label><input id="a-email" type="email" required></div>
+    <div class="campo"><label for="a-tel">WhatsApp</label><input id="a-tel" type="tel" maxlength="30"></div>
+    <div class="grade-2">
+      <div class="campo"><label for="a-valor">Valor mensal (R$)</label><input id="a-valor" type="number" min="10" max="5000" value="80" required></div>
+      <div class="campo"><label for="a-dia">Dia do Pix</label><select id="a-dia"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></div>
+    </div>
+    <div class="campo"><label for="a-origem">Canal</label><select id="a-origem"></select></div>
+    <label class="consent campo"><input type="checkbox" id="a-consent"><span>A pessoa autorizou o uso dos dados para a doação mensal e as notícias do Clube (LGPD).</span></label>
+    <button class="btn" type="submit">Registrar</button>
+    <div id="a-msg" aria-live="polite"></div>
+  </form>
+</dialog>
+
+<script src="vendor/supabase-2.117.2.js"></script>
+<script src="config.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/painel.js"></script>
+</body>
+</html>

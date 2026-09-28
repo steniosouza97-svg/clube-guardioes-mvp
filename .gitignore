@@ -1,0 +1,5 @@
+.env
+*.env
+evidencias/*.tmp
+__pycache__/
+.DS_Store

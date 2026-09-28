@@ -1,0 +1,8 @@
+== Controle negativo: a suíte detecta defeitos?
+== Banco cópia (clube_sabotado), PostgreSQL 16 local, 28/09/2026
+== Sabotagem: removida a chave primária de evento_gateway e a checagem de evento repetido em fn_processar_evento
+...
+PASS T05 cobrança mensal gerada para todos os 276 Guardiões ativos, sem duplicar
+PASS T06 pagamento aprovado marca a cobrança como paga e envia agradecimento
+FALHA T07 evento repetido não foi detectado
+== Resultado esperado: a suíte para no T07. Confirmado.

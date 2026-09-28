@@ -1,0 +1,70 @@
+-- =====================================================================
+-- 06_supabase_seguranca.sql: aplicar SOMENTE no Supabase
+-- (depende dos papéis anon e authenticated, que só existem lá)
+--
+-- Regras:
+--   - Visitante anônimo (página pública do Clube): lê a lista de origens
+--     e chama fn_aderir_publico. Nada mais.
+--   - Voluntário (login no Supabase E e-mail na tabela voluntario): lê
+--     tudo e chama as funções do fluxo. Criar conta não dá acesso.
+--   - Nenhum papel grava direto nas tabelas: toda gravação passa pelas
+--     funções, que validam as regras de negócio.
+--   - O gerador de dados sintéticos só roda pelo SQL Editor.
+-- =====================================================================
+
+-- 1. Segurança por linha em todas as tabelas
+alter table parametro      enable row level security;
+alter table origem         enable row level security;
+alter table guardiao       enable row level security;
+alter table assinatura     enable row level security;
+alter table cobranca       enable row level security;
+alter table comunicacao    enable row level security;
+alter table evento_gateway enable row level security;
+alter table voluntario     enable row level security;   -- sem política: só via SQL Editor
+
+create policy leitura_voluntario on parametro      for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on origem         for select to authenticated using (eh_voluntario());
+create policy leitura_publica    on origem         for select to anon          using (ativa);
+create policy leitura_voluntario on guardiao       for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on assinatura     for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on cobranca       for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on comunicacao    for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on evento_gateway for select to authenticated using (eh_voluntario());
+
+-- 2. Privilégios de tabela explícitos (não depender dos padrões do projeto)
+revoke all on all tables in schema public from anon, authenticated;
+grant usage on schema public to anon, authenticated;
+grant select on parametro, origem, guardiao, assinatura, cobranca, comunicacao, evento_gateway to authenticated;
+grant select on origem to anon;
+
+-- 3. Views: respeitam as políticas de quem consulta; só o voluntário lê
+alter view vw_situacao_guardiao set (security_invoker = true);
+alter view vw_alerta_churn      set (security_invoker = true);
+alter view vw_metricas_mensais  set (security_invoker = true);
+alter view vw_painel_resumo     set (security_invoker = true);
+alter view vw_cobrancas_mes     set (security_invoker = true);
+alter view vw_origem_resultado  set (security_invoker = true);
+grant select on vw_situacao_guardiao, vw_alerta_churn, vw_metricas_mensais, vw_painel_resumo,
+                vw_cobrancas_mes, vw_origem_resultado to authenticated;
+
+-- 4. Funções: executam com o dono do banco (security definer) para gravar
+--    passando pelas regras, e só são chamáveis por quem deve chamá-las
+alter function fn_aderir(text, text, text, text, numeric, smallint, text, boolean, date) security definer;
+alter function fn_gerar_cobrancas(date)                                   security definer;
+alter function fn_cancelar(uuid, text, date)                              security definer;
+alter function fn_processar_evento(text, uuid, text, timestamptz)         security definer;
+alter function fn_enviar_impacto_mensal(date, timestamptz)                security definer;
+alter function fn_aderir_publico(text, text, text, text, numeric, smallint, boolean) security definer;
+alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    security definer;
+
+revoke all on all functions in schema public from public, anon, authenticated;
+
+grant execute on function fn_aderir_publico(text, text, text, text, numeric, smallint, boolean) to anon, authenticated;
+grant execute on function eh_voluntario() to authenticated;
+grant execute on function fn_gerar_cobrancas(date)                                   to authenticated;
+grant execute on function fn_cancelar(uuid, text, date)                              to authenticated;
+grant execute on function fn_processar_evento(text, uuid, text, timestamptz)         to authenticated;
+grant execute on function fn_enviar_impacto_mensal(date, timestamptz)                to authenticated;
+grant execute on function fn_simular_gateway(date, numeric, numeric, timestamptz)    to authenticated;
+-- fn_aderir (interna, usada por fn_aderir_publico) e fn_gerar_dados_sinteticos:
+-- sem grant. Só pelo SQL Editor.

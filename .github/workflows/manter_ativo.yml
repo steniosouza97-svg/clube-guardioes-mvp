@@ -1,0 +1,24 @@
+# Mantém o projeto Supabase (plano gratuito) ativo.
+# O plano gratuito pausa projetos com baixa atividade de banco por uma semana.
+# Esta rotina faz uma consulta leve a cada 3 dias. Custo: zero.
+#
+# Configurar em Settings > Secrets and variables > Actions:
+#   SUPABASE_URL       ex.: https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY  chave publicável do projeto (sb_publishable_...)
+name: manter-supabase-ativo
+on:
+  schedule:
+    - cron: "17 11 */3 * *"
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta leve ao banco
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/origem?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "HTTP $code"
+          # 200: o banco respondeu (a lista de canais é pública).
+          [ "$code" = "200" ]

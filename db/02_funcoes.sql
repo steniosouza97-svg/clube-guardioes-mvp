@@ -1,0 +1,296 @@
+-- =====================================================================
+-- 02_funcoes.sql: o fluxo principal do Clube, implementado no banco
+--
+--   1. fn_aderir               adesão do Guardião
+--   2. fn_gerar_cobrancas      cobrança mensal
+--   3. fn_processar_evento     pagamento ou falha (espelha o webhook da Asaas)
+--   4. fn_enviar_impacto_mensal mensagem mensal de impacto
+--   5. fn_cancelar             cancelamento voluntário ou por inadimplência
+--
+-- No MVP, fn_processar_evento é chamada pela interface para simular o
+-- gateway. Em produção, a mesma função é chamada pelo endpoint que recebe
+-- o webhook da Asaas. A interface nunca guarda a chave de API.
+-- =====================================================================
+
+-- Quem está chamando pode operar o painel?
+--   - conexão direta ao banco (SQL Editor, psql, testes): sim
+--   - chamada da API com chave de serviço (webhook em produção): sim
+--   - chamada da API com login: só se o e-mail estiver em voluntario
+--   - visitante anônimo: não
+create or replace function eh_voluntario() returns boolean
+language sql stable security definer set search_path = public as $$
+    select case
+        when coalesce(current_setting('request.jwt.claims', true), '') = '' then true
+        when (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'service_role' then true
+        else exists (select 1 from voluntario
+                      where ativo
+                        and email = lower(current_setting('request.jwt.claims', true)::jsonb ->> 'email'))
+    end
+$$;
+
+create or replace function exigir_voluntario() returns void
+language plpgsql stable set search_path = public as $$
+begin
+    if not eh_voluntario() then
+        raise exception 'Acesso restrito aos voluntários cadastrados do Clube' using errcode = '42501';
+    end if;
+end;
+$$;
+
+create or replace function fn_aderir(
+    p_nome          text,
+    p_email         text,
+    p_telefone      text,
+    p_origem        text,
+    p_valor         numeric,
+    p_dia           smallint,
+    p_meio          text    default 'pix',
+    p_consentimento boolean default false,
+    p_data          date    default current_date
+) returns uuid
+language plpgsql as $$
+declare
+    v_origem     smallint;
+    v_guardiao   uuid;
+    v_assinatura uuid;
+    v_email      text := lower(trim(p_email));
+begin
+    if not coalesce(p_consentimento, false) then
+        raise exception 'Consentimento LGPD é obrigatório para aderir ao Clube';
+    end if;
+    if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
+        raise exception 'E-mail inválido: %', p_email;
+    end if;
+
+    select id into v_origem from origem where nome = p_origem and ativa;
+    if v_origem is null then
+        raise exception 'Origem desconhecida ou inativa: %', p_origem;
+    end if;
+
+    select id into v_guardiao from guardiao where email = v_email;
+    if v_guardiao is null then
+        insert into guardiao (nome, email, telefone, origem_id, consentimento_lgpd, entrou_em)
+        values (trim(p_nome), v_email, p_telefone, v_origem, true, p_data)
+        returning id into v_guardiao;
+    elsif exists (select 1 from assinatura where guardiao_id = v_guardiao and status = 'ativa') then
+        raise exception 'Guardião % já possui assinatura ativa', v_email;
+    end if;
+
+    insert into assinatura (guardiao_id, valor_mensal, dia_vencimento, meio_pagamento, iniciada_em)
+    values (v_guardiao, p_valor, p_dia, p_meio, p_data)
+    returning id into v_assinatura;
+
+    insert into comunicacao (guardiao_id, tipo, enviada_em)
+    values (v_guardiao, 'boas_vindas', p_data::timestamptz);
+
+    return v_assinatura;
+end;
+$$;
+
+create or replace function fn_gerar_cobrancas(p_competencia date)
+returns integer
+language plpgsql as $$
+declare
+    v_comp date := date_trunc('month', p_competencia)::date;
+    v_qtd  integer;
+begin
+    perform exigir_voluntario();
+    insert into cobranca (assinatura_id, competencia, valor, vencimento)
+    select a.id,
+           v_comp,
+           a.valor_mensal,
+           make_date(extract(year from v_comp)::int, extract(month from v_comp)::int, a.dia_vencimento)
+      from assinatura a
+     where a.status = 'ativa'
+       and a.iniciada_em < (v_comp + interval '1 month')
+    on conflict (assinatura_id, competencia) do nothing;
+    get diagnostics v_qtd = row_count;
+    return v_qtd;
+end;
+$$;
+
+create or replace function fn_cancelar(
+    p_assinatura uuid,
+    p_motivo     text,
+    p_data       date default current_date
+) returns void
+language plpgsql as $$
+declare
+    v_guardiao uuid;
+begin
+    perform exigir_voluntario();
+    update assinatura
+       set status = 'cancelada', cancelada_em = greatest(p_data, iniciada_em), motivo_cancelamento = p_motivo
+     where id = p_assinatura and status = 'ativa'
+    returning guardiao_id into v_guardiao;
+    if v_guardiao is null then
+        raise exception 'Assinatura % não encontrada ou já cancelada', p_assinatura;
+    end if;
+
+    update cobranca set status = 'cancelado'
+     where assinatura_id = p_assinatura and status = 'pendente';
+
+    insert into comunicacao (guardiao_id, tipo, enviada_em)
+    values (v_guardiao, 'cancelamento', p_data::timestamptz);
+end;
+$$;
+
+create or replace function fn_processar_evento(
+    p_id_evento text,
+    p_cobranca  uuid,
+    p_tipo      text,
+    p_quando    timestamptz default now()
+) returns text
+language plpgsql as $$
+declare
+    v_cob        cobranca%rowtype;
+    v_guardiao   uuid;
+    v_novo       text;
+    v_tentativas smallint;
+    v_limite     smallint := coalesce((select valor from parametro where chave = 'tentativas_ate_cancelar'), 3);
+begin
+    perform exigir_voluntario();
+    insert into evento_gateway (id_evento, tipo, cobranca_id, recebido_em)
+    values (p_id_evento, p_tipo, p_cobranca, p_quando)
+    on conflict (id_evento) do nothing;
+    if not found then
+        return 'duplicado';
+    end if;
+
+    select * into v_cob from cobranca where id = p_cobranca for update;
+    if not found then
+        raise exception 'Cobrança % não encontrada', p_cobranca;
+    end if;
+    select guardiao_id into v_guardiao from assinatura where id = v_cob.assinatura_id;
+
+    if p_tipo = 'PAYMENT_RECEIVED' then
+        if v_cob.status in ('pago', 'recuperado') then
+            return 'ja_pago';
+        elsif v_cob.status = 'cancelado' then
+            raise exception 'Pagamento recebido para cobrança cancelada %', p_cobranca;
+        end if;
+        v_novo := case when v_cob.status = 'falhou' then 'recuperado' else 'pago' end;
+        update cobranca set status = v_novo, pago_em = p_quando where id = p_cobranca;
+        insert into comunicacao (guardiao_id, cobranca_id, competencia, tipo, enviada_em)
+        values (v_guardiao, p_cobranca, v_cob.competencia, 'agradecimento', p_quando);
+        return v_novo;
+
+    elsif p_tipo = 'PAYMENT_OVERDUE' then
+        -- cobrança já resolvida, ou assinatura já encerrada: não há o que recuperar
+        if v_cob.status not in ('pendente', 'falhou')
+           or exists (select 1 from assinatura where id = v_cob.assinatura_id and status = 'cancelada') then
+            return 'ignorado';
+        end if;
+        update cobranca set status = 'falhou', tentativas = tentativas + 1
+         where id = p_cobranca
+        returning tentativas into v_tentativas;
+        insert into comunicacao (guardiao_id, cobranca_id, competencia, tipo, enviada_em)
+        values (v_guardiao, p_cobranca, v_cob.competencia, 'recuperacao', p_quando);
+        if v_tentativas >= v_limite then
+            perform fn_cancelar(v_cob.assinatura_id, 'inadimplencia', p_quando::date);
+            return 'cancelado_por_inadimplencia';
+        end if;
+        return 'falhou';
+    end if;
+
+    raise exception 'Tipo de evento não suportado: %', p_tipo;
+end;
+$$;
+
+create or replace function fn_enviar_impacto_mensal(p_competencia date, p_quando timestamptz default now())
+returns integer
+language plpgsql as $$
+declare
+    v_comp date := date_trunc('month', p_competencia)::date;
+    v_qtd  integer;
+begin
+    perform exigir_voluntario();
+    insert into comunicacao (guardiao_id, competencia, tipo, enviada_em)
+    select a.guardiao_id, v_comp, 'impacto_mensal', p_quando
+      from assinatura a
+     where a.status = 'ativa'
+    on conflict (guardiao_id, competencia) where tipo = 'impacto_mensal' do nothing;
+    get diagnostics v_qtd = row_count;
+    return v_qtd;
+end;
+$$;
+
+-- =====================================================================
+-- Funções usadas pela interface do MVP
+-- =====================================================================
+
+-- Adesão pela página pública do Clube. É a única função que o visitante
+-- anônimo pode chamar. Fixa o meio de pagamento em Pix e a data de hoje,
+-- limita o valor e não devolve identificadores internos.
+-- Em produção, a adesão acontece no checkout da Asaas e esta função é
+-- substituída pelo registro do cliente vindo do webhook.
+create or replace function fn_aderir_publico(
+    p_nome          text,
+    p_email         text,
+    p_telefone      text,
+    p_origem        text,
+    p_valor         numeric,
+    p_dia           smallint,
+    p_consentimento boolean
+) returns boolean
+language plpgsql as $$
+begin
+    if p_valor is null or p_valor < 10 or p_valor > 5000 then
+        raise exception 'Valor mensal deve estar entre R$ 10 e R$ 5.000';
+    end if;
+    if length(coalesce(p_nome, '')) > 120 or length(coalesce(p_telefone, '')) > 30 then
+        raise exception 'Dados de contato inválidos';
+    end if;
+    perform fn_aderir(p_nome, p_email, p_telefone, coalesce(p_origem, 'Site institucional'),
+                      p_valor, p_dia, 'pix', p_consentimento, current_date);
+    return true;
+end;
+$$;
+
+-- SIMULADOR DO GATEWAY (somente MVP). Faz o papel da Asaas na
+-- demonstração: para cada cobrança em aberto da competência, emite o
+-- evento que a Asaas emitiria e o entrega a fn_processar_evento, o mesmo
+-- caminho que o webhook real usará.
+--   pendente -> PAYMENT_RECEIVED (com probabilidade p_taxa_pagamento)
+--               ou PAYMENT_OVERDUE
+--   falhou   -> PAYMENT_RECEIVED (com probabilidade p_taxa_recuperacao)
+--               ou nova PAYMENT_OVERDUE (nova tentativa)
+create or replace function fn_simular_gateway(
+    p_competencia      date,
+    p_taxa_pagamento   numeric     default 0.91,
+    p_taxa_recuperacao numeric     default 0.60,
+    p_quando           timestamptz default now()
+) returns jsonb
+language plpgsql as $$
+declare
+    v_comp date := date_trunc('month', p_competencia)::date;
+    c      record;
+    r      text;
+    v_res  jsonb := '{}'::jsonb;
+begin
+    perform exigir_voluntario();
+    for c in select cb.id, cb.status from cobranca cb
+               join assinatura a on a.id = cb.assinatura_id and a.status = 'ativa'
+              where cb.competencia = v_comp and cb.status in ('pendente', 'falhou')
+              order by cb.vencimento, cb.id loop
+        r := fn_processar_evento(
+                 'evt_sim_' || replace(gen_random_uuid()::text, '-', ''),
+                 c.id,
+                 case when random() < (case when c.status = 'pendente' then p_taxa_pagamento
+                                            else p_taxa_recuperacao end)
+                      then 'PAYMENT_RECEIVED' else 'PAYMENT_OVERDUE' end,
+                 p_quando);
+        v_res := jsonb_set(v_res, array[r], to_jsonb(coalesce((v_res ->> r)::int, 0) + 1));
+    end loop;
+    return v_res;
+end;
+$$;
+
+-- Todas as funções com search_path fixo
+alter function fn_aderir(text, text, text, text, numeric, smallint, text, boolean, date) set search_path = public;
+alter function fn_gerar_cobrancas(date)                                   set search_path = public;
+alter function fn_cancelar(uuid, text, date)                              set search_path = public;
+alter function fn_processar_evento(text, uuid, text, timestamptz)         set search_path = public;
+alter function fn_enviar_impacto_mensal(date, timestamptz)                set search_path = public;
+alter function fn_aderir_publico(text, text, text, text, numeric, smallint, boolean) set search_path = public;
+alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    set search_path = public;

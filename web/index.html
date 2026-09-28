@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clube Guardiões do Começo | Instituto Ebenézer</title>
+<meta name="description" content="Doe todo mês e sustente o atendimento de 120 crianças no Jardim Ângela, São Paulo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2216%22 fill=%22%231b6b3a%22/%3E%3Cpath d=%22M16 8c-4 4-6 7-6 10a6 6 0 0 0 12 0c0-3-2-6-6-10z%22 fill=%22%23fff%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="pub-topo">
+  <div class="cont">
+    <div class="marca">Clube Guardiões do Começo<small>Instituto de Cultura e Lazer Ebenézer</small></div>
+    <a class="btn sec peq" href="painel.html" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.5)">Área do voluntário</a>
+  </div>
+</header>
+
+<section class="heroi">
+  <div class="cont">
+    <div>
+      <h1>Seja Guardião do começo de 120 crianças</h1>
+      <p class="lead">Uma doação mensal, no Pix, garante que o atendimento no Jardim Ângela continue todos os meses, e não só quando sobra.</p>
+      <div class="fatos">
+        <div class="fato"><strong>120</strong><span>crianças atendidas</span></div>
+        <div class="fato"><strong>R$ 95</strong><span>custeio mensal de uma criança em 2025</span></div>
+        <div class="fato"><strong>R$ 4,18</strong><span>de valor social para cada R$ 1 investido (SROI 2025)</span></div>
+      </div>
+    </div>
+
+    <form class="cartao form-adesao" id="form-adesao" novalidate>
+      <h2 style="font-size:1.25rem">Quero ser Guardião</h2>
+      <fieldset class="campo" style="border:0;padding:0;margin:0 0 1rem">
+        <legend style="font-weight:600;font-size:.9rem;margin-bottom:.3rem">Quanto por mês?</legend>
+        <div class="faixas">
+          <label class="faixa"><input type="radio" name="valor" value="50"><span>R$ 50<small>&nbsp;</small></span></label>
+          <label class="faixa"><input type="radio" name="valor" value="80" checked><span>R$ 80<small>mais escolhido</small></span></label>
+          <label class="faixa"><input type="radio" name="valor" value="95"><span>R$ 95<small>uma criança</small></span></label>
+          <label class="faixa"><input type="radio" name="valor" value="outro"><span>Outro<small>&nbsp;</small></span></label>
+        </div>
+        <div class="campo" id="campo-outro" hidden style="margin-top:.5rem">
+          <label for="valor-outro">Outro valor mensal (R$)</label>
+          <input id="valor-outro" type="number" min="10" max="5000" step="1" inputmode="numeric" placeholder="Ex.: 150">
+        </div>
+      </fieldset>
+      <div class="campo"><label for="nome">Nome</label><input id="nome" type="text" autocomplete="name" required maxlength="120"></div>
+      <div class="campo"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div>
+      <div class="campo"><label for="telefone">WhatsApp</label><input id="telefone" type="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="30">
+        <div class="ajuda">É por onde chegam o Pix do mês e as notícias das crianças.</div></div>
+      <div class="campo"><label for="dia">Melhor dia para o Pix</label>
+        <select id="dia"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></div>
+      <label class="consent campo"><input type="checkbox" id="consent" required>
+        <span>Autorizo o Instituto Ebenézer a usar meu nome, e-mail e WhatsApp para a doação mensal e para enviar notícias do Clube, conforme a LGPD. Posso cancelar quando quiser.</span></label>
+      <button class="btn" type="submit" id="btn-aderir" style="width:100%">Quero doar todo mês</button>
+      <div id="resultado" aria-live="polite"></div>
+    </form>
+  </div>
+</section>
+
+<section class="secao">
+  <h2>Como funciona</h2>
+  <div class="passos">
+    <div class="passo"><h3>Você escolhe o valor</h3><p>A partir de R$ 50 por mês, no dia que for melhor para você.</p></div>
+    <div class="passo"><h3>O Pix chega todo mês</h3><p>Sem taxa para você e sem precisar lembrar. É só confirmar no banco.</p></div>
+    <div class="passo"><h3>Você acompanha o impacto</h3><p>Todo mês, uma notícia do que a sua doação sustentou.</p></div>
+    <div class="passo"><h3>Sem amarras</h3><p>Pode mudar o valor ou cancelar a qualquer momento.</p></div>
+  </div>
+</section>
+
+<footer class="rodape">
+  Instituto de Cultura e Lazer Ebenézer · CNPJ 30.434.044/0001-90 · Jardim Ângela, São Paulo/SP<br>
+  Pagamentos processados pela Asaas, instituição de pagamento autorizada pelo Banco Central.
+</footer>
+
+<script src="vendor/supabase-2.117.2.js"></script>
+<script src="config.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/adesao.js"></script>
+</body>
+</html>

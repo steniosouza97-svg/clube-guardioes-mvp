@@ -1,0 +1,17 @@
+PASS E01 formulário valida nome e exige consentimento LGPD antes de enviar
+PASS E02 adesão pública grava Guardião com valor, dia e canal de origem (QR Code)
+PASS E03 segunda adesão com o mesmo e-mail é recusada com mensagem clara
+PASS E04 senha errada e conta sem cadastro de voluntário não entram no painel
+PASS E05 voluntário entra; resumo mostra 276 Guardiões ativos, igual ao banco
+PASS E06 exportação CSV para prestação de contas com 12 meses
+PASS E07 busca encontra a nova Guardiã e o histórico mostra a mensagem de boas-vindas
+PASS E08 geração de cobranças de out/2026: 276 criadas, segunda tentativa não duplica
+PASS E09 simulador da Asaas processa todas as cobranças do mês: 253 pagos, 23 em atraso.
+PASS E10 alerta de churn lista 30 Guardiões com link de WhatsApp pronto
+PASS E11 Pix pago após o lembrete: Aline Teixeira vira 'recuperado' e sai do alerta
+PASS E12 terceiro aviso de atraso cancela a assinatura de Giovana Ribeiro por inadimplência e encerra a simulação para ela
+PASS E13 notícia mensal de impacto enviada uma vez; repetir não duplica
+PASS E14 cancelamento a pedido exige confirmação e registra o motivo
+PASS E15 voluntário registra adesão presencial com o canal da campanha
+PASS E16 página de adesão cabe na tela do celular, sem rolagem lateral
+PASS E17 nenhum erro de JavaScript no console durante o roteiro
