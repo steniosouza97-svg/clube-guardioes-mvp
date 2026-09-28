@@ -1,5 +1,5 @@
 # Publica a pasta web/ no GitHub Pages a cada alteração.
-# Configurar uma vez: Settings > Pages > Source: GitHub Actions.
+# Configurar uma vez: Settings > Pages > Source: GitHub Actions (feito em 28/09/2026).
 name: publicar-interface
 on:
   push:
