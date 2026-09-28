@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: "17 11 */3 * *"
   workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ['.github/workflows/manter_ativo.yml']
 jobs:
   ping:
     runs-on: ubuntu-latest

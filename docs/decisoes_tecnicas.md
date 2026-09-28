@@ -14,7 +14,7 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 
 **Descartado.** Doare (custo fixo desproporcional ao porte); desenvolver gateway próprio (regulação financeira e segurança fora do alcance do Instituto).
 
-**Consequência.** Perdem-se ferramentas de campanha (crowdfunding, rifa, embaixadores). Se se mostrarem essenciais, a resposta é renegociar a Doare com desconto de ONG, não desenvolver do zero.
+**Consequência.** Perdem-se ferramentas de campanha (crowdfunding, rifa, embaixadores). A régua de relacionamento, o painel e o alerta de churn foram construídos no MVP. Reavaliar outra plataforma só se a base passar de 500 Guardiões e o Instituto precisar de recursos de campanha que o MVP não cobre.
 
 ## DT-02. Banco e API: Supabase (plano gratuito)
 

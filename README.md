@@ -45,6 +45,11 @@ Documentação de handover:
 - [Casos de teste e evidências](docs/casos_de_teste.md)
 - [Roteiro do vídeo demonstrativo](docs/roteiro_video.md)
 - [Privacidade e LGPD: feito e pendências](docs/lgpd_pendencias.md)
+- [User stories e critérios de aceite](docs/user_stories.md)
+- [Conferência cruzada deck × MVP](docs/coerencia_deck_mvp.md)
+- [Execução final na véspera](docs/execucao_final.md)
+- [Regra de congelamento](CONTRIBUTING.md)
+- [Pacote de entrega da semana 10](ENTREGA.md)
 
 ## Instalação no Supabase (uma vez, cerca de 20 minutos)
 
