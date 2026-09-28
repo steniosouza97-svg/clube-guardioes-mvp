@@ -7,12 +7,13 @@ PASS E06 exportação CSV para prestação de contas com 12 meses
 PASS E07 busca encontra a nova Guardiã e o histórico mostra a mensagem de boas-vindas
 PASS E07b voluntário consulta se um CPF já é Guardião, sem ver o número guardado
 PASS E08 geração de cobranças de out/2026: 276 criadas, segunda tentativa não duplica
-PASS E09 simulador da Asaas processa todas as cobranças do mês: 255 pagos, 21 em atraso.
-PASS E10 alerta de churn lista 28 Guardiões com link de WhatsApp pronto
-PASS E11 Pix pago após o lembrete: Aline Teixeira vira 'recuperado' e sai do alerta
-PASS E12 terceiro aviso de atraso cancela a assinatura de Ana Castro por inadimplência e encerra a simulação para ela
+PASS E09 simulador da Asaas processa todas as cobranças da Asaas: 247 pagos, 22 em atraso. 7 de Pix direto ficam para conferência no extrato
+PASS E10 alerta de churn lista 29 Guardiões com link de WhatsApp pronto
+PASS E11 Pix pago após o lembrete: Carla Vieira vira 'recuperado' e sai do alerta
+PASS E12 terceiro aviso de atraso cancela a assinatura de Daniela Almeida por inadimplência e encerra a simulação para ela
 PASS E13 notícia mensal de impacto enviada uma vez; repetir não duplica
 PASS E14 cancelamento a pedido exige confirmação e registra o motivo
 PASS E15 voluntário registra adesão presencial com o canal da campanha
+PASS E18 base em Pix direto: cadastro sem trocar a forma de pagar, Pix de Aline Teixeira registrado à mão pelo extrato, migração para a Asaas em dois cliques
 PASS E16 página de adesão cabe na tela do celular, sem rolagem lateral
 PASS E17 nenhum erro de JavaScript no console durante o roteiro

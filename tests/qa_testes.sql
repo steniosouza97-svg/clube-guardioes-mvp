@@ -53,6 +53,12 @@ declare
     c7 text := '700000007' || fn_cpf_digitos('700000007');
     c8 text := '700000008' || fn_cpf_digitos('700000008');
     c9 text := '700000009' || fn_cpf_digitos('700000009');
+    c11 text := '700000011' || fn_cpf_digitos('700000011');
+    c12 text := '700000012' || fn_cpf_digitos('700000012');
+    v_ad    uuid;       -- assinatura em Pix direto (modelo híbrido)
+    v_ad2   uuid;
+    v_cd    uuid;
+    v_seg   date;
 begin
     select max(competencia) into v_ult from cobranca;
     v_comp := (date_trunc('month', coalesce(v_ult, current_date)) + interval '3 months')::date;
@@ -221,13 +227,14 @@ begin
         perform setseed(0.5);
         perform fn_gerar_cobrancas(v_comp);
         select count(*) into n from cobranca c join assinatura a on a.id = c.assinatura_id
-         where c.competencia = v_comp and c.status = 'pendente' and a.status = 'ativa';
+         where c.competencia = v_comp and c.status = 'pendente' and a.status = 'ativa' and a.meio_pagamento <> 'pix_direto';
         select count(*) into n1 from evento_gateway;
         v_res := fn_simular_gateway(v_comp, 0.91, 0.60, (v_comp + 28)::timestamptz + interval '12 hours');
         select count(*) into n2 from evento_gateway;
         assert not exists (select 1 from cobranca c join assinatura a on a.id = c.assinatura_id
-                            where c.competencia = v_comp and c.status = 'pendente' and a.status = 'ativa'),
-               'T17 simulador deixou cobrança pendente';
+                            where c.competencia = v_comp and c.status = 'pendente' and a.status = 'ativa'
+                              and a.meio_pagamento <> 'pix_direto'),
+               'T17 simulador deixou cobrança da Asaas pendente';
         assert n2 - n1 >= n, 'T17 simulador não registrou um evento por cobrança';
         assert coalesce((v_res ->> 'pago')::int, 0) > 0.8 * n, 'T17 taxa de pagamento simulada fora do esperado';
         v_log := v_log || format('PASS T17 simulador do gateway processou %s cobranças pelo mesmo caminho do webhook: %s', n, v_res);
@@ -287,6 +294,63 @@ begin
         assert (select nome from fn_consultar_cpf(c1)) = 'Teste Guardião', 'T24 consulta não encontrou o Guardião';
         assert not exists (select 1 from fn_consultar_cpf(c9)), 'T24 consulta encontrou CPF não cadastrado';
         v_log := v_log || 'PASS T24 consulta por CPF encontra o Guardião sem revelar o número'::text;
+
+        -- T25 modelo híbrido: Guardião da base entra no painel sem trocar a forma de pagar
+        v_ad := fn_cadastrar_pix_direto('Base Direta', 'base.direta@example.com', c11, '(11) 90000-1111',
+                                        80, 10::smallint, true, v_comp - 10);
+        assert (select meio_pagamento from assinatura where id = v_ad) = 'pix_direto', 'T25 assinatura não ficou em Pix direto';
+        assert (select o.nome from assinatura a join guardiao g on g.id = a.guardiao_id join origem o on o.id = g.origem_id
+                 where a.id = v_ad) = 'Base Pix manual', 'T25 origem da base não registrada';
+        falhou := false;
+        begin
+            perform fn_cadastrar_pix_direto('Base Sem Consentimento', 'base.sem@example.com', c12, null, 80, 10::smallint, false, v_comp - 10);
+        exception when others then falhou := sqlerrm like '%Consentimento LGPD%';
+        end;
+        assert falhou, 'T25 base cadastrada sem consentimento LGPD';
+        v_log := v_log || 'PASS T25 Guardião da base entra no painel em Pix direto, com CPF e consentimento, sem trocar a forma de pagar'::text;
+
+        -- T26 Pix direto: a Asaas não vê; o voluntário registra à mão pelo mesmo caminho do webhook
+        perform fn_gerar_cobrancas(v_prox);
+        select id into v_cd from cobranca where assinatura_id = v_ad and competencia = v_prox;
+        assert v_cd is not null, 'T26 cobrança do Pix direto não gerada';
+        perform fn_simular_gateway(v_prox, 1, 1, (v_prox + 20)::timestamptz);
+        assert (select status from cobranca where id = v_cd) = 'pendente', 'T26 simulador da Asaas processou Pix direto';
+        r := fn_registrar_pix_direto(v_cd, true, (v_prox + 11)::timestamptz);
+        assert r = 'pago', 'T26 registro manual não pagou: ' || r;
+        assert exists (select 1 from comunicacao where cobranca_id = v_cd and tipo = 'agradecimento'), 'T26 agradecimento não registrado';
+        assert exists (select 1 from evento_gateway where cobranca_id = v_cd and id_evento like 'manual_%'), 'T26 registro manual sem rastro';
+        falhou := false;
+        begin
+            perform fn_registrar_pix_direto((select c.id from cobranca c join assinatura a on a.id = c.assinatura_id
+                                              where c.competencia = v_prox and a.meio_pagamento = 'pix' limit 1), true);
+        exception when others then falhou := sqlerrm like '%Cobrança da Asaas%';
+        end;
+        assert falhou, 'T26 registro manual aceito em cobrança da Asaas';
+        v_log := v_log || 'PASS T26 Pix direto fica fora do simulador da Asaas, é registrado à mão com agradecimento e rastro, e cobrança da Asaas não aceita registro manual'::text;
+
+        -- T27 Pix direto não recebido: lembrete e alerta de churn, igual à Asaas
+        v_ad2 := fn_cadastrar_pix_direto('Base Esquecida', 'base.esquecida@example.com', c12, '(11) 90000-2222',
+                                         60, 15::smallint, true, v_comp - 10);
+        perform fn_gerar_cobrancas(v_prox);
+        r := fn_registrar_pix_direto((select id from cobranca where assinatura_id = v_ad2 and competencia = v_prox), false,
+                                     (v_prox + 20)::timestamptz);
+        assert r = 'falhou', 'T27 não recebido não virou atraso: ' || r;
+        assert exists (select 1 from vw_alerta_churn where nome = 'Base Esquecida'), 'T27 Guardião fora do alerta de churn';
+        v_log := v_log || 'PASS T27 Pix direto não recebido gera lembrete e coloca o Guardião no alerta de churn'::text;
+
+        -- T28 migração para a Asaas
+        perform fn_migrar_para_asaas(v_ad);
+        assert (select meio_pagamento from assinatura where id = v_ad) = 'pix', 'T28 migração não mudou o meio';
+        assert (select valor_mensal from assinatura where id = v_ad) = 80, 'T28 migração alterou o valor';
+        falhou := false;
+        begin perform fn_migrar_para_asaas(v_ad); exception when others then falhou := true; end;
+        assert falhou, 'T28 migração repetida foi aceita';
+        v_seg := (v_prox + interval '1 month')::date;
+        perform fn_gerar_cobrancas(v_seg);
+        perform fn_simular_gateway(v_seg, 1, 1, (v_seg + 20)::timestamptz);
+        assert (select status from cobranca where assinatura_id = v_ad and competencia = v_seg) = 'pago',
+               'T28 cobrança do Guardião migrado não passou pela Asaas';
+        v_log := v_log || 'PASS T28 migração para a Asaas mantém valor e histórico, não se repete e a cobrança seguinte passa pela Asaas'::text;
 
         raise exception 'QA_DESFAZER';
     exception when assert_failure or others then

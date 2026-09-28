@@ -77,6 +77,18 @@ Em produção, depois do critério 6, a página encaminha para o checkout da Asa
 | 2 | Visitante anônimo não consegue fazer essa consulta | S09 |
 | 3 | Nem o voluntário consegue ler a impressão digital do CPF ou a chave | S10 |
 
+### US07. Trazer a base atual sem perder ninguém
+
+**Como** pessoa dedicada ao Clube, **quero** colocar no painel os Guardiões que já doam por Pix direto, **para** que toda a base receba a mesma comunicação e apareça nas métricas, e convidá-los aos poucos para a Asaas.
+
+| # | Critério de aceite | Teste |
+|---|---|---|
+| 1 | Cadastro com CPF e consentimento, sem trocar a forma de pagar | T25, E18 |
+| 2 | O Pix direto conferido no extrato é registrado à mão, com agradecimento e rastro | T26, E18 |
+| 3 | Pix direto não recebido gera lembrete e alerta de churn | T27 |
+| 4 | Quem aceita migra para a Asaas mantendo valor, dia e histórico | T28, E18 |
+| 5 | Só voluntário cadastrado faz essas operações | S11 |
+
 ## Fora do escopo do MVP (fase 2)
 
 Doação de pessoa jurídica e comprovação fiscal corporativa; portal do doador para alterar valor ou dia; recibo anual automático.

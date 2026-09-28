@@ -23,7 +23,8 @@ select g.id                    as guardiao_id,
            when exists (select 1 from cobranca c
                          where c.assinatura_id = a.id and c.status = 'falhou') then 'em_risco'
            else 'ativo'
-       end                     as situacao
+       end                     as situacao,
+       a.meio_pagamento
   from guardiao g
   join origem o on o.id = g.origem_id
   left join lateral (
@@ -106,7 +107,9 @@ select u.mes                                                        as ultimo_me
        u.ticket_medio,
        u.churn                                                      as churn_mes,
        round(u.receita * 12 / (select valor from parametro where chave = 'custeio_anual_2025'), 4)
-                                                                    as cobertura_custeio_2025
+                                                                    as cobertura_custeio_2025,
+       (select count(*) from assinatura where status = 'ativa' and meio_pagamento = 'pix_direto')
+                                                                    as guardioes_pix_direto
   from ultimo u;
 
 -- Cobranças do mês para a tela do simulador e para o acompanhamento diário
@@ -120,7 +123,8 @@ select c.id            as cobranca_id,
        c.status,
        c.tentativas,
        c.pago_em,
-       a.status        as status_assinatura
+       a.status        as status_assinatura,
+       a.meio_pagamento
   from cobranca c
   join assinatura a on a.id = c.assinatura_id
   join guardiao g   on g.id = a.guardiao_id;

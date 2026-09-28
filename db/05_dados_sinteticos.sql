@@ -229,6 +229,21 @@ begin
       from assinatura a
      where a.id = c.assinatura_id and a.status = 'cancelada' and c.status = 'pendente';
 
+    -- Modelo híbrido: 7 dos Guardiões da base Pix manual ainda não migraram
+    -- para a Asaas (meta: 80% migrados). O Pix deles é conferido no extrato
+    -- e registrado à mão; os eventos do histórico levam o prefixo manual_.
+    with ainda_diretos as (
+        select a.id from assinatura a
+          join guardiao g on g.id = a.guardiao_id
+          join origem o   on o.id = g.origem_id
+         where o.nome = 'Base Pix manual' and a.status = 'ativa'
+         order by g.nome, g.id
+         limit 7)
+    update assinatura set meio_pagamento = 'pix_direto' where id in (select id from ainda_diretos);
+    update evento_gateway e set id_evento = replace(e.id_evento, 'evt_sint_', 'manual_sint_')
+      from cobranca c join assinatura a on a.id = c.assinatura_id
+     where c.id = e.cobranca_id and a.meio_pagamento = 'pix_direto';
+
     return format('%s Guardiões (%s ativos), %s cobranças, %s eventos | %s a %s',
                   n_g, (select count(*) from assinatura where status = 'ativa'), n_c, n_e, inicio, p_hoje);
 end;

@@ -12,8 +12,8 @@ Checklist da tarefa TE7. Tempo estimado: 30 minutos. Quem executa: responsável 
 No SQL Editor:
 
 ```sql
-select * from qa.fn_rodar_testes();       -- esperado: 24 PASS, nenhuma FALHA
-select * from qa.fn_testes_seguranca();   -- esperado: 10 PASS, nenhuma FALHA
+select * from qa.fn_rodar_testes();       -- esperado: 28 PASS, nenhuma FALHA
+select * from qa.fn_testes_seguranca();   -- esperado: 11 PASS, nenhuma FALHA
 ```
 
 - [ ] Exportar o resultado (botão de download do SQL Editor) e salvar como `evidencias/testes_supabase_2026-10-08.log`.

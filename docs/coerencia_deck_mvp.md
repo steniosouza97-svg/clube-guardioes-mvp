@@ -17,7 +17,7 @@ As duas trilhas contam a mesma história com os mesmos números. Esta conferênc
 | 5 | Passo 4, Régua e recuperação de cobrança | Lembrete, alerta de churn, recuperação; T08, T09, T10 | Coerente |
 | 5 | Painel interno com alerta de churn | `vw_alerta_churn`, aba Alerta de churn; E10 | Coerente |
 | 5 | Não promete dedução de IR | Página de adesão; CONTRIBUTING.md | Coerente |
-| 6 | MVP no ar, 34 testes aprovados, CPF cifrado | 24 de fluxo + 10 de acesso; DT-14; `evidencias/` | Coerente |
+| 6 | MVP no ar, 39 testes aprovados, CPF cifrado | 28 de fluxo + 11 de acesso; DT-14; `evidencias/` | Coerente |
 | 7 | R$ 3,09 por Guardião ao mês | `parametro`: R$ 1,99 Pix + 2 × R$ 0,55; planilha Premissas H20 | Coerente |
 | 7 | Banco e hospedagem sem custo | Supabase e GitHub Pages em planos gratuitos; rotina anti-pausa | Coerente |
 | 8 | ROI 899,8%, VPL R$ 615 mil, payback 4 meses, 378% do custeio | Planilha, aba Resultado C14, C15 | Coerente (recalculada em 28/09, zero erros de fórmula) |

@@ -68,7 +68,7 @@ erDiagram
 | Tabela | O que representa | Regras garantidas pelo banco |
 |---|---|---|
 | `guardiao` | A pessoa que doa | CPF único, guardado só como impressão digital cifrada (`cpf_hash`); e-mail único e em minúsculas; consentimento LGPD obrigatório |
-| `assinatura` | O compromisso de doação mensal | No máximo uma ativa por Guardião; valor mínimo de R$ 10; vencimento entre os dias 1 e 28; cancelamento sempre com data e motivo |
+| `assinatura` | O compromisso de doação mensal | No máximo uma ativa por Guardião; valor mínimo de R$ 10; vencimento entre os dias 1 e 28; meio de pagamento `pix` (Asaas) ou `pix_direto` (base atual ainda fora da Asaas, DT-15); cancelamento sempre com data e motivo |
 | `cobranca` | A cobrança de cada mês | Uma por assinatura e mês; status `pendente`, `pago`, `falhou`, `recuperado` ou `cancelado`; pagamento sempre com data; recuperada só após ao menos uma falha |
 | `comunicacao` | Cada mensagem da régua | Tipos `boas_vindas`, `agradecimento`, `recuperacao`, `impacto_mensal`, `cancelamento`; no máximo uma mensagem de impacto por Guardião por mês |
 | `evento_gateway` | Eventos recebidos da Asaas | Um evento só produz efeito uma vez (idempotência do webhook) |
@@ -109,6 +109,9 @@ Os eventos tratados têm os nomes usados pela Asaas: `PAYMENT_RECEIVED` (pagamen
 | `fn_gerar_cobrancas` | Cobrança do mês (só no MVP; em produção, a Asaas cria) | Voluntário |
 | `fn_processar_evento` | Pix pago ou vencido, com idempotência | Webhook da Asaas (produção) ou simulador (MVP) |
 | `fn_simular_gateway` | Simula os avisos da Asaas para o mês inteiro | Voluntário, só na demonstração |
+| `fn_cadastrar_pix_direto` | Cadastra um Guardião da base atual em Pix direto, com CPF e consentimento | Voluntário |
+| `fn_registrar_pix_direto` | Registra o Pix direto conferido no extrato (recebido ou não), pelo mesmo caminho do webhook | Voluntário |
+| `fn_migrar_para_asaas` | Passa a assinatura de Pix direto para a Asaas, mantendo valor, dia e histórico | Voluntário |
 | `fn_enviar_impacto_mensal` | Notícia mensal de impacto, uma vez por mês | Voluntário |
 | `fn_cancelar` | Cancelamento a pedido ou por inadimplência | Voluntário e `fn_processar_evento` |
 | `fn_gerar_dados_sinteticos` | Gera a base de demonstração | Somente pelo SQL Editor |

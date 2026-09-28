@@ -51,6 +51,10 @@ O banco guarda uma impressão digital do CPF: o mesmo CPF sempre gera o mesmo c�
 | L9 | **Acesso administrativo restrito** ao Supabase e à Asaas: poucas pessoas, contas nominais com e-mail institucional, autenticação em dois fatores | art. 46 | Instituto | Na passagem do projeto ao Instituto |
 | L10 | **Chave do CPF no cofre do Supabase (Vault)** em vez de tabela privada, e rotina de troca da chave documentada | art. 46 | Tecnologia | Antes de operar com doadores reais |
 
+### Base atual em Pix direto
+
+Os 35 Guardiões de hoje entram no painel com CPF e consentimento colhidos na conversa de convite (DT-15). O consentimento precisa ser registrado antes do cadastro: o banco recusa o cadastro sem ele (T25). O convite deve informar para que o CPF será usado e que a tarifa da Asaas é paga pelo Instituto, não pelo doador.
+
 ## 4. O que dizer à banca
 
 O MVP trata o CPF como a semana 5 definiu, como identificador único, e resolve a tensão entre esse uso e o princípio da necessidade guardando só a impressão digital cifrada. A conformidade completa depende de decisões institucionais (política de privacidade, canal do titular, prazo de guarda) que estão listadas acima com dono e prazo.

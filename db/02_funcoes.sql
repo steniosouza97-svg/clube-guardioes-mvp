@@ -357,6 +357,7 @@ begin
     for c in select cb.id, cb.status from cobranca cb
                join assinatura a on a.id = cb.assinatura_id and a.status = 'ativa'
               where cb.competencia = v_comp and cb.status in ('pendente', 'falhou')
+                and a.meio_pagamento <> 'pix_direto'   -- a Asaas não vê o Pix direto
               order by cb.vencimento, cb.id loop
         r := fn_processar_evento(
                  'evt_sim_' || replace(gen_random_uuid()::text, '-', ''),
@@ -371,6 +372,74 @@ begin
 end;
 $$;
 
+-- MODELO HÍBRIDO DA BASE ATUAL. Os Guardiões que já doam por Pix direto na
+-- conta do Instituto entram no painel desde o primeiro dia, com CPF e
+-- consentimento, sem trocar a forma de pagar. A pessoa dedicada os convida
+-- a migrar para a Asaas; quem não migrar tem o Pix conferido no extrato e
+-- registrado à mão. Assim toda a base recebe a mesma comunicação e aparece
+-- nas mesmas métricas.
+create or replace function fn_cadastrar_pix_direto(
+    p_nome          text,
+    p_email         text,
+    p_cpf           text,
+    p_telefone      text,
+    p_valor         numeric,
+    p_dia           smallint,
+    p_consentimento boolean,
+    p_data          date default current_date
+) returns uuid
+language plpgsql as $$
+begin
+    perform exigir_voluntario();
+    if p_valor is null or p_valor < 10 or p_valor > 5000 then
+        raise exception 'Valor mensal deve estar entre R$ 10 e R$ 5.000';
+    end if;
+    return fn_aderir(p_nome, p_email, p_cpf, p_telefone, 'Base Pix manual',
+                     p_valor, p_dia, 'pix_direto', p_consentimento, p_data);
+end;
+$$;
+
+-- Registro manual do Pix direto, conferido no extrato bancário. Usa o mesmo
+-- caminho do webhook (fn_processar_evento), com identificador "manual_":
+-- agradecimento, lembrete, alerta de churn e inadimplência funcionam igual.
+create or replace function fn_registrar_pix_direto(
+    p_cobranca uuid,
+    p_recebido boolean,
+    p_quando   timestamptz default now()
+) returns text
+language plpgsql as $$
+declare
+    v_meio text;
+begin
+    perform exigir_voluntario();
+    select a.meio_pagamento into v_meio
+      from cobranca c join assinatura a on a.id = c.assinatura_id
+     where c.id = p_cobranca;
+    if v_meio is null then
+        raise exception 'Cobrança % não encontrada', p_cobranca;
+    elsif v_meio <> 'pix_direto' then
+        raise exception 'Cobrança da Asaas: o pagamento é registrado pelo aviso do gateway, não à mão';
+    end if;
+    return fn_processar_evento('manual_' || replace(gen_random_uuid()::text, '-', ''), p_cobranca,
+                               case when p_recebido then 'PAYMENT_RECEIVED' else 'PAYMENT_OVERDUE' end, p_quando);
+end;
+$$;
+
+-- Migração para a Asaas, depois do aceite do Guardião. Mantém valor, dia e
+-- histórico; a partir daí a cobrança chega pela Asaas e a régua é automática.
+create or replace function fn_migrar_para_asaas(p_assinatura uuid)
+returns void
+language plpgsql as $$
+begin
+    perform exigir_voluntario();
+    update assinatura set meio_pagamento = 'pix'
+     where id = p_assinatura and status = 'ativa' and meio_pagamento = 'pix_direto';
+    if not found then
+        raise exception 'Assinatura % não está ativa em Pix direto', p_assinatura;
+    end if;
+end;
+$$;
+
 -- Todas as funções com search_path fixo
 alter function fn_gerar_cobrancas(date)                                   set search_path = public;
 alter function fn_cancelar(uuid, text, date)                              set search_path = public;
@@ -378,3 +447,6 @@ alter function fn_processar_evento(text, uuid, text, timestamptz)         set se
 alter function fn_enviar_impacto_mensal(date, timestamptz)                set search_path = public;
 alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) set search_path = public;
 alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    set search_path = public;
+alter function fn_cadastrar_pix_direto(text, text, text, text, numeric, smallint, boolean, date) set search_path = public;
+alter function fn_registrar_pix_direto(uuid, boolean, timestamptz)       set search_path = public;
+alter function fn_migrar_para_asaas(uuid)                                 set search_path = public;

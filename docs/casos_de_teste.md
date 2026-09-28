@@ -6,9 +6,9 @@ Três camadas de teste, todas automatizadas:
 
 | Camada | Onde roda | Quantidade | Resultado |
 |---|---|---|---|
-| Fluxo principal (banco) | Supabase e PostgreSQL local | 24 testes | 24 aprovados |
-| Regras de acesso (banco) | Supabase e PostgreSQL local | 10 testes | 10 aprovados |
-| Interface ponta a ponta | Chromium sobre réplica local do Supabase | 18 passos | 18 aprovados |
+| Fluxo principal (banco) | Supabase e PostgreSQL local | 28 testes | 28 aprovados |
+| Regras de acesso (banco) | Supabase e PostgreSQL local | 11 testes | 11 aprovados |
+| Interface ponta a ponta | Chromium sobre réplica local do Supabase | 19 passos | 19 aprovados |
 
 Mais dois **controles negativos**, que provam que os testes detectam defeitos.
 
@@ -36,7 +36,8 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | Cancelamento | Passo 4 | T10, T11, T15 | E12, E14 |
 | Painel e prestação de contas | Slides 8, 9 e 11 | T14 | E05, E06, E07 |
 | Qualidade e integridade dos dados | Handover | T18, T19, T20 | E17 |
-| Acesso e privacidade | Handover | S01 a S10 | E04 |
+| Acesso e privacidade | Handover | S01 a S11 | E04 |
+| Base atual em Pix direto (modelo híbrido): cadastro, registro manual, migração para a Asaas | Slide 10, Fase 1 | T25 a T28 | E09, E18 |
 | Uso no celular | Handover | | E16 |
 
 ## Fluxo principal (banco)
@@ -59,7 +60,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T14 | Conferência do painel | Receita e contagem de ativos batem com os lançamentos |
 | T15 | Aviso de atraso para assinatura já cancelada (regressão) | Ignorado, sem erro |
 | T16 | Adesão pela página pública | Registra o canal de origem; recusa valor fora do limite |
-| T17 | Simulador do gateway no mês inteiro | Nenhuma cobrança fica pendente; um aviso por cobrança, pelo caminho do webhook |
+| T17 | Simulador do gateway no mês inteiro | Nenhuma cobrança da Asaas fica pendente; um aviso por cobrança, pelo caminho do webhook |
 | T18 | Gerador sobre base já populada | Recusa rodar |
 | T19 | Calibração dos dados sintéticos | Ticket entre R$ 70 e R$ 90, churn entre 1% e 4%, base a até 15% do plano |
 | T20 | Integridade | Uma assinatura ativa por Guardião, um CPF por Guardião, todo pagamento com aviso do gateway, nenhum e-mail real |
@@ -67,6 +68,10 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T22 | Mesmo CPF com outro e-mail; mesmo e-mail com outro CPF | Os dois recusados; nenhum Guardião duplicado |
 | T23 | Como o CPF fica guardado | Nunca em texto aberto; só impressão digital com chave secreta (não é SHA-256 simples) |
 | T24 | Voluntário consulta um CPF | Encontra o Guardião cadastrado; CPF não cadastrado retorna vazio |
+| T25 | Guardião da base cadastrado em Pix direto | Entra com CPF, consentimento e origem "Base Pix manual", sem trocar a forma de pagar; sem consentimento é recusado |
+| T26 | Mês de um Guardião em Pix direto | O simulador da Asaas não o processa; o registro manual paga, envia agradecimento e deixa rastro `manual_`; cobrança da Asaas recusa registro manual |
+| T27 | Pix direto não recebido no mês | Lembrete registrado e Guardião no alerta de churn |
+| T28 | Migração para a Asaas | Valor e histórico mantidos; não se repete; a cobrança seguinte passa pela Asaas |
 
 ## Regras de acesso (banco)
 
@@ -82,6 +87,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | S08 | Chamar o gerador de dados sintéticos pela API | Bloqueado |
 | S09 | Anônimo consulta CPF | Bloqueado |
 | S10 | Voluntário tenta ler o CPF cifrado, a chave ou calcular impressões digitais | Bloqueado nos três casos |
+| S11 | Anônimo ou conta sem cadastro de voluntário tenta cadastrar a base, registrar Pix direto ou migrar | Bloqueado |
 
 ## Interface ponta a ponta
 
@@ -105,6 +111,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | E15 | Voluntário registra adesão presencial | Aparece no canal da campanha |
 | E16 | Abrir a adesão no celular | Cabe na tela, sem rolagem lateral |
 | E17 | Todo o roteiro | Nenhum erro de JavaScript no console |
+| E18 | Cadastrar Guardião da base em Pix direto, registrar o Pix do mês pelo extrato e migrar para a Asaas | Canal fixo em "Base Pix manual"; pagamento com rastro manual; migração em dois cliques |
 
 ## Controles negativos
 
@@ -121,13 +128,16 @@ Um teste que nunca falha não prova nada; estes provam.
 | 28/09 | Qualquer conta criada no Supabase leria a base de doadores | Acesso restrito à tabela de voluntários | S05 |
 | 28/09 | Tabela do mês podia mostrar resultado de filtro antigo ao trocar o filtro rápido | Só a consulta mais recente desenha a tabela | E12 |
 | 28/09 | Botões de simulação apareciam para cobranças de assinatura encerrada | Botões ocultos; aviso "assinatura encerrada" | E12 |
+| 28/09 | O próprio teste E11 lia o nome da cobrança antes de o filtro "Falhou" ser aplicado e registrava o Guardião errado no log | O teste espera o filtro antes de ler a linha | E11 |
 
 ## Evidências
 
 | Arquivo | Conteúdo |
 |---|---|
-| `evidencias/testes_supabase_2026-09-28.log` | Execução no Supabase: 24 de fluxo e 10 de acesso aprovados |
+| `evidencias/testes_supabase_2026-09-28.log` | Primeira execução no Supabase: 24 de fluxo e 10 de acesso aprovados |
 | `evidencias/testes_local_2026-09-28_1612.log` | Mesma execução em PostgreSQL 16 local |
+| `evidencias/testes_supabase_2026-09-28_modelo_hibrido.log` | Execução no Supabase depois do modelo híbrido: 28 de fluxo e 11 de acesso aprovados |
+| `evidencias/testes_local_2026-09-28_1933.log` | Mesma execução em PostgreSQL 16 local |
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
-| `evidencias/e2e/resultado_e2e.log` | Os 18 passos de interface aprovados |
+| `evidencias/e2e/resultado_e2e.log` | Os 19 passos de interface aprovados |
 | `evidencias/e2e/*.png` | Capturas de tela de cada tela do roteiro |

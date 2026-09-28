@@ -64,7 +64,7 @@ create table assinatura (
     valor_mensal         numeric(10, 2) not null check (valor_mensal >= 10),
     dia_vencimento       smallint not null check (dia_vencimento between 1 and 28),
     meio_pagamento       text not null default 'pix'
-                             check (meio_pagamento in ('pix', 'cartao', 'boleto')),
+                             check (meio_pagamento in ('pix', 'pix_direto', 'cartao', 'boleto')),
     status               text not null default 'ativa'
                              check (status in ('ativa', 'cancelada')),
     iniciada_em          date not null default current_date,

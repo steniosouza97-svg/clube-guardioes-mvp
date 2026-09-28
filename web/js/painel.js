@@ -102,7 +102,8 @@
       kpi("Cobertura do custeio", fmt.pct(r.cobertura_custeio_2025), `Receita anualizada sobre o custeio realizado em 2025 (${fmt.brl0(P.custeio_anual_2025)})`, r.cobertura_custeio_2025) +
       kpi("Ticket médio", fmt.brl(r.ticket_medio), "Por Guardião pagante no mês") +
       kpi("Churn do mês", fmt.pct(r.churn_mes), "Cancelamentos sobre a base do início do mês. Plano: até 2%") +
-      kpi("Em risco agora", fmt.int(r.guardioes_em_risco), "Com Pix vencido e não pago");
+      kpi("Em risco agora", fmt.int(r.guardioes_em_risco), "Com Pix vencido e não pago") +
+      kpi("Base ainda em Pix direto", fmt.int(r.guardioes_pix_direto), "A convidar para a Asaas. Meta: 80% da base atual migrada");
 
     const ult = metricas.slice(-13);
     grafico($("#graf-base"), ult.map(d => ({ rot: fmt.mes(d.mes), val: d.ativos_fim, dica: `${fmt.mesLongo(d.mes)}: ${fmt.int(d.ativos_fim)} Guardiões` })),
@@ -162,11 +163,16 @@
     const vis = lista.slice(0, 300);
     $("#tab-guardioes").innerHTML = `<thead><tr><th>Nome</th><th>Situação</th><th class="num">Valor mensal</th><th>Canal</th><th>Desde</th><th></th></tr></thead><tbody>` +
       (vis.length ? vis.map(g => `<tr><td><a href="#" data-detalhe="${g.guardiao_id}">${esc(g.nome)}</a><div class="ajuda">${esc(g.email)}</div></td>
-        <td>${selo(g.situacao, NOME_SIT[g.situacao])}${g.motivo_cancelamento ? `<div class="ajuda">${g.motivo_cancelamento === "inadimplencia" ? "por inadimplência" : "a pedido"} em ${fmt.data(g.cancelada_em)}</div>` : ""}</td>
+        <td>${selo(g.situacao, NOME_SIT[g.situacao])}${g.meio_pagamento === "pix_direto" && g.status_assinatura === "ativa" ? ` ${selo("direto", "Pix direto")}` : ""}${g.motivo_cancelamento ? `<div class="ajuda">${g.motivo_cancelamento === "inadimplencia" ? "por inadimplência" : "a pedido"} em ${fmt.data(g.cancelada_em)}</div>` : ""}</td>
         <td class="num">${fmt.brl(g.valor_mensal)}</td><td>${esc(g.origem)}</td><td>${fmt.data(g.iniciada_em)}</td>
-        <td>${g.status_assinatura === "ativa" ? `<button class="btn perigo peq" data-cancelar="${g.assinatura_id}">Cancelar</button>` : ""}</td></tr>`).join("")
+        <td>${g.status_assinatura === "ativa" && g.meio_pagamento === "pix_direto" ? `<button class="btn sec peq" data-migrar="${g.assinatura_id}">Migrar para Asaas</button> ` : ""}${g.status_assinatura === "ativa" ? `<button class="btn perigo peq" data-cancelar="${g.assinatura_id}">Cancelar</button>` : ""}</td></tr>`).join("")
         : `<tr><td colspan="6" class="vazio">Nenhum Guardião encontrado.</td></tr>`) +
       (lista.length > vis.length ? `<tr><td colspan="6" class="vazio">Mostrando os primeiros 300. Use a busca para refinar.</td></tr>` : "") + `</tbody>`;
+    document.querySelectorAll("[data-migrar]").forEach(b => doisCliques(b, "Confirmar: o Guardião aceitou", async () => {
+      await consulta(sb.rpc("fn_migrar_para_asaas", { p_assinatura: b.dataset.migrar }));
+      aviso("ok", "Guardião migrado para a Asaas. Valor, dia e histórico mantidos; a próxima cobrança chega pela Asaas.");
+      await Promise.all([carregarGuardioes(), carregarResumo()]);
+    }));
     document.querySelectorAll("[data-cancelar]").forEach(b => doisCliques(b, "Confirmar cancelamento", async () => {
       await consulta(sb.rpc("fn_cancelar", { p_assinatura: b.dataset.cancelar, p_motivo: "voluntario" }));
       aviso("ok", "Assinatura cancelada a pedido do Guardião. A mensagem de confirmação foi registrada.");
@@ -203,13 +209,17 @@
     ev.preventDefault();
     const msg = $("#a-msg");
     if (!cpf.valido($("#a-cpf").value)) { msg.innerHTML = `<div class="msg erro">Confira o CPF informado.</div>`; return; }
-    const { error } = await sb.rpc("fn_aderir_publico", {
+    const base = {
       p_nome: $("#a-nome").value.trim(), p_email: $("#a-email").value.trim(), p_cpf: cpf.digitos($("#a-cpf").value), p_telefone: $("#a-tel").value.trim() || null,
-      p_origem: $("#a-origem").value, p_valor: Number($("#a-valor").value), p_dia: Number($("#a-dia").value), p_consentimento: $("#a-consent").checked
-    });
+      p_valor: Number($("#a-valor").value), p_dia: Number($("#a-dia").value), p_consentimento: $("#a-consent").checked
+    };
+    const direto = $("#a-direto").checked;
+    const { error } = direto
+      ? await sb.rpc("fn_cadastrar_pix_direto", base)
+      : await sb.rpc("fn_aderir_publico", { ...base, p_origem: $("#a-origem").value });
     if (error) { msg.innerHTML = `<div class="msg erro">${esc(mensagemErro(error))}</div>`; return; }
     msg.innerHTML = ""; ev.target.reset(); $("#dlg-adesao").close();
-    aviso("ok", "Adesão registrada. Mensagem de boas-vindas enviada.");
+    aviso("ok", direto ? "Guardião da base cadastrado em Pix direto. Boas-vindas registrada; o Pix de cada mês é conferido no extrato." : "Adesão registrada. Mensagem de boas-vindas enviada.");
     await Promise.all([carregarGuardioes(), carregarResumo(), carregarCanais()]);
   }
 
@@ -245,7 +255,7 @@
     const comp = competencia();
     let q = sb.from("vw_cobrancas_mes").select("*").eq("competencia", comp).order("vencimento").order("nome").limit(5000);
     if ($("#filtro-cob").value) q = q.eq("status", $("#filtro-cob").value);
-    const [linhas, todas] = await Promise.all([consulta(q), consulta(sb.from("vw_cobrancas_mes").select("status,valor").eq("competencia", comp).limit(5000))]);
+    const [linhas, todas] = await Promise.all([consulta(q), consulta(sb.from("vw_cobrancas_mes").select("status,valor,meio_pagamento").eq("competencia", comp).limit(5000))]);
     if (minha !== versaoMes) return;
     const soma = st => todas.filter(c => st.includes(c.status)).reduce((s, c) => s + Number(c.valor), 0);
     const cont = st => todas.filter(c => st.includes(c.status)).length;
@@ -253,17 +263,34 @@
       ["Cobranças do mês", fmt.int(todas.length), `Previsto: ${fmt.brl0(soma(["pendente", "pago", "falhou", "recuperado"]))}`],
       ["Pagas", fmt.int(cont(["pago", "recuperado"])), `Recebido: ${fmt.brl0(soma(["pago", "recuperado"]))}`],
       ["Recuperadas", fmt.int(cont(["recuperado"])), "Pagas depois do lembrete"],
-      ["Em aberto", fmt.int(cont(["pendente", "falhou"])), `${fmt.int(cont(["falhou"]))} com atraso`]
+      ["Em aberto", fmt.int(cont(["pendente", "falhou"])), `${fmt.int(cont(["falhou"]))} com atraso`],
+      ["Pix direto a conferir", fmt.int(todas.filter(c => c.meio_pagamento === "pix_direto" && ["pendente", "falhou"].includes(c.status)).length), "Conferir no extrato e registrar"]
     ].map(([r, v, s]) => `<div class="kpi"><div class="rot">${r}</div><div class="val">${v}</div><div class="sub">${s}</div></div>`).join("");
     if (!linhas.length) {
       $("#tab-cobrancas").innerHTML = `<tbody><tr><td class="vazio">${todas.length ? "Nenhuma cobrança com esse status." : "Nenhuma cobrança neste mês. Use o passo 1 para gerar."}</td></tr></tbody>`;
       return;
     }
-    $("#tab-cobrancas").innerHTML = `<thead><tr><th>Guardião</th><th>Vencimento</th><th class="num">Valor</th><th>Status</th><th>Pago em</th>${DEMO ? "<th>Simular aviso da Asaas</th>" : ""}</tr></thead><tbody>` +
-      linhas.map(c => `<tr><td>${esc(c.nome)}</td><td>${fmt.data(c.vencimento)}</td><td class="num">${fmt.brl(c.valor)}</td>
+    const acoes = c => {
+      if (!["pendente", "falhou"].includes(c.status) || c.status_assinatura !== "ativa") return "";
+      if (c.meio_pagamento === "pix_direto")
+        return `<button class="btn sec peq" data-direto="1" data-cob="${c.cobranca_id}">Recebido no extrato</button>
+          <button class="btn perigo peq" data-direto="0" data-cob="${c.cobranca_id}">Não recebido</button>`;
+      return DEMO ? `<button class="btn sec peq" data-evento="PAYMENT_RECEIVED" data-cob="${c.cobranca_id}">Pix pago</button>
+          <button class="btn perigo peq" data-evento="PAYMENT_OVERDUE" data-cob="${c.cobranca_id}">Pix vencido</button>` : "";
+    };
+    $("#tab-cobrancas").innerHTML = `<thead><tr><th>Guardião</th><th>Vencimento</th><th class="num">Valor</th><th>Status</th><th>Pago em</th><th>${DEMO ? "Aviso da Asaas (simulado) ou Pix direto" : "Pix direto"}</th></tr></thead><tbody>` +
+      linhas.map(c => `<tr><td>${esc(c.nome)}${c.meio_pagamento === "pix_direto" ? ` ${selo("direto", "Pix direto")}` : ""}</td><td>${fmt.data(c.vencimento)}</td><td class="num">${fmt.brl(c.valor)}</td>
         <td>${selo(c.status, NOME_COB[c.status])}${c.tentativas ? ` <span class="ajuda">${c.tentativas} tentativa(s)</span>` : ""}${c.status_assinatura === "cancelada" ? ` <span class="ajuda">assinatura encerrada</span>` : ""}</td><td>${fmt.dataHora(c.pago_em)}</td>
-        ${DEMO ? `<td>${["pendente", "falhou"].includes(c.status) && c.status_assinatura === "ativa" ? `<button class="btn sec peq" data-evento="PAYMENT_RECEIVED" data-cob="${c.cobranca_id}">Pix pago</button>
-          <button class="btn perigo peq" data-evento="PAYMENT_OVERDUE" data-cob="${c.cobranca_id}">Pix vencido</button>` : ""}</td>` : ""}</tr>`).join("") + `</tbody>`;
+        <td>${acoes(c)}</td></tr>`).join("") + `</tbody>`;
+    document.querySelectorAll("[data-direto]").forEach(b => b.addEventListener("click", async () => {
+      b.disabled = true;
+      const r = await consulta(sb.rpc("fn_registrar_pix_direto", { p_cobranca: b.dataset.cob, p_recebido: b.dataset.direto === "1" }));
+      const txt = { pago: "Pix direto registrado e agradecimento enviado.", recuperado: "Pix direto recuperado e agradecimento enviado.",
+        falhou: "Pix direto não recebido: lembrete registrado e Guardião no alerta de churn.",
+        cancelado_por_inadimplencia: "Terceiro mês sem Pix: assinatura cancelada por inadimplência." }[r] || `Resultado: ${r}`;
+      aviso(r === "cancelado_por_inadimplencia" ? "info" : "ok", txt);
+      await Promise.all([carregarMes(), carregarAlerta(), carregarResumo()]);
+    }));
     document.querySelectorAll("[data-evento]").forEach(b => b.addEventListener("click", async () => {
       b.disabled = true;
       const r = await consulta(sb.rpc("fn_processar_evento", { p_id_evento: idEvento(), p_cobranca: b.dataset.cob, p_tipo: b.dataset.evento }));
@@ -327,6 +354,7 @@
     $("#form-adesao-painel").addEventListener("submit", registrarAdesao);
     $("#form-consulta-cpf").addEventListener("submit", consultarCpf);
     cpf.mascara($("#a-cpf")); cpf.mascara($("#consulta-cpf"));
+    $("#a-direto").addEventListener("change", ev => { $("#a-origem").disabled = ev.target.checked; });
     $("#competencia").addEventListener("change", carregarMes);
     $("#filtro-cob").addEventListener("change", carregarMes);
     $("#btn-gerar").addEventListener("click", ev => acaoMes(ev.currentTarget, "fn_gerar_cobrancas", { p_competencia: competencia() },

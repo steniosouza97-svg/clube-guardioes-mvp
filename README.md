@@ -81,8 +81,8 @@ Documentação de handover:
 **No Supabase (SQL Editor):**
 
 ```sql
-select * from qa.fn_rodar_testes();       -- 24 testes do fluxo
-select * from qa.fn_testes_seguranca();   -- 10 testes de acesso
+select * from qa.fn_rodar_testes();       -- 28 testes do fluxo
+select * from qa.fn_testes_seguranca();   -- 11 testes de acesso
 ```
 
 Cada linha traz `PASS`, `INFO` ou `FALHA`. Os testes rodam num bloco desfeito ao final: nenhum dado é alterado. Usam um mês futuro sem movimento, então podem ser repetidos a qualquer momento, inclusive depois da demonstração.
@@ -94,9 +94,9 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 ./tests/rodar_testes.sh              # recria o banco, carrega tudo e roda as duas suítes
 ```
 
-**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 18 passos no navegador com Playwright: adesão com CPF, consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
+**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 19 passos no navegador com Playwright: adesão com CPF, consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais: 24 de 24 testes do fluxo e 10 de 10 de acesso no Supabase e localmente, 18 de 18 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF).
+Evidências atuais: 28 de 28 testes do fluxo e 11 de 11 de acesso no Supabase e localmente, 19 de 19 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF).
 
 ## Publicar a interface
 
@@ -134,8 +134,11 @@ Quem opera: a pessoa dedicada ao Clube (80 horas por mês, 70% aquisição e 30%
 |---|---|---|
 | Diária (10 min) | Aba **Alerta de churn**: contatar pelo WhatsApp os Guardiões de prioridade alta | Painel |
 | Semanal | Registrar adesões presenciais; acompanhar **Canais** (o uso semanal também mantém o Supabase ativo) | Painel |
-| Mensal | **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; **Resumo**: baixar o CSV para a prestação de contas | Painel |
+| Mensal | **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
+| Jan a mar/2027 | Convidar cada Guardião da base atual a migrar para a Asaas; quem aceitar, botão **Migrar para Asaas** na aba Guardiões. Meta: 80% migrados (indicador "Base ainda em Pix direto" no Resumo) | Painel e WhatsApp |
 | Trimestral | Rodar os testes; revisar parâmetros e comparar com o plano do business case | SQL Editor |
+
+**Base atual (modelo híbrido, DT-15):** os Guardiões que já doam por Pix direto são cadastrados no painel marcando "Já doa por Pix direto" na adesão presencial. Não trocam a forma de pagar e recebem a mesma comunicação.
 
 Parâmetros de negócio (metas, custeio de referência, taxas, limite de tentativas) ficam na tabela `parametro` e mudam sem mexer em código.
 

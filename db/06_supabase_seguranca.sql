@@ -63,6 +63,9 @@ alter function fn_processar_evento(text, uuid, text, timestamptz)         securi
 alter function fn_enviar_impacto_mensal(date, timestamptz)                security definer;
 alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) security definer;
 alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    security definer;
+alter function fn_cadastrar_pix_direto(text, text, text, text, numeric, smallint, boolean, date) security definer;
+alter function fn_registrar_pix_direto(uuid, boolean, timestamptz)       security definer;
+alter function fn_migrar_para_asaas(uuid)                                 security definer;
 
 revoke all on all functions in schema public from public, anon, authenticated;
 
@@ -74,6 +77,9 @@ grant execute on function fn_cancelar(uuid, text, date)                         
 grant execute on function fn_processar_evento(text, uuid, text, timestamptz)         to authenticated;
 grant execute on function fn_enviar_impacto_mensal(date, timestamptz)                to authenticated;
 grant execute on function fn_simular_gateway(date, numeric, numeric, timestamptz)    to authenticated;
+grant execute on function fn_cadastrar_pix_direto(text, text, text, text, numeric, smallint, boolean, date) to authenticated;
+grant execute on function fn_registrar_pix_direto(uuid, boolean, timestamptz)       to authenticated;
+grant execute on function fn_migrar_para_asaas(uuid)                                 to authenticated;
 -- fn_aderir (interna, usada por fn_aderir_publico), fn_cpf_hash, fn_cpf_valido,
 -- fn_cpf_digitos e fn_gerar_dados_sinteticos:
 -- sem grant. Só pelo SQL Editor.

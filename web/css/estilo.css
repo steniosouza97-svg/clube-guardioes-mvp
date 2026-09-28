@@ -141,6 +141,7 @@ tr:hover td { background: #fafcfb; }
 .selo.recuperado { background: #e0eefb; color: #1e4f7a; }
 .selo.em_risco, .selo.falhou, .selo.media { background: var(--atencao-bg); color: var(--atencao); }
 .selo.alta { background: var(--critico-bg); color: var(--critico); }
+.selo.direto { background: #f3ecdf; color: #7a5a1e; }
 .selo.cancelado, .selo.pendente { background: var(--neutro-bg); color: var(--tinta-2); }
 
 .filtros { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; margin-bottom: .75rem; }

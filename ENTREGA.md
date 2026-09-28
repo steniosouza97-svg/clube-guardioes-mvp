@@ -18,7 +18,7 @@ Clube Guardiões do Começo | Instituto de Cultura e Lazer Ebenézer | MBA Intel
 | Executa o fluxo principal | Adesão → cobrança mensal → Pix pago ou vencido → régua de relacionamento → painel com alerta de churn. Ver README e [conferência deck × MVP](docs/coerencia_deck_mvp.md) |
 | Implementa o modelo de dados | 8 tabelas com restrições (mais a chave do CPF em esquema privado), 6 views de métricas e funções como única porta de escrita. [Modelo de dados](docs/modelo_de_dados.md) |
 | Populado com dados sintéticos | 305 Guardiões, 12 meses de operação simulada, calibrados com o business case (teste T19). Nenhum dado real (T20) |
-| Passou por fase de teste | 24 testes de fluxo e 10 de acesso no Supabase, 18 passos de interface e 2 controles negativos. [Casos de teste](docs/casos_de_teste.md) e `evidencias/` |
+| Passou por fase de teste | 28 testes de fluxo e 11 de acesso no Supabase, 19 passos de interface e 2 controles negativos. [Casos de teste](docs/casos_de_teste.md) e `evidencias/` |
 | Opera de forma estável | No ar desde 28/09 no Supabase e no GitHub Pages; rotina que impede a pausa do plano gratuito; testes repetíveis sem alterar dados |
 
 ## Documentação de handover

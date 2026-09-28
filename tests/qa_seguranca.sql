@@ -53,6 +53,16 @@ begin
         assert bloq, 'S09 anônimo consultou CPF';
         v_log := v_log || 'PASS S09 anônimo não consulta CPF'::text;
 
+        bloq := false;
+        begin perform fn_cadastrar_pix_direto('X', 'x@example.com', v_cpf, null, 80, 10::smallint, true); exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S11 anônimo cadastrou Guardião em Pix direto';
+        bloq := false;
+        begin perform fn_registrar_pix_direto(gen_random_uuid(), true); exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S11 anônimo registrou Pix direto';
+        bloq := false;
+        begin perform fn_migrar_para_asaas(gen_random_uuid()); exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S11 anônimo migrou assinatura';
+
         -- pessoa com login, mas fora da lista de voluntários
         perform set_config('role', 'authenticated', true);
         perform set_config('request.jwt.claims', '{"role":"authenticated","email":"curioso@example.com"}', true);
@@ -61,7 +71,11 @@ begin
         bloq := false;
         begin perform fn_simular_gateway(current_date); exception when insufficient_privilege then bloq := true; end;
         assert bloq, 'S05 conta sem cadastro de voluntário executou o fluxo';
+        bloq := false;
+        begin perform fn_registrar_pix_direto(gen_random_uuid(), true); exception when insufficient_privilege then bloq := true; end;
+        assert bloq, 'S11 conta sem cadastro de voluntário registrou Pix direto';
         v_log := v_log || 'PASS S05 conta criada por terceiro, sem cadastro de voluntário, não vê dados nem executa o fluxo'::text;
+        v_log := v_log || 'PASS S11 só voluntário cadastrado registra Pix direto, cadastra a base e migra para a Asaas'::text;
 
         -- voluntário cadastrado
         perform set_config('role', 'postgres', true);

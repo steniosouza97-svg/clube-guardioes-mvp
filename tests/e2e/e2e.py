@@ -12,6 +12,7 @@ def cpf_valido(base9):
         d.append(0 if r < 2 else 11 - r)
     return "".join(map(str, d))
 CPF_MARIA, CPF_JOAO, CPF_OUTRO = cpf_valido("600000001"), cpf_valido("600000002"), cpf_valido("600000003")
+CPF_BASE = cpf_valido("600000004")
 
 def ok(msg): LOG.append("PASS " + msg); print("PASS", msg)
 def sql(q): return subprocess.run(["psql", "-d", os.environ.get("DB", "clube_e2e"), "-Atc", q], capture_output=True, text=True).stdout.strip()
@@ -63,7 +64,7 @@ with sync_playwright() as p:
     ok("E04 senha errada e conta sem cadastro de voluntário não entram no painel")
     pg.fill("#login-email", "voluntario@example.com"); pg.fill("#login-senha", "senha-teste"); pg.click("button:has-text('Entrar')")
     expect(pg.locator("#tela-painel")).to_be_visible()
-    expect(pg.locator("#kpis .kpi")).to_have_count(6)
+    expect(pg.locator("#kpis .kpi")).to_have_count(7)
     pg.wait_for_timeout(300)
     pg.screenshot(path="evidencias/e2e/03_painel_resumo.png", full_page=True)
     ativos_tela = pg.locator("#kpis .kpi").first.locator(".val").inner_text()
@@ -102,8 +103,10 @@ with sync_playwright() as p:
     pg.click("#btn-simular"); expect(pg.locator("#painel-msg")).to_contain_text("Avisos da Asaas processados")
     msg_sim = pg.locator("#painel-msg").inner_text()
     pg.wait_for_timeout(300); pg.screenshot(path="evidencias/e2e/05_operacao_mes.png", full_page=True)
-    assert sql("select count(*) from cobranca where competencia='2026-10-01' and status='pendente'") == "0"
-    ok("E09 simulador da Asaas processa todas as cobranças do mês: " + msg_sim.split(": ", 1)[-1])
+    assert sql("select count(*) from cobranca c join assinatura a on a.id=c.assinatura_id where c.competencia='2026-10-01' and c.status='pendente' and a.meio_pagamento<>'pix_direto'") == "0"
+    diretos = int(sql("select count(*) from cobranca c join assinatura a on a.id=c.assinatura_id where c.competencia='2026-10-01' and c.status='pendente' and a.meio_pagamento='pix_direto'"))
+    assert diretos > 0, diretos
+    ok(f"E09 simulador da Asaas processa todas as cobranças da Asaas: {msg_sim.split(': ', 1)[-1]} {diretos} de Pix direto ficam para conferência no extrato")
 
     # ---------------- E10 alerta de churn e recuperação manual
     pg.click("[data-aba=alerta]")
@@ -113,6 +116,7 @@ with sync_playwright() as p:
     pg.screenshot(path="evidencias/e2e/06_alerta_churn.png", full_page=True)
     ok(f"E10 alerta de churn lista {em_risco} Guardiões com link de WhatsApp pronto")
     pg.click("[data-aba=operacao]"); pg.select_option("#filtro-cob", "falhou")
+    expect(pg.locator("#tab-cobrancas tbody tr").first).to_contain_text("Falhou")
     linha = pg.locator("#tab-cobrancas tbody tr").first; nome = linha.locator("td").first.inner_text()
     linha.locator("button", has_text="Pix pago").click()
     expect(pg.locator("#painel-msg")).to_contain_text("recuperado")
@@ -155,6 +159,26 @@ with sync_playwright() as p:
     pg.click("[data-aba=canais]"); expect(pg.locator("#tab-canais")).to_contain_text("Campanha Dia das Crianças")
     pg.screenshot(path="evidencias/e2e/07_canais.png", full_page=True)
     ok("E15 voluntário registra adesão presencial com o canal da campanha")
+
+    # ---------------- E18 modelo híbrido: base em Pix direto
+    pg.click("[data-aba=guardioes]"); pg.click("#btn-nova-adesao"); pg.fill("#a-nome", "Clara Base"); pg.fill("#a-email", "clara.base@example.com"); pg.type("#a-cpf", CPF_BASE)
+    pg.fill("#a-valor", "80"); pg.check("#a-direto"); expect(pg.locator("#a-origem")).to_be_disabled(); pg.check("#a-consent")
+    pg.click("#form-adesao-painel button[type=submit]")
+    expect(pg.locator("#painel-msg")).to_contain_text("cadastrado em Pix direto")
+    assert sql("select a.meio_pagamento||'|'||o.nome from guardiao g join assinatura a on a.guardiao_id=g.id join origem o on o.id=g.origem_id where g.email='clara.base@example.com'") == "pix_direto|Base Pix manual"
+    pg.click("[data-aba=operacao]"); pg.select_option("#filtro-cob", "pendente")
+    expect(pg.locator("#tab-cobrancas tbody tr").first).to_contain_text("Pendente")
+    linha = pg.locator("#tab-cobrancas tbody tr", has_text="Pix direto").first; nome_d = linha.locator("td").first.inner_text().replace("Pix direto", "").strip()
+    linha.locator("button", has_text="Recebido no extrato").click()
+    expect(pg.locator("#painel-msg")).to_contain_text("Pix direto registrado")
+    assert sql(f"select count(*) from evento_gateway e join cobranca c on c.id=e.cobranca_id join assinatura a on a.id=c.assinatura_id join guardiao g on g.id=a.guardiao_id where g.nome='{nome_d}' and c.competencia='2026-10-01' and e.id_evento like 'manual_%' and c.status='pago'") == "1"
+    antes = int(sql("select count(*) from assinatura where status='ativa' and meio_pagamento='pix_direto'"))
+    pg.click("[data-aba=guardioes]"); pg.fill("#busca", "clara base")
+    b = pg.locator("#tab-guardioes button[data-migrar]"); b.click(); expect(b).to_have_text("Confirmar: o Guardião aceitou"); b.click()
+    expect(pg.locator("#painel-msg")).to_contain_text("migrado para a Asaas")
+    assert int(sql("select count(*) from assinatura where status='ativa' and meio_pagamento='pix_direto'")) == antes - 1
+    pg.fill("#busca", "")
+    ok(f"E18 base em Pix direto: cadastro sem trocar a forma de pagar, Pix de {nome_d} registrado à mão pelo extrato, migração para a Asaas em dois cliques")
 
     # ---------------- E16 celular
     m = nav.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, locale="pt-BR").new_page()

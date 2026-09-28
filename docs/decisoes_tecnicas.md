@@ -127,3 +127,16 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 **LGPD.** É pseudonimização (art. 13, §4º): o dado continua sendo pessoal. A cifragem atende aos princípios de necessidade e segurança, mas a conformidade completa depende das pendências institucionais listadas em [lgpd_pendencias.md](lgpd_pendencias.md).
 
 **Em produção.** O CPF passa a ser pedido no checkout da Asaas, e o banco recebe apenas a impressão digital calculada no registro do cliente. Recomenda-se mover a chave para o cofre do Supabase (Vault).
+
+## DT-15. Base atual em modelo híbrido: Pix direto convive com a Asaas
+
+**Contexto.** Os 35 Guardiões de hoje doam por Pix direto na conta do Instituto, fora da Asaas. Deixá-los de fora do sistema deixaria o painel sem a base inteira, sem régua, sem alerta de churn e sem prestação de contas unificada. Migrá-los à força arrisca perder justamente os doadores mais fiéis.
+
+**Decisão.** Modelo híbrido, em duas camadas:
+1. Todos entram no painel desde o primeiro dia (`fn_cadastrar_pix_direto`), com CPF e consentimento, no meio de pagamento `pix_direto` e origem "Base Pix manual". Recebem boas-vindas, notícia mensal de impacto e aparecem nas métricas.
+2. A migração para a Asaas é ativa e voluntária: a pessoa dedicada convida cada Guardião; quem aceita é migrado em dois cliques (`fn_migrar_para_asaas`), mantendo valor, dia e histórico. Quem não migra tem o Pix conferido no extrato todo mês e registrado à mão (`fn_registrar_pix_direto`), pelo mesmo caminho do webhook: agradecimento, lembrete, alerta de churn e inadimplência funcionam igual. O rastro fica em `evento_gateway` com o prefixo `manual_`.
+
+**Descartado.** Deixar a base de fora (painel incompleto, churn invisível); migração obrigatória (risco de perda de doadores fiéis).
+
+**Consequência.** Para o doador, nada muda no bolso: continua pagando por Pix, sem taxa; a tarifa da Asaas (R$ 3,09 por Guardião ao mês) é do Instituto e já está no modelo financeiro para toda a base. Meta operacional: 80% da base atual migrada até março de 2027. Enquanto houver Pix direto, a conferência do extrato é tarefa mensal da pessoa dedicada. O simulador da Asaas ignora o Pix direto, porque a Asaas não o enxerga. Testes: T25 a T28, S11 e E18.
+
