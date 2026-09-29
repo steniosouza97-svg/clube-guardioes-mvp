@@ -45,6 +45,7 @@
     const m = (e && (e.message || e.error_description || e.msg)) || String(e);
     if (/Consentimento LGPD/.test(m)) return "Para aderir, é preciso autorizar o uso dos seus dados.";
     if (/E-mail inválido/.test(m)) return "Confira o e-mail informado.";
+    if (/Ambiente de demonstração/.test(m)) return "Este é um ambiente de demonstração: use um e-mail terminado em @example.com ou deixe o e-mail em branco. Não use dados pessoais reais.";
     if (/CPF inválido/.test(m)) return "Confira o CPF informado.";
     if (/já possui assinatura ativa/.test(m)) return "Este CPF já é de um Guardião ativo. Obrigado!";
     if (/E-mail já cadastrado para outro CPF/.test(m)) return "Este e-mail já está cadastrado com outro CPF.";

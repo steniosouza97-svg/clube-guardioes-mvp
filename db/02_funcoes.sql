@@ -116,6 +116,11 @@ begin
     if v_email is not null and v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
         raise exception 'E-mail inválido: %', p_email;
     end if;
+    -- Ambiente de demonstração: nenhum dado pessoal real (evento de 29/09, teste com e-mail real)
+    if v_email is not null and v_email !~* '@example\.com$'
+       and coalesce((select valor from parametro where chave = 'modo_demonstracao'), 0) = 1 then
+        raise exception 'Ambiente de demonstração: use um e-mail terminado em @example.com ou deixe o e-mail em branco';
+    end if;
     if not fn_cpf_valido(p_cpf) then
         raise exception 'CPF inválido: confira os números';
     end if;
@@ -592,6 +597,11 @@ begin
     if v_email is not null and v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
         raise exception 'E-mail inválido: %', p_email;
     end if;
+    -- Ambiente de demonstração: nenhum dado pessoal real (evento de 29/09, teste com e-mail real)
+    if v_email is not null and v_email !~* '@example\.com$'
+       and coalesce((select valor from parametro where chave = 'modo_demonstracao'), 0) = 1 then
+        raise exception 'Ambiente de demonstração: use um e-mail terminado em @example.com ou deixe o e-mail em branco';
+    end if;
     if not fn_cpf_valido(p_cpf) then
         raise exception 'CPF inválido: confira os números';
     end if;
@@ -720,7 +730,7 @@ begin
 end;
 $$;
 
--- GAMIFICAÇÃO. Uma estrela a cada 3 meses de doação mensal paga.
+-- GAMIFICAÇÃO. 1ª estrela na primeira doação paga e mais uma a cada 3 meses (teto de 5).
 -- 3 estrelas: Guardião Bronze; 4: Prata; 5 ou mais: Ouro.
 create or replace function fn_nivel(p_estrelas integer)
 returns text
@@ -783,7 +793,8 @@ begin
     select count(*) into v_pagos
       from cobranca c join assinatura x on x.id = c.assinatura_id
      where x.guardiao_id = p_guardiao and c.status in ('pago', 'recuperado');
-    v_estrelas := v_pagos / v_meses_estrela;
+    -- 1ª estrela na primeira doação paga; depois, uma a cada v_meses_estrela meses (decisão de 29/09, tarde)
+    v_estrelas := case when v_pagos = 0 then 0 else least(5, 1 + v_pagos / v_meses_estrela) end;
     if a.status = 'ativa' then
         v_proxima := make_date(extract(year from v_hoje)::int, extract(month from v_hoje)::int, a.dia_vencimento);
         if v_proxima < v_hoje or exists (select 1 from cobranca c where c.assinatura_id = a.id
@@ -812,7 +823,7 @@ begin
                            where x.guardiao_id = p_guardiao and c.status in ('pago', 'recuperado')),
         'estrelas',      v_estrelas,
         'nivel',         fn_nivel(v_estrelas),
-        'meses_para_proxima_estrela', v_meses_estrela - (v_pagos % v_meses_estrela),
+        'meses_para_proxima_estrela', case when v_pagos = 0 then 1 else v_meses_estrela - (v_pagos % v_meses_estrela) end,
         'codigo_convite', g.codigo_convite,
         'indicacoes',    (select count(*) from guardiao x where x.convite_usado = g.codigo_convite)
                        + (select count(*) from doacao_unica d where d.convite_usado = g.codigo_convite),

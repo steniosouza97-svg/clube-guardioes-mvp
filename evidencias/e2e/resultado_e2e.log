@@ -1,4 +1,4 @@
-PASS E01 formulário valida nome, CPF (dígito verificador, com máscara) e exige consentimento LGPD
+PASS E01 formulário valida nome, CPF (dígito verificador, com máscara), recusa e-mail real na demonstração e exige consentimento LGPD
 PASS E02 adesão pública grava Guardião de R$ 85 por mês com dia, canal (QR Code) e CPF só cifrado
 PASS E19 jornada da semana 5: Pix com QR e copia e cola, falha e nova tentativa, confirmação em 3 etapas, 'Indique um novo Doador' pelo WhatsApp, link pessoal que registra quem convidou, e-mail opcional, Aviso de Privacidade
 PASS E03 mesmo CPF com outro e-mail é recusado; e-mail já usado não aceita outro CPF
@@ -11,11 +11,11 @@ PASS E24 painel mostra doações únicas, Guardiões pausados com a data de volt
 PASS E07 busca encontra a nova Guardiã e o histórico mostra a mensagem de boas-vindas
 PASS E07b voluntário consulta se um CPF já é Guardião, sem ver o número guardado
 PASS E08 geração de cobranças de out/2026: 273 criadas, segunda tentativa não duplica
-PASS E09 simulador da Asaas processa todas as cobranças da Asaas: 237 pagos, 29 em atraso. 7 de Pix direto ficam para conferência no extrato
-PASS E10 alerta de churn lista 36 Guardiões com link de WhatsApp pronto
+PASS E09 simulador da Asaas processa todas as cobranças da Asaas: 250 pagos, 16 em atraso. 7 de Pix direto ficam para conferência no extrato
+PASS E10 alerta de churn lista 23 Guardiões com link de WhatsApp pronto
 PASS E21 equipe registra o contato feito com quem está em atraso, e o alerta mostra o último contato
-PASS E11 Pix pago após o lembrete: Carlos Almeida vira 'recuperado' e sai do alerta
-PASS E12 terceiro aviso de atraso cancela a assinatura de Daniela Almeida por inadimplência e encerra a simulação para ela
+PASS E11 Pix pago após o lembrete: Flávia Martins vira 'recuperado' e sai do alerta
+PASS E12 terceiro aviso de atraso cancela a assinatura de Gabriela Martins por inadimplência e encerra a simulação para ela
 PASS E20 equipe registra o que cada atividade sustentou no mês; sem isso a notícia de impacto não sai
 PASS E13 notícia mensal de impacto enviada uma vez; repetir não duplica
 PASS E14 cancelamento a pedido exige confirmação e registra o motivo

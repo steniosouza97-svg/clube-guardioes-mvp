@@ -6,7 +6,7 @@ Três camadas de teste, todas automatizadas:
 
 | Camada | Onde roda | Quantidade | Resultado |
 |---|---|---|---|
-| Fluxo principal (banco) | Supabase e PostgreSQL local | 38 testes | 38 aprovados |
+| Fluxo principal (banco) | Supabase e PostgreSQL local | 39 testes | 39 aprovados |
 | Regras de acesso (banco) | Supabase e PostgreSQL local | 13 testes | 13 aprovados |
 | Interface ponta a ponta | Chromium sobre réplica local do Supabase | 25 passos | 25 aprovados |
 
@@ -88,8 +88,9 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T34 | Pausa de 1 a 3 meses cancela o mês em aberto, não cobra durante a pausa e volta sozinha | Data de volta correta; nenhuma cobrança durante a pausa; painel mostra "pausado"; volta no mês indicado com mensagens de pausa e retomada; pausa acima de 3 meses recusada |
 | T35 | Minha Área abre só com WhatsApp e CPF do Guardião, sem expor dados, e bloqueia após 5 erros | Devolve só os dados certos; WhatsApp errado não entra; tentativas repetidas bloqueadas |
 | T36 | Pela Minha Área a Guardiã pausa, retoma, cancela com motivo e reativa | Status muda em cada ação; motivo registrado; reativação como Guardião de R$ 85 |
-| T37 | Uma estrela a cada 3 meses pagos; Bronze, Prata e Ouro | Níveis de `fn_nivel` corretos; nenhum Guardião com estrelas fora da regra |
+| T37 | 1ª estrela na primeira doação e uma a cada 3 meses (Ouro em 12); Bronze, Prata e Ouro | Níveis de `fn_nivel` corretos; nenhum Guardião com estrelas fora da regra ou acima de 5; quem tem 1 mês pago tem 1 estrela e quem tem 12 é Ouro |
 | T38 | Recibo anual soma as doações pagas e só sai para o próprio Guardião | Total confere com as doações pagas no ano; CPF de outra pessoa não emite recibo |
+| T39 | Demonstração recusa e-mail real (só @example.com ou em branco); em produção o e-mail comum é aceito | Adesão e doação única com e-mail real são recusadas e nada é gravado; com `modo_demonstracao = 0` o mesmo e-mail é aceito |
 
 ## Regras de acesso (banco)
 
@@ -166,6 +167,8 @@ Um teste que nunca falha não prova nada; estes provam.
 | `evidencias/testes_supabase_2026-09-28_jornada_semana5.log` | Execução no Supabase depois da jornada da semana 5: 30 de 31 de fluxo (T20 detectou um e-mail real inserido pela página; zerar a base resolve) e 12 de 12 de acesso |
 | `evidencias/testes_local_2026-09-28_2041.log` | Execução completa em PostgreSQL 16 local: 31 de 31 de fluxo e 12 de 12 de acesso |
 | `evidencias/testes_local_2026-09-29_0736.log` | Execução em PostgreSQL 16 local depois das decisões de 29/09: 38 de 38 de fluxo e 13 de 13 de acesso |
+| `evidencias/testes_local_2026-09-29_1404.log` | Execução em PostgreSQL 16 local depois da trava da demonstração e da nova regra das estrelas: 39 de 39 de fluxo e 13 de 13 de acesso |
+| `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` | Execução no Supabase depois da remoção dos 2 cadastros com e-mail real do teste com professor e da trava da demonstração (migrações 26 a 31, incluindo a nova regra das estrelas): 39 de 39 de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log` | Execução no Supabase depois das migrações 19 a 25 (decisões de 29/09), sobre a base regenerada (305 Guardiões, 4 pausados, 48 doações únicas): 38 de fluxo e 13 de acesso aprovados, idêntico ao local |
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
 | `evidencias/e2e/resultado_e2e.log` | Os 25 passos de interface aprovados (E01 a E24, com E07b) |

@@ -1,18 +1,8 @@
-== Clube Guardiões do Futuro | execução dos testes
-== data: 29/09/2026 12:39  banco: clube_teste  servidor: PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
-carregado: db/01_schema.sql
-carregado: db/02_funcoes.sql
-carregado: db/03_views.sql
-carregado: db/04_dados_referencia.sql
-carregado: db/05_dados_sinteticos.sql
-carregado: db/06_supabase_seguranca.sql
-psql:tests/qa_seguranca.sql:11: NOTICE:  schema "qa" already exists, skipping
-== volumes carregados
-guardioes: 305
-assinaturas ativas: 271
-cobrancas: 2222
-comunicacoes: 4980
-eventos do gateway: 2452
+== Clube Guardiões do Futuro | execução no Supabase (projeto clube-guardioes)
+== data: 29/09/2026 14h, depois das migrações 26 a 31 (nome Guardiões do Futuro, total doado na Minha Área, demonstração só aceita e-mail @example.com, T39, nova regra das estrelas com teto de 5)
+== contexto: teste de validação com professor da Inteli gravou 2 cadastros com e-mail real; T20 acusou; registros removidos com autorização do grupo e trava aplicada
+== base: 305 Guardiões, 48 doações únicas, nenhum e-mail fora de @example.com
+== comando: select 'F' s, * from qa.fn_rodar_testes() union all select 'S', * from qa.fn_testes_seguranca();
 == testes do fluxo
 INFO mês de teste: 2026-12-01 (último mês com movimento: 2026-09-01)
 PASS T01 adesão válida cria Guardião, assinatura ativa e mensagem de boas-vindas
@@ -49,8 +39,9 @@ PASS T33 doação única aceita qualquer valor a partir de R$ 10, é confirmada 
 PASS T34 pausa de 1 a 3 meses cancela o mês em aberto, não cobra durante a pausa e volta sozinha
 PASS T35 Minha Área abre só com WhatsApp e CPF do Guardião, sem expor dados, e bloqueia após 5 erros
 PASS T36 pela Minha Área a Guardiã pausa, retoma, cancela com motivo e reativa
-PASS T37 uma estrela a cada 3 meses pagos; 182 Guardiões já são Bronze ou acima
+PASS T37 1ª estrela na primeira doação e uma a cada 3 meses (Ouro em 12); 240 Guardiões já são Bronze ou acima
 PASS T38 recibo anual soma as doações pagas e só sai para o próprio Guardião
+PASS T39 demonstração recusa e-mail real (só @example.com ou em branco); em produção o e-mail comum é aceito
 INFO testes do fluxo desfeitos: nenhum dado foi alterado
 PASS T19 dados sintéticos calibrados: ticket R$ 76.73, churn 1.55% ao mês, 275 Guardiões no último mês (plano: 267)
 PASS T20 integridade: uma assinatura ativa por Guardião, um CPF por Guardião, todo pagamento rastreável, nenhum dado pessoal real
@@ -70,4 +61,4 @@ PASS S07 voluntário não altera tabelas sem passar pelas funções
 PASS S10 voluntário não lê o CPF cifrado, nem a chave, nem calcula impressões digitais
 PASS S08 gerador de dados sintéticos bloqueado fora do SQL Editor
 INFO testes de acesso desfeitos: nenhum dado foi alterado
-== RESULTADO: todos os testes passaram
+== RESULTADO: 39 testes do fluxo e 13 testes de acesso aprovados no Supabase

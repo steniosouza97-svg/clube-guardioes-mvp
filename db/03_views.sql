@@ -41,7 +41,8 @@ select g.id                    as guardiao_id,
          limit 1) a on true
   cross join lateral (
         select count(*)::int as meses_pagos,
-               floor(count(*) / coalesce((select valor from parametro where chave = 'meses_por_estrela'), 3))::int as estrelas
+               case when count(*) = 0 then 0
+                    else least(5, 1 + floor(count(*) / coalesce((select valor from parametro where chave = 'meses_por_estrela'), 3))::int) end as estrelas
           from cobranca c join assinatura x on x.id = c.assinatura_id
          where x.guardiao_id = g.id and c.status in ('pago', 'recuperado')) n;
 

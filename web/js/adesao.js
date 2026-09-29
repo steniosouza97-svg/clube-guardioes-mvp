@@ -60,6 +60,7 @@
     });
   }
   if (!CLUBE_CONFIG.demonstracao) $$("[data-so-demo]").forEach(el => el.remove());
+  if (CLUBE_CONFIG.demonstracao) $("#email").placeholder = "demonstração: nome@example.com";
 
   // ---------- convite recebido: faixa "Você foi convidado por..." ----------
   if (convite) {
@@ -120,6 +121,8 @@
       return mostrar("erro", "Informe seu WhatsApp com DDD: é por onde chega o Pix do mês.");
     if (!cpf.valido(campoCpf.value)) return mostrar("erro", "Confira o CPF informado.");
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return mostrar("erro", "Confira o e-mail informado.");
+    if (email && CLUBE_CONFIG.demonstracao && !/@example\.com$/i.test(email))
+      return mostrar("erro", "Este é um ambiente de demonstração: use um e-mail terminado em @example.com ou deixe o e-mail em branco. Não use dados pessoais reais.");
     if (!valor || valor < 10 || valor > 50000) return mostrar("erro", "Escolha um valor entre R$ 10 e R$ 50.000.");
     if (!consent) return mostrar("erro", "Para doar, é preciso autorizar o uso dos seus dados.");
 
@@ -253,9 +256,9 @@
     const ativo = d.status === "ativa" || d.status === "atrasada";
     const meses = d.meses_pagos || 0;
     const doado = Number(d.total_doado || 0);
-    // próximo nível: Bronze aos 9 meses, Prata aos 12, Ouro aos 15 (uma estrela a cada 3 meses)
-    const alvo = d.estrelas < 3 ? { nome: "Guardião Bronze", meses: 9 } : d.estrelas < 4 ? { nome: "Guardião Prata", meses: 12 }
-               : d.estrelas < 5 ? { nome: "Guardião do Futuro Ouro", meses: 15 } : null;
+    // próximo nível: 1ª estrela na 1ª doação, depois uma a cada 3 meses; Bronze aos 6 meses, Prata aos 9, Ouro aos 12
+    const alvo = d.estrelas < 3 ? { nome: "Guardião Bronze", meses: 6 } : d.estrelas < 4 ? { nome: "Guardião Prata", meses: 9 }
+               : d.estrelas < 5 ? { nome: "Guardião do Futuro Ouro", meses: 12 } : null;
     const faltam = alvo ? Math.max(alvo.meses - meses, 1) : 0;
     const plural = n => `${n} ${n === 1 ? "mês" : "meses"}`;
     const titulo = classe === "inicial"
@@ -265,10 +268,13 @@
       ? `Há ${plural(meses)} você garante, todo mês, o cuidado das 120 crianças do Instituto Ebenézer no Jardim Ângela.`
       : `A partir do seu primeiro Pix, você passa a garantir, todo mês, o cuidado das 120 crianças do Instituto Ebenézer.`;
     let proximo;
-    if (!alvo) proximo = `<p class="conquista-meta topo">Você chegou ao topo. Obrigado por estar com as crianças mês após mês. 💛</p>`;
-    else if (ativo) proximo = `<p class="conquista-meta">Faltam <strong>${plural(faltam)}</strong> para você se tornar <strong>${alvo.nome}</strong>.</p>
-        <div class="conquista-barra" role="progressbar" aria-valuemin="0" aria-valuemax="15" aria-valuenow="${Math.min(meses, 15)}"
-             aria-label="${meses} de 15 meses até o nível Ouro"><div style="width:${Math.min(meses / 15 * 100, 100)}%"></div></div>`;
+    if (ativo && d.estrelas === 0) proximo = `<p class="conquista-meta">Seu primeiro Pix já vale a <strong>1ª estrela</strong>. Depois, uma a cada 3 meses.</p>`;
+    else if (!alvo) proximo = `<p class="conquista-meta topo">Você chegou ao topo. Obrigado por estar com as crianças mês após mês. 💛</p>`;
+    else if (ativo) proximo = `<p class="conquista-meta">${d.estrelas >= 3
+          ? `Você está a <strong>${d.estrelas === 4 ? "apenas 1 estrela" : "2 estrelas"}</strong> de ser <strong>Guardião do Futuro Ouro</strong>: faltam <strong>${plural(Math.max(12 - meses, 1))}</strong>.`
+          : `Faltam <strong>${plural(faltam)}</strong> para você se tornar <strong>${alvo.nome}</strong>.`}</p>
+        <div class="conquista-barra" role="progressbar" aria-valuemin="0" aria-valuemax="12" aria-valuenow="${Math.min(meses, 12)}"
+             aria-label="${meses} de 12 meses até o nível Ouro"><div style="width:${Math.min(meses / 12 * 100, 100)}%"></div></div>`;
     else if (d.status === "pausada") proximo = `<p class="conquista-meta">Sua doação está pausada: suas estrelas estão guardadas e a contagem volta em ${fmt.mesLongo(d.pausada_ate)}.</p>`;
     else proximo = `<p class="conquista-meta">Reative a doação mensal e continue de onde parou: faltam ${plural(faltam)} para ${alvo.nome}.</p>`;
     $("#area-nivel").className = `conquista ${classe}`;
@@ -286,20 +292,20 @@
         ${d.indicacoes ? `<div><dt>${d.indicacoes}</dt><dd>${d.indicacoes === 1 ? "pessoa trazida" : "pessoas trazidas"} por você</dd></div>`
                        : `<div><dt>1ª indicação</dt><dd>está a um WhatsApp de distância</dd></div>`}
       </dl>`;
-    const passos = [[3, "1ª estrela", ""], [6, "2ª estrela", ""], [9, "Bronze", "nivel-bronze"], [12, "Prata", "nivel-prata"], [15, "Ouro", "nivel-ouro"]];
+    const passos = [["1ª doação", "1ª estrela", ""], ["3 meses", "2ª estrela", ""], ["6 meses", "Bronze", "nivel-bronze"], ["9 meses", "Prata", "nivel-prata"], ["12 meses", "Ouro", "nivel-ouro"]];
     $("#area-jornada").innerHTML = `
       <h2>Sua jornada até o Ouro</h2>
-      <p class="sub">A cada 3 meses de doação você ganha uma estrela.</p>
+      <p class="sub">A 1ª estrela chega com a primeira doação. Depois, uma a cada 3 meses.</p>
       <ol class="trilha-estrelas jornada-pessoal">
         ${passos.map(([m, nome, cl], i) => {
           const feito = d.estrelas >= i + 1;
           const aqui = !feito && d.estrelas === i;
           return `<li class="${cl} ${feito ? "feito" : "futuro"} ${aqui ? "aqui" : ""}">
-            <span class="est" aria-hidden="true">${"★".repeat(i + 1)}</span><b>${m} meses</b><small>${nome}</small>
+            <span class="est" aria-hidden="true">${"★".repeat(i + 1)}</span><b>${m}</b><small>${nome}</small>${!feito && i === 2 ? `<i class="falta-ouro">a 2★ do Ouro</i>` : !feito && i === 3 ? `<i class="falta-ouro">a 1★ do Ouro</i>` : ""}
             ${feito ? `<em class="marca-passo">✓<span class="txt"> conquistado</span></em>` : aqui ? `<em class="marca-passo">próximo passo</em>` : ""}</li>`;
         }).join("")}
       </ol>
-      ${alvo && ativo && d.proxima ? `<p class="jornada-previsao">Com o Pix em dia, você chega a <strong>${alvo.nome}</strong> em <strong>${previsao(d.proxima, faltam)}</strong>.</p>` : ""}`;
+      ${alvo && ativo && d.proxima && meses > 0 ? `<p class="jornada-previsao">Com o Pix em dia, você chega a <strong>Guardião do Futuro Ouro</strong> em <strong>${previsao(d.proxima, Math.max(12 - meses, 1))}</strong>.</p>` : ""}`;
 
     const st = d.status;
     let acoes = "";

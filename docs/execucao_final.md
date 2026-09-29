@@ -12,7 +12,7 @@ Checklist da tarefa TE7. Tempo estimado: 30 minutos. Quem executa: responsável 
 No SQL Editor:
 
 ```sql
-select * from qa.fn_rodar_testes();       -- esperado: 38 PASS (T01 a T38), nenhuma FALHA
+select * from qa.fn_rodar_testes();       -- esperado: 39 PASS (T01 a T39), nenhuma FALHA
 select * from qa.fn_testes_seguranca();   -- esperado: 13 PASS (S01 a S13), nenhuma FALHA
 ```
 
@@ -39,7 +39,7 @@ from guardiao g;   -- esperado: 305, 271, 4 e 48
 - [ ] Abrir a página de adesão: https://steniosouza97-svg.github.io/clube-guardioes-mvp/
 - [ ] Conferir a escolha entre "Guardião R$ 85/mês (recomendado)" e "Doação única, qualquer valor".
 - [ ] Digitar o CPF `111.111.111-11` e conferir a mensagem "CPF inválido". Não enviar.
-- [ ] Clicar em **Minha Área** e em **Entrar como Guardião de demonstração**: conferir Carlos Soares com nível Prata (4 estrelas), impacto, histórico e botão de recibo. Sair sem pausar nem cancelar.
+- [ ] Clicar em **Minha Área** e em **Entrar como Guardião de demonstração**: conferir Carlos Barbosa como Guardião Prata (4 estrelas, a 1 estrela do Ouro), impacto, histórico e botão de recibo. Sair sem pausar nem cancelar.
 - [ ] Entrar no painel com o login do voluntário e conferir o resumo (275 Guardiões no Clube, sendo 271 ativos e 4 pausados) e a aba **Doações únicas** (48).
 - [ ] Deixar as duas abas abertas para a apresentação.
 

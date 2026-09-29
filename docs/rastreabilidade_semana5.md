@@ -45,7 +45,7 @@ O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na sem
 
 | Recurso | Por quê | Teste |
 |---|---|---|
-| Banco de dados real com regras de negócio | O enunciado da semana 10 exige modelo de dados e operação estável | T01 a T38 |
+| Banco de dados real com regras de negócio | O enunciado da semana 10 exige modelo de dados e operação estável | T01 a T39 |
 | Dados sintéticos de 12 meses | Exigência do enunciado; calibrados com o business case | T19, T20 |
 | Operação do mês (gerar cobranças, simular a Asaas, enviar a notícia) | Mostra o ciclo mensal funcionando de ponta a ponta | E08, E09, E13 |
 | Base atual em Pix direto e migração para a Asaas | Os 35 Guardiões de hoje não passam pela Asaas (DT-15) | T25 a T28, E18 |
@@ -53,7 +53,7 @@ O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na sem
 | CPF cifrado | O CPF é o identificador único da semana 5, guardado sem expor o número (DT-14) | T23, S10 |
 | Doação única de qualquer valor | Porta de entrada para quem não pode doar todo mês, sem distorcer as métricas de recorrência (DT-17) | T33, S13, E22 |
 | Pausa em vez de cancelamento | Alternativa para quem passa por um aperto; volta sozinha em 1 a 3 meses (DT-17) | T34, T36, E23, E24 |
-| Estrelas e níveis (Bronze, Prata, Ouro) | Reconhece a constância; uma estrela a cada 3 meses pagos (DT-17) | T37, E23, E24 |
+| Estrelas e níveis (Bronze, Prata, Ouro) | Reconhece a constância; a 1ª na primeira doação paga e mais uma a cada 3 meses (Bronze aos 6, Prata aos 9, Ouro aos 12; teto de 5 estrelas) (DT-17) | T37, E23, E24 |
 
 ## Diferenças deliberadas, e por quê
 

@@ -159,7 +159,7 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 2. **Doação única de qualquer valor, em tabela própria.** `doacao_unica` guarda nome, WhatsApp, CPF só como HMAC, e-mail opcional, valor (R$ 10 a R$ 50.000), status (`pendente`, `paga`, `falhou`), código de convite e convite usado. A página sugere R$ 30, R$ 60 e R$ 120, os valores do protótipo da semana 5, ou outro. Ficar fora de `assinatura` e `cobranca` mantém honestas as métricas de recorrência (ativos, ticket médio, churn), que são o objeto do Clube. A confirmação vem de `fn_processar_doacao_unica` (caminho do webhook, só equipe); na demonstração, `fn_confirmar_doacao_demo` faz esse papel e só funciona com `modo_demonstracao = 1`.
 3. **E-mail opcional.** Vale para Guardião e doação única. Se informado, precisa ser válido. WhatsApp e CPF continuam obrigatórios, porque são o canal da régua e o identificador único (DT-14).
 4. **Pausa com volta automática.** O Guardião pausa de 1 a 3 meses (`pausa_maxima_meses = 3`) em vez de cancelar. A cobrança do mês em aberto é cancelada, não há cobrança durante a pausa e `fn_gerar_cobrancas` reativa a assinatura no mês de volta (`pausada_ate`, sempre o primeiro dia do mês), registrando a comunicação `retomada`. O próprio Guardião pausa e retoma pela Minha Área (`fn_area_acao`); a equipe, pelo painel a pedido (`fn_pausar`, `fn_retomar`). O pausado continua no Clube e conta em "Guardiões no Clube".
-5. **Estrelas calculadas, não guardadas.** Uma estrela a cada 3 meses pagos (`meses_por_estrela = 3`); 3 estrelas é Guardião Bronze, 4 é Prata, 5 ou mais é Ouro (`fn_nivel`). `vw_situacao_guardiao` conta as cobranças pagas ou recuperadas e calcula meses pagos, estrelas e nível. Nenhuma coluna nova, nada a reconciliar: a estrela nunca discorda do histórico de pagamentos.
+5. **Estrelas calculadas, não guardadas.** A 1ª estrela chega com a primeira doação paga e depois uma a cada 3 meses (`meses_por_estrela = 3`), com teto de 5: 3 estrelas aos 6 meses é Guardião Bronze (a 2 do Ouro), 4 aos 9 é Prata (a 1 do Ouro), 5 aos 12 é Guardião do Futuro Ouro (`fn_nivel`). Regra revista em 29/09 à tarde: antes, a 1ª estrela vinha só aos 3 meses e o Ouro aos 15; o grupo antecipou o primeiro reconhecimento para o momento em que a doação vira recorrente e trouxe o Ouro para 1 ano. `vw_situacao_guardiao` conta as cobranças pagas ou recuperadas e calcula meses pagos, estrelas e nível. Nenhuma coluna nova, nada a reconciliar: a estrela nunca discorda do histórico de pagamentos.
 6. **Indicação pelas duas tabelas.** Todo doador, Guardião ou de doação única, tem `codigo_convite` e vê "Indique um novo Doador" depois de doar. O botão abre o WhatsApp com uma mensagem de impacto e o link pessoal. Quem entra pelo link fica com `convite_usado` registrado, em `guardiao` ou em `doacao_unica`, e as views somam as indicações das duas tabelas. O link de uma doação única só vale depois de paga.
 
 **Descartado.**
@@ -192,3 +192,15 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 **Descartado.** Deixar a Minha Área para a fase 2 (a posição anterior da DT-16): a banca não veria a jornada completa da semana 5. Login por senha: mais uma senha para o doador esquecer, e o problema de recuperação volta ao WhatsApp ou ao e-mail.
 
 **Consequência.** A Minha Área é adequada para demonstração, não para doadores reais. Testes: T35, T36, T38, S13, E23.
+
+## DT-19. Demonstração só aceita e-mail @example.com
+
+**Contexto.** Em 29/09/2026, um teste ao vivo com professor da Inteli gravou dois cadastros com e-mail real na base de demonstração, que por regra só tem dados sintéticos. O T20 acusou.
+
+**Decisão.** Com `modo_demonstracao = 1`, `fn_aderir` (usada pela página e pelo painel) e `fn_doar_unica` recusam e-mail que não termine em `@example.com`; e-mail em branco continua aceito. A página mostra o motivo antes de enviar. Os dois registros foram apagados com autorização do grupo.
+
+**Por quê.** A trava fica no banco, onde nenhuma tela consegue contorná-la, e sai sozinha quando o parâmetro é desligado para produção.
+
+**Limite.** Nome, WhatsApp e CPF reais não são detectáveis; o aviso da página e o CPF cifrado (DT-14) seguem como proteção.
+
+**Consequência.** Testes T39 e E01.

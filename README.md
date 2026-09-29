@@ -21,7 +21,7 @@ O que o MVP faz hoje (decisões de 29/09/2026):
 - **Cadastro:** nome, WhatsApp e CPF obrigatórios; e-mail opcional (se informado, precisa ser válido). CPF guardado só cifrado.
 - **Minha Área:** o Guardião entra com WhatsApp e CPF e vê status, nível com estrelas, linha do tempo de impacto, histórico e recibo anual; pode pausar, retomar, cancelar com motivo ou reativar.
 - **Pausa em vez de cancelar:** de 1 a 3 meses, sem cobrança no período; a doação volta sozinha no mês escolhido.
-- **Estrelas:** 1 a cada 3 meses pagos; 3 estrelas = Bronze, 4 = Prata, 5 ou mais = Ouro.
+- **Estrelas:** a 1ª na primeira doação paga e mais uma a cada 3 meses: 3 estrelas aos 6 meses = Bronze (a 2 do Ouro), 4 aos 9 = Prata (a 1 do Ouro), 5 aos 12 = Guardião do Futuro Ouro.
 - **Indique um novo Doador:** depois de doar, a pessoa compartilha pelo WhatsApp uma mensagem de impacto com link pessoal; o painel conta as indicações.
 - **Painel do voluntário:** 9 indicadores (inclui Guardiões pausados e doações únicas do mês), aba de doações únicas, nível de cada Guardião, pausar e retomar a pedido.
 
@@ -94,7 +94,7 @@ Documentação de handover:
 **No Supabase (SQL Editor):**
 
 ```sql
-select * from qa.fn_rodar_testes();       -- 38 testes do fluxo (T01 a T38)
+select * from qa.fn_rodar_testes();       -- 39 testes do fluxo (T01 a T39)
 select * from qa.fn_testes_seguranca();   -- 13 testes de acesso (S01 a S13)
 ```
 
@@ -109,9 +109,9 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 
 **Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 25 passos no navegador com Playwright (E01 a E24, com E07b): jornada da semana 5 (cadastro em 3 etapas, Pix, falha e nova tentativa, confirmação, Indique um novo Doador), doação única sem e-mail, Minha Área completa (nível, estrelas, impacto, histórico, pausa, retomada, cancelamento com motivo, reativação por R$ 85, recibo), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento, doações únicas e pausados no painel, celular e console sem erros. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais (29/09/2026): 38 de 38 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-29_0736.log`, `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log` e `evidencias/e2e/resultado_e2e.log`.
+Evidências atuais (29/09/2026): 39 de 39 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-29_1404.log`, `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` e `evidencias/e2e/resultado_e2e.log`.
 
-**Testar a Minha Área:** na página pública, clicar em **Minha Área** no topo e depois em **Entrar como Guardião de demonstração**. Ou digitar os dados do Guardião sintético Carlos Soares: WhatsApp `(11) 90000-0050` e CPF `800.000.050-45` (fictício). Ele aparece com nível Prata (4 estrelas), impacto, histórico e recibo. Cinco tentativas erradas em 15 minutos bloqueiam a entrada por esse WhatsApp.
+**Testar a Minha Área:** na página pública, clicar em **Minha Área** no topo e depois em **Entrar como Guardião de demonstração**. Ou digitar os dados do Guardião sintético Carlos Barbosa: WhatsApp `(11) 90000-0040` e CPF `800.000.040-73` (fictício). Ele aparece como Guardião Prata (4 estrelas, 11 meses), a 1 estrela do Ouro, impacto, histórico e recibo. Cinco tentativas erradas em 15 minutos bloqueiam a entrada por esse WhatsApp.
 
 ## Publicar a interface
 

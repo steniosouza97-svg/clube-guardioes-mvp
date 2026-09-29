@@ -8,5 +8,5 @@ window.CLUBE_CONFIG = {
   // true enquanto a base for de demonstração: mostra o aviso e o simulador do gateway
   demonstracao: true,
   // Guardião sintético para demonstrar a Minha Área (dados fictícios da base de demonstração)
-  guardiaoDemo: { telefone: "(11) 90000-0050", cpf: "800.000.050-45" }
+  guardiaoDemo: { telefone: "(11) 90000-0040", cpf: "800.000.040-73" }
 };

@@ -22,7 +22,7 @@ As duas trilhas contam a mesma história com os mesmos números. Esta conferênc
 | 5 | Passo 4, Régua e recuperação de cobrança | Lembrete, alerta de churn, recuperação; T08, T09, T10 | Coerente |
 | 5 | Painel interno com alerta de churn | `vw_alerta_churn`, aba Alerta de churn; E10 | Coerente |
 | 5 | Não promete dedução de IR | Página de adesão; CONTRIBUTING.md | Coerente |
-| 6 | MVP no ar, testes aprovados, CPF cifrado | 38 de fluxo + 13 de acesso + 25 passos de interface (E2E); DT-14; `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log`, `evidencias/e2e/resultado_e2e.log` | **Atualizar o slide:** trocar "39 testes" por "38 testes de fluxo, 13 de acesso e 25 passos de interface" |
+| 6 | MVP no ar, testes aprovados, CPF cifrado | 39 de fluxo + 13 de acesso + 25 passos de interface (E2E); DT-14; `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log`, `evidencias/e2e/resultado_e2e.log` | **Atualizar o slide:** trocar "39 testes" por "38 testes de fluxo, 13 de acesso e 25 passos de interface" |
 | 7 | R$ 3,09 por Guardião ao mês | `parametro`: R$ 1,99 Pix + 2 × R$ 0,55; planilha Premissas H20 | Coerente |
 | 7 | Banco e hospedagem sem custo | Supabase e GitHub Pages em planos gratuitos; rotina anti-pausa | Coerente |
 | 7 | Recibo anual emitido pelo próprio Guardião, sem promessa de dedução de IR | `fn_area_recibo`; T38, E23 | **Incluir no slide** (prestação de contas também para doação CPF) |

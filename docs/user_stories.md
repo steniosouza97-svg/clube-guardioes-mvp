@@ -174,7 +174,7 @@ Na demonstração, "Já paguei" confirma a doação (`fn_confirmar_doacao_demo`,
 | 6 | Emito o recibo anual com as doações pagas (mensais e únicas do mesmo CPF), sem promessa de dedução de Imposto de Renda | T38, E23 |
 | 7 | O recibo só sai para o próprio Guardião: com o CPF de outra pessoa, nada é emitido | T38 |
 
-Para a demonstração, o botão "Entrar com o Guardião de demonstração" usa o Guardião sintético Carlos Soares. Riscos e passo antes da produção na DT-18.
+Para a demonstração, o botão "Entrar com o Guardião de demonstração" usa o Guardião sintético Carlos Barbosa. Riscos e passo antes da produção na DT-18.
 
 ### US14. Estrelas e níveis de Guardião
 
@@ -182,12 +182,12 @@ Para a demonstração, o botão "Entrar com o Guardião de demonstração" usa o
 
 | # | Critério de aceite | Teste |
 |---|---|---|
-| 1 | Ganho uma estrela a cada 3 meses pagos | T37, E23 |
-| 2 | Com 3 estrelas sou Guardião Bronze, com 4 Prata, com 5 ou mais Ouro | T37 |
+| 1 | Ganho a 1ª estrela na primeira doação paga e mais uma a cada 3 meses | T37, E23 |
+| 2 | Com 3 estrelas (6 meses) sou Guardião Bronze, com 4 (9 meses) Prata, com 5 (12 meses) Guardião do Futuro Ouro; nunca passo de 5 estrelas | T37 |
 | 3 | Vejo minha medalha de nível com as estrelas na Minha Área | E23 |
 | 4 | A equipe vê o nível e as estrelas de cada Guardião no painel | E24 |
 | 5 | Ao entrar na Minha Área, sou recebida pela minha conquista ("Carlos, você já é um Guardião Prata!"), com meses de doação, total doado e indicações | E23 |
-| 6 | Vejo quantos meses faltam para o próximo nível (por exemplo, "Faltam 3 meses para você se tornar Guardião do Futuro Ouro"), a trilha das 5 estrelas e o mês previsto para chegar lá com o Pix em dia | E23 |
+| 6 | Vejo quanto falta para o Ouro (por exemplo, "Você está a apenas 1 estrela de ser Guardião do Futuro Ouro: falta 1 mês"), a trilha das 5 estrelas e o mês previsto para chegar lá com o Pix em dia | E23 |
 
 As estrelas são calculadas a partir das cobranças pagas, sem nenhum dado novo guardado; o número de meses por estrela está na tabela `parametro` (DT-17).
 

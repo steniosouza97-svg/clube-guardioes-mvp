@@ -503,12 +503,15 @@ begin
         assert v_res ->> 'status' = 'ativa' and (v_res ->> 'valor')::numeric = 85, 'T36 reativação como Guardião de R$ 85 falhou';
         v_log := v_log || 'PASS T36 pela Minha Área a Guardiã pausa, retoma, cancela com motivo e reativa'::text;
 
-        -- T37 gamificação: uma estrela a cada 3 meses pagos; Bronze, Prata e Ouro
+        -- T37 gamificação: 1ª estrela na primeira doação, depois uma a cada 3 meses pagos; Bronze, Prata e Ouro
         assert fn_nivel(0) = 'Guardião' and fn_nivel(3) = 'Guardião Bronze' and fn_nivel(4) = 'Guardião Prata'
            and fn_nivel(5) = 'Guardião Ouro' and fn_nivel(9) = 'Guardião Ouro', 'T37 regra de níveis incorreta';
-        assert not exists (select 1 from vw_situacao_guardiao where estrelas <> meses_pagos / 3), 'T37 estrelas fora da regra';
+        assert not exists (select 1 from vw_situacao_guardiao where estrelas <> case when meses_pagos = 0 then 0 else least(5, 1 + meses_pagos / 3) end), 'T37 estrelas fora da regra';
+        assert exists (select 1 from vw_situacao_guardiao where meses_pagos = 1 and estrelas = 1)
+           and exists (select 1 from vw_situacao_guardiao where meses_pagos = 12 and nivel = 'Guardião Ouro')
+           and not exists (select 1 from vw_situacao_guardiao where estrelas > 5), 'T37 1ª doação, 12 meses ou teto de 5 estrelas fora da regra';
         select count(*) into n from vw_situacao_guardiao where nivel in ('Guardião Bronze', 'Guardião Prata', 'Guardião Ouro');
-        v_log := v_log || format('PASS T37 uma estrela a cada 3 meses pagos; %s Guardiões já são Bronze ou acima', n);
+        v_log := v_log || format('PASS T37 1ª estrela na primeira doação e uma a cada 3 meses (Ouro em 12); %s Guardiões já são Bronze ou acima', n);
 
         -- T38 recibo anual: soma as doações pagas do CPF no ano
         v_res := fn_area_recibo('11966660016', c16, extract(year from current_date)::int);
@@ -518,6 +521,23 @@ begin
                'T38 total do recibo não confere';
         assert fn_area_recibo('11966660016', c17, 2026) ? 'erro', 'T38 recibo emitido com CPF de outra pessoa';
         v_log := v_log || 'PASS T38 recibo anual soma as doações pagas e só sai para o próprio Guardião'::text;
+
+        -- T39 ambiente de demonstração só aceita e-mail @example.com (evento de 29/09)
+        falhou := false;
+        begin perform fn_aderir_publico('Email Real', 'pessoa.real@gmail.com', c20, null, 'Instagram', 85, 10::smallint, true);
+        exception when others then falhou := sqlerrm like 'Ambiente de demonstração%'; end;
+        assert falhou, 'T39 adesão com e-mail real aceita na demonstração';
+        falhou := false;
+        begin perform fn_doar_unica('Email Real', 'pessoa.real@escola.edu.br', c20, null, null, 50, true);
+        exception when others then falhou := sqlerrm like 'Ambiente de demonstração%'; end;
+        assert falhou, 'T39 doação única com e-mail real aceita na demonstração';
+        assert not exists (select 1 from guardiao where email = 'pessoa.real@gmail.com')
+           and not exists (select 1 from doacao_unica where email = 'pessoa.real@escola.edu.br'), 'T39 dado real gravado';
+        update parametro set valor = 0 where chave = 'modo_demonstracao';
+        assert (fn_doar_unica('Producao', 'pessoa.real@escola.edu.br', c20, null, null, 50, true) ->> 'codigo_convite') is not null,
+               'T39 fora da demonstração o e-mail comum deveria ser aceito';
+        update parametro set valor = 1 where chave = 'modo_demonstracao';
+        v_log := v_log || 'PASS T39 demonstração recusa e-mail real (só @example.com ou em branco); em produção o e-mail comum é aceito'::text;
 
         raise exception 'QA_DESFAZER';
     exception when assert_failure or others then
