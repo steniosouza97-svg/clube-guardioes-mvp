@@ -14,6 +14,17 @@ página de adesão → cobrança mensal → Pix pago ou vencido → régua de re
                                                             cancelamento)
 ```
 
+O que o MVP faz hoje (decisões de 29/09/2026):
+
+- **Guardião do Começo:** doação mensal de R$ 85 por Pix, recorrente (parâmetro `valor_guardiao`). Guardiões da base atual mantêm o valor que já doam; R$ 85 vale para novas adesões e reativações.
+- **Doação única:** qualquer pessoa doa uma vez, de qualquer valor (referências de R$ 30, R$ 60, R$ 120 ou outro; mínimo técnico de R$ 10).
+- **Cadastro:** nome, WhatsApp e CPF obrigatórios; e-mail opcional (se informado, precisa ser válido). CPF guardado só cifrado.
+- **Minha Área:** o Guardião entra com WhatsApp e CPF e vê status, nível com estrelas, linha do tempo de impacto, histórico e recibo anual; pode pausar, retomar, cancelar com motivo ou reativar.
+- **Pausa em vez de cancelar:** de 1 a 3 meses, sem cobrança no período; a doação volta sozinha no mês escolhido.
+- **Estrelas:** 1 a cada 3 meses pagos; 3 estrelas = Bronze, 4 = Prata, 5 ou mais = Ouro.
+- **Indique um novo Doador:** depois de doar, a pessoa compartilha pelo WhatsApp uma mensagem de impacto com link pessoal; o painel conta as indicações.
+- **Painel do voluntário:** 9 indicadores (inclui Guardiões pausados e doações únicas do mês), aba de doações únicas, nível de cada Guardião, pausar e retomar a pedido.
+
 O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. No MVP, os avisos da Asaas são simulados com os nomes reais dos eventos (`PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`) e passam pela mesma função que o webhook real vai chamar. O banco guarda uma cópia mínima e reconstruível; a Asaas é a fonte da verdade.
 
 ## Ambiente de demonstração
@@ -25,14 +36,15 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 | Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
 | Página de adesão (jornada da doadora, telas da semana 5) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html |
-| Dados | 305 Guardiões sintéticos, 12 meses de operação simulada (out/2025 a set/2026) |
+| Dados | 305 Guardiões sintéticos (271 ativos, 4 pausados), 2.222 cobranças e 48 doações únicas, 12 meses de operação simulada (out/2025 a set/2026) |
+| Migrações aplicadas no Supabase | Até a 25 (as 19 a 25 trazem as decisões de 29/09) |
 
 ## Estrutura
 
 | Pasta | Conteúdo |
 |---|---|
 | `db/` | Esquema, funções do fluxo, views de métricas, dados de referência, gerador de dados sintéticos e regras de acesso |
-| `web/` | Interface: página pública de adesão e painel do voluntário. HTML, CSS e JavaScript sem etapa de build |
+| `web/` | Interface: página pública (Guardião, doação única, Minha Área, recibo, Aviso de Privacidade) e painel do voluntário. HTML, CSS e JavaScript sem etapa de build |
 | `tests/` | Suítes de teste do banco (`qa_*.sql`) e teste ponta a ponta da interface (`e2e/`) |
 | `evidencias/` | Resultados das execuções: local, Supabase, controle negativo e capturas de tela |
 | `docs/` | Modelo de dados, decisões técnicas, casos de teste e roteiro do vídeo |
@@ -82,8 +94,8 @@ Documentação de handover:
 **No Supabase (SQL Editor):**
 
 ```sql
-select * from qa.fn_rodar_testes();       -- 31 testes do fluxo
-select * from qa.fn_testes_seguranca();   -- 12 testes de acesso
+select * from qa.fn_rodar_testes();       -- 38 testes do fluxo (T01 a T38)
+select * from qa.fn_testes_seguranca();   -- 13 testes de acesso (S01 a S13)
 ```
 
 Cada linha traz `PASS`, `INFO` ou `FALHA`. Os testes rodam num bloco desfeito ao final: nenhum dado é alterado. Usam um mês futuro sem movimento, então podem ser repetidos a qualquer momento, inclusive depois da demonstração.
@@ -95,9 +107,11 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 ./tests/rodar_testes.sh              # recria o banco, carrega tudo e roda as duas suítes
 ```
 
-**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 22 passos no navegador com Playwright: jornada da semana 5 (cadastro em 3 etapas, Pix, confirmação, convite), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
+**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 25 passos no navegador com Playwright (E01 a E24, com E07b): jornada da semana 5 (cadastro em 3 etapas, Pix, falha e nova tentativa, confirmação, Indique um novo Doador), doação única sem e-mail, Minha Área completa (nível, estrelas, impacto, histórico, pausa, retomada, cancelamento com motivo, reativação por R$ 85, recibo), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento, doações únicas e pausados no painel, celular e console sem erros. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais: 31 de 31 testes do fluxo e 12 de 12 de acesso no Supabase e localmente, 22 de 22 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF).
+Evidências atuais (29/09/2026): 38 de 38 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-29_0736.log`, `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log` e `evidencias/e2e/resultado_e2e.log`.
+
+**Testar a Minha Área:** na página pública, clicar em **Minha Área** no topo e depois em **Entrar como Guardião de demonstração**. Ou digitar os dados do Guardião sintético Carlos Soares: WhatsApp `(11) 90000-0050` e CPF `800.000.050-45` (fictício). Ele aparece com nível Prata (4 estrelas), impacto, histórico e recibo. Cinco tentativas erradas em 15 minutos bloqueiam a entrada por esse WhatsApp.
 
 ## Publicar a interface
 
@@ -125,7 +139,7 @@ truncate evento_gateway, comunicacao, cobranca, assinatura, doacao_unica, tentat
 select fn_gerar_dados_sinteticos();
 ```
 
-O resultado deve ser "305 Guardiões (271 ativos, 4 pausados)", com 48 doações únicas. Voluntários, logins e a chave do CPF são preservados. Na demonstração, use e-mails `@example.com` e CPFs fictícios válidos, por exemplo `600.000.001-40`, `600.000.002-21` ou `600.000.003-02`.
+O resultado deve ser "305 Guardiões (271 ativos, 4 pausados)", com 48 doações únicas. Voluntários, logins e a chave do CPF são preservados. Na demonstração, o e-mail é opcional; se preencher, use `@example.com`. Use CPFs fictícios válidos, por exemplo `600.000.001-40`, `600.000.002-21` ou `600.000.003-02`.
 
 ## Operação depois da semana 10
 
@@ -133,15 +147,15 @@ Quem opera: a pessoa dedicada ao Clube (80 horas por mês, 70% aquisição e 30%
 
 | Frequência | Tarefa | Onde |
 |---|---|---|
-| Diária (10 min) | Aba **Alerta de churn**: contatar pelo WhatsApp os Guardiões de prioridade alta e clicar em **Registrar contato** | Painel |
+| Diária (10 min) | Aba **Alerta de churn**: contatar pelo WhatsApp os Guardiões de prioridade alta e clicar em **Registrar contato**. Pedido de pausa por WhatsApp: botão **Pausar 1 mês** na aba Guardiões (ou **Retomar**) | Painel |
 | Semanal | Registrar adesões presenciais; acompanhar **Canais** (o uso semanal também mantém o Supabase ativo) | Painel |
-| Mensal | **Atividades**: registrar o que cada atividade sustentou no mês. **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
+| Mensal | **Doações únicas**: acompanhar a aba e convidar quem doou a virar Guardião. **Atividades**: registrar o que cada atividade sustentou no mês. **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
 | Jan a mar/2027 | Convidar cada Guardião da base atual a migrar para a Asaas; quem aceitar, botão **Migrar para Asaas** na aba Guardiões. Meta: 80% migrados (indicador "Base ainda em Pix direto" no Resumo) | Painel e WhatsApp |
 | Trimestral | Rodar os testes; revisar parâmetros e comparar com o plano do business case | SQL Editor |
 
 **Base atual (modelo híbrido, DT-15):** os Guardiões que já doam por Pix direto são cadastrados no painel marcando "Já doa por Pix direto" na adesão presencial. Não trocam a forma de pagar e recebem a mesma comunicação.
 
-Parâmetros de negócio (metas, custeio de referência, taxas, limite de tentativas) ficam na tabela `parametro` e mudam sem mexer em código.
+Parâmetros de negócio (valor do Guardião, pausa máxima, meses por estrela, metas, custeio de referência, taxas, limite de tentativas) ficam na tabela `parametro` e mudam sem mexer em código.
 
 **Se o Supabase pausar:** entrar no painel do Supabase e clicar em *Restore project*. O projeto pode ser restaurado em até um ano, sem perda de dados. A rotina `manter_ativo.yml` evita a pausa.
 
@@ -157,13 +171,13 @@ O projeto de demonstração foi criado na conta Supabase do grupo. Para a opera�
 
 ## Passo para produção (fora do escopo do MVP)
 
-Uma Edge Function do Supabase recebe o webhook da Asaas, valida o token configurado na Asaas e chama `fn_processar_evento` com a chave de serviço. A cobrança mensal passa a ser criada pela assinatura da Asaas (evento `PAYMENT_CREATED`), e `fn_gerar_cobrancas` e o simulador deixam de ser usados. A página de adesão passa a encaminhar para o checkout da Asaas. Em `web/config.js`, `demonstracao: false` esconde o aviso e o simulador. Detalhes em [DT-04](docs/decisoes_tecnicas.md).
+Uma Edge Function do Supabase recebe o webhook da Asaas, valida o token configurado na Asaas e chama `fn_processar_evento` com a chave de serviço. A cobrança mensal passa a ser criada pela assinatura da Asaas (evento `PAYMENT_CREATED`), e `fn_gerar_cobrancas` e o simulador deixam de ser usados. A página de adesão passa a encaminhar para o checkout da Asaas, e a doação única é confirmada pelo webhook (`fn_processar_doacao_unica`). Em `web/config.js`, `demonstracao: false` esconde o aviso, o simulador e o Guardião de demonstração; no banco, `parametro.modo_demonstracao = 0` desliga a confirmação de doação sem a Asaas. A entrada na Minha Área por WhatsApp e CPF deve ser trocada por código de uso único enviado ao WhatsApp (ou link mágico por e-mail) antes de operar com doadores reais. Detalhes em [DT-04](docs/decisoes_tecnicas.md).
 
 ## Dados e privacidade
 
 - Dados sintéticos: nomes aleatórios, e-mails no domínio reservado `example.com`, telefones fictícios. Nenhum dado real de doador está neste repositório. O teste T20 verifica isso.
-- Em produção: nome, CPF, e-mail, WhatsApp e registro do consentimento LGPD. Nenhum dado de cartão.
+- Em produção: nome, CPF, WhatsApp, e-mail (opcional) e registro do consentimento LGPD. Nenhum dado de cartão.
 - **CPF cifrado:** o CPF é obrigatório e identifica o Guardião (decisão da semana 5; a Asaas também o exige). O banco guarda só a impressão digital HMAC-SHA256 com chave secreta: barra duplicidade e responde "este CPF já é Guardião?", mas não permite ler o número. O CPF completo fica só na Asaas. Detalhes em [DT-14](docs/decisoes_tecnicas.md).
 - **Pendências de LGPD para operar com doadores reais** (política de privacidade, canal do titular, prazo de guarda, procedimento de exclusão, entre outras): [docs/lgpd_pendencias.md](docs/lgpd_pendencias.md).
 - Identidade visual da entrega da semana 5 (verde do Instituto, logo da árvore e a mesma foto de atividade). A foto faz parte do banco de imagens liberado pelo Instituto para uso conforme sua política e o Manual de Boas Práticas para Redes Sociais. Qualquer foto nova de criança precisa da mesma liberação.
-- A página não promete dedução de Imposto de Renda: doação direta ao Instituto não é dedutível.
+- A página e o recibo não prometem dedução de Imposto de Renda: doação direta ao Instituto não é dedutível para pessoa física, e o recibo diz isso.

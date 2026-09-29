@@ -1,6 +1,6 @@
 # Privacidade e LGPD: o que está feito e o que falta
 
-Clube Guardiões do Começo | Instituto Ebenézer | registro de 28/09/2026
+Clube Guardiões do Começo | Instituto Ebenézer | registro de 28/09/2026, atualizado em 29/09/2026 (doação única, e-mail opcional, Minha Área, pausa, recibo)
 
 Este documento separa o que o MVP já garante tecnicamente do que o Instituto precisa definir antes de operar com doadores reais. Não substitui a avaliação do jurídico do Instituto.
 
@@ -10,10 +10,13 @@ Este documento separa o que o MVP já garante tecnicamente do que o Instituto pr
 |---|---|---|
 | Nome | Identificar o Guardião e personalizar as mensagens | Asaas e banco do painel |
 | CPF | Exigido pela Asaas para cadastrar o doador e emitir a cobrança; identificador único contra duplicidade | Número completo: só na Asaas. Banco do painel: só a impressão digital cifrada |
-| E-mail | Contato e envio da cobrança | Asaas e banco do painel |
+| E-mail (opcional) | Contato e envio da cobrança, quando o doador informa. Se informado, precisa ser válido | Asaas e banco do painel |
 | WhatsApp | Envio do Pix mensal, lembretes e notícias de impacto | Asaas e banco do painel |
 | Valor, dia e histórico de pagamentos | Operar a doação recorrente e prestar contas | Asaas e banco do painel |
 | Registro do consentimento | Comprovar a base legal | Banco do painel |
+| Doação única (`doacao_unica`) | Nome, WhatsApp, CPF, e-mail opcional, valor, status e código de convite: os mesmos dados mínimos do Guardião, para gerar o Pix e prestar contas. O CPF fica só como impressão digital HMAC | Asaas e banco do painel |
+| Tentativas de entrada na Minha Área (`tentativa_acesso`) | Impressão digital HMAC do WhatsApp, se deu certo e a data. Finalidade única: bloquear a entrada após 5 erros em 15 minutos. Não guarda o telefone nem o CPF digitados | Banco do painel |
+| Pausa e motivo de cancelamento | Data de volta da pausa e texto livre do motivo (até 200 caracteres), para operar a assinatura e entender o churn | Asaas e banco do painel |
 
 Não são tratados: dados de cartão, dados sensíveis (art. 5º, II), dados de crianças. O painel não armazena imagens.
 
@@ -29,6 +32,10 @@ Não são tratados: dados de cartão, dados sensíveis (art. 5º, II), dados de 
 | Só voluntários cadastrados acessam o painel | Lista de voluntários checada pelo banco | S05, S06 |
 | Toda gravação passa pelas regras do fluxo | Funções como única porta de escrita | S04, S07 |
 | Base de demonstração sem dados reais | E-mails no domínio reservado example.com; CPFs fictícios gravados só cifrados | T20 |
+| E-mail não é obrigatório | Guardião e doação única aceitam cadastro sem e-mail; se informado, é validado | T32, E22 |
+| Doação única com os mesmos cuidados do Guardião | CPF só como HMAC; o visitante anônimo não lê a tabela; voluntário vê a lista sem o CPF cifrado (`vw_doacoes_unicas`) | T33, S13 |
+| Minha Área não expõe dados sensíveis | Entrada só com WhatsApp e CPF corretos; resposta genérica ("dados não conferem"); devolve só primeiro nome, status, valores e histórico, nunca e-mail, telefone ou CPF; bloqueio após 5 erros em 15 minutos | T35, S13, E23 |
+| Recibo só para o próprio Guardião | `fn_area_recibo` exige os mesmos dados da entrada; o recibo informa que não há dedução de Imposto de Renda para pessoa física | T38, E23 |
 
 ### O conceito de CPF cifrado, em uma frase
 
@@ -50,6 +57,8 @@ O banco guarda uma impressão digital do CPF: o mesmo CPF sempre gera o mesmo c�
 | L8 | **Plano de resposta a incidente:** quem avisa, em quanto tempo, como comunicar a ANPD e os doadores | art. 48 | Instituto | Primeiro trimestre de operação |
 | L9 | **Acesso administrativo restrito** ao Supabase e à Asaas: poucas pessoas, contas nominais com e-mail institucional, autenticação em dois fatores | art. 46 | Instituto | Na passagem do projeto ao Instituto |
 | L10 | **Chave do CPF no cofre do Supabase (Vault)** em vez de tabela privada, e rotina de troca da chave documentada | art. 46 | Tecnologia | Antes de operar com doadores reais |
+| L11 | **Entrada na Minha Área mais forte.** WhatsApp e CPF são dados que terceiros podem conhecer: aceitável na demonstração com dados sintéticos, fraco para produção. Trocar por código de uso único enviado ao WhatsApp (US06 original) ou link mágico por e-mail. Mitigação atual: bloqueio após 5 erros em 15 minutos, resposta genérica, nenhum dado sensível devolvido | art. 46 | Tecnologia | Antes de operar com doadores reais |
+| L12 | **Prazo de guarda de `tentativa_acesso`.** Hoje nada apaga os registros. Sugestão: apagar tentativas com mais de 30 dias por rotina agendada; o bloqueio só usa os últimos 15 minutos | art. 15 e 16 | Tecnologia | Antes de operar com doadores reais |
 
 ### Base atual em Pix direto
 
@@ -57,8 +66,14 @@ Os 35 Guardiões de hoje entram no painel com CPF e consentimento colhidos na co
 
 ### Convite e Aviso de Privacidade (jornada da semana 5)
 
-- O link pessoal de convite revela ao visitante só o primeiro nome de quem convidou, e apenas a quem tem o código (T29, S12). O convite é iniciativa da própria Guardiã.
-- A página de adesão tem um Aviso de Privacidade em linguagem simples, ligado ao consentimento. É uma versão do MVP: o texto oficial depende do jurídico (L1).
+- O link pessoal de convite ("Indique um novo Doador") revela ao visitante só o primeiro nome de quem convidou, e apenas a quem tem o código (T29, S12). Vale para Guardiões e para quem fez doação única. O convite é iniciativa do próprio doador; o banco registra só qual código foi usado.
+- A página de adesão tem um Aviso de Privacidade em linguagem simples, ligado ao consentimento, que cobre e-mail opcional, doação única, Minha Área (dados usados para entrar e registro de tentativas), pausa e link de indicação. É uma versão do MVP: o texto oficial depende do jurídico (L1).
+
+### Doação única, Minha Área e recibo
+
+- **Doação única:** mesmos dados mínimos do Guardião (nome, WhatsApp, CPF, e-mail opcional). O CPF é obrigatório pela Asaas e fica só como HMAC. Os prazos de guarda (L4) e a exclusão (L5) precisam cobrir também a tabela `doacao_unica`.
+- **Minha Área:** usa WhatsApp e CPF só para conferir a identidade; não os devolve na tela. O registro de tentativas guarda a impressão digital do telefone, não o número. A troca por código de uso único (L11) é a pendência principal antes da produção.
+- **Recibo anual:** emitido só para o próprio Guardião, com nome, ano e valores pagos (doações mensais e doações únicas feitas com o mesmo CPF). Não traz CPF completo nem promete dedução de Imposto de Renda. O modelo final do recibo deve ser validado pelo contador do Instituto junto com L4.
 
 ## 4. O que dizer à banca
 

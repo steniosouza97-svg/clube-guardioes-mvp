@@ -1,6 +1,6 @@
 # Conferência cruzada: deck × MVP × modelo financeiro
 
-Clube Guardiões do Começo | tarefa CJ1 | realizada em 28/09/2026
+Clube Guardiões do Começo | tarefa CJ1 | realizada em 28/09/2026, revista em 29/09/2026 após as decisões de 29/09 (Guardião R$ 85, doação única, pausa, Minha Área, estrelas, indicação, recibo)
 
 As duas trilhas contam a mesma história com os mesmos números. Esta conferência compara cada afirmação do pitch deck que depende do MVP ou do modelo financeiro com o que o repositório e a planilha efetivamente fazem.
 
@@ -9,29 +9,36 @@ As duas trilhas contam a mesma história com os mesmos números. Esta conferênc
 | Slide | Afirmação no deck | Onde se confere | Situação |
 |---|---|---|---|
 | 2 | A Asaas, já contratada, é a base da solução | DT-01; `parametro.custo_pix` | Coerente |
-| 4 | 35 Guardiões ativos a R$ 80/mês | Planilha, Premissas H11; gerador parte de 35 da "Base Pix manual" | Coerente |
+| 4 | 35 Guardiões ativos a R$ 80/mês | Planilha, Premissas H11; gerador parte de 35 da "Base Pix manual" | Coerente: a base atual mantém o valor que já doa; R$ 85 vale para novas adesões e reativações |
 | 4 | 40 doadores pontuais prontos para conversão | Planilha: 30 conversões no plano Dedicado (8 a 25 nos cenários de sensibilidade) | Coerente: o deck fala do estoque de 40; a planilha converte 75% dele no plano |
 | 5 | Passo 1, Adesão com Pix recorrente | `fn_aderir_publico`, `fn_gerar_cobrancas`; T01, T05, T16 | Coerente |
+| 5 | Doação única de qualquer valor, para quem não pode ser mensal | `fn_doar_unica`, aba Doações únicas; T33, S13, E22, E24 | **Incluir no slide** |
+| 5 | Pausa de 1 a 3 meses em vez de cancelar | `fn_pausar`, `fn_retomar`, `fn_area_acao`; T34, T36, E23, E24 | **Incluir no slide** |
+| 5 | Minha Área do Guardião (status, impacto, histórico, pausar, cancelar, reativar) | `fn_area`, `fn_area_acao`; T35, T36, E23 | **Incluir no slide** |
+| 5 | Indique um novo Doador pelo WhatsApp, com link pessoal | `codigo_convite`, `convite_usado`, `fn_convite_nome`; T29, T33, S12, E19, E22 | **Incluir no slide** |
+| 5 | Estrelas e níveis (Bronze, Prata, Ouro) | `fn_nivel`, `parametro.meses_por_estrela` = 3; T37, E23 | **Incluir no slide** |
 | 5 | Passo 2, Agradecimento automático | `fn_processar_evento` (PAYMENT_RECEIVED); T06, T07 | Coerente |
 | 5 | Passo 3, Conteúdo mensal de impacto | `fn_enviar_impacto_mensal`; T13 | Coerente |
 | 5 | Passo 4, Régua e recuperação de cobrança | Lembrete, alerta de churn, recuperação; T08, T09, T10 | Coerente |
 | 5 | Painel interno com alerta de churn | `vw_alerta_churn`, aba Alerta de churn; E10 | Coerente |
 | 5 | Não promete dedução de IR | Página de adesão; CONTRIBUTING.md | Coerente |
-| 6 | MVP no ar, 39 testes aprovados, CPF cifrado | 28 de fluxo + 11 de acesso; DT-14; `evidencias/` | Coerente |
+| 6 | MVP no ar, testes aprovados, CPF cifrado | 38 de fluxo + 13 de acesso + 25 passos de interface (E2E); DT-14; `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log`, `evidencias/e2e/resultado_e2e.log` | **Atualizar o slide:** trocar "39 testes" por "38 testes de fluxo, 13 de acesso e 25 passos de interface" |
 | 7 | R$ 3,09 por Guardião ao mês | `parametro`: R$ 1,99 Pix + 2 × R$ 0,55; planilha Premissas H20 | Coerente |
 | 7 | Banco e hospedagem sem custo | Supabase e GitHub Pages em planos gratuitos; rotina anti-pausa | Coerente |
+| 7 | Recibo anual emitido pelo próprio Guardião, sem promessa de dedução de IR | `fn_area_recibo`; T38, E23 | **Incluir no slide** (prestação de contas também para doação CPF) |
 | 8 | ROI 899,8%, VPL R$ 615 mil, payback 4 meses, 378% do custeio | Planilha, aba Resultado C14, C15 | Coerente (recalculada em 28/09, zero erros de fórmula) |
 | 8 | Indicador de cobertura do custeio de 2025 | Painel usa `parametro.custeio_anual_2025` = R$ 146.668,38 (DRE assinado) | Coerente |
 | 9 | Churn como alavanca | Dados sintéticos calibrados com churn perto de 2% (T19) | Coerente |
 | 11 | 80 h/mês, 56 h aquisição e 24 h retenção | README, "Operação depois da semana 10" | Coerente |
 | 11 | Leitura do painel como competência, sem programação | README; painel sem SQL para a operação diária | Coerente |
 | 11 | Gatilho: churn acima de 4% ao mês | Resumo do painel mostra churn mensal; CSV exportável | Coerente: acompanhamento manual, sem alerta automático do gatilho |
-| 12 | Faixas a partir de R$ 50 | Página: R$ 50, R$ 80, R$ 95 ou outro valor | **Ajustado:** a página dizia "a partir de R$ 50" mas aceitava valor livre desde R$ 10. O texto passou a listar as faixas e o valor livre |
+| 12 | Guardião R$ 85; doação única de qualquer valor | `parametro.valor_guardiao` = 85; página: "Guardião R$ 85/mês (recomendado)" ou "Doação única, qualquer valor" (referências R$ 30, R$ 60, R$ 120 ou outro; mínimo técnico R$ 10); T16, T33 | **Atualizar o slide:** a versão anterior dizia "faixas a partir de R$ 50", que não vale mais |
 | 12 | Processo documentado e substituto treinado | README (manual de operação), `docs/execucao_final.md` | Coerente |
 
 ## Divergências tratadas
 
-1. **Texto da página de adesão (slide 12).** Corrigido em `web/index.html`. O limite técnico de R$ 10 continua: o valor livre atende a persona que doa entre R$ 20 e R$ 100 (slide 4). Com R$ 3,09 de custo fixo, uma doação de R$ 20 retém 15%; o deck já trata esse ponto como risco "ticket baixo contra taxa".
+1. **Valores (slide 12).** Até 28/09 a página oferecia faixas a partir de R$ 50 com valor livre. Pela decisão de 29/09, o Guardião doa R$ 85 por mês (T16 recusa R$ 60 para Guardião) e qualquer valor vai para a doação única, com mínimo técnico de R$ 10. O slide deve dizer "Guardião R$ 85; doação única de qualquer valor". A doação única atende a persona que doa entre R$ 20 e R$ 100 (slide 4) sem diluir o ticket recorrente. O risco "ticket baixo contra taxa" do deck passa a valer só para doações únicas pequenas, que pagam a tarifa do Pix uma vez, e não todo mês.
+4. **Slides 5, 6 e 7 depois de 29/09.** O MVP ganhou doação única, pausa, Minha Área, indicação, estrelas e recibo, e a contagem de testes mudou. As linhas marcadas "Incluir no slide" e "Atualizar o slide" acima são a lista de ajustes que a trilha de Negócio precisa fazer no deck antes da apresentação.
 2. **Texto da planilha sobre plataformas.** A aba Plataformas recomendava negociar com a Doare. Atualizada para a decisão final (Asaas); o comparativo ficou como evidência de apoio.
 3. **Custo da Asaas no Leia-me da planilha.** Dizia "ainda não informado". Atualizado para R$ 3,09 por Guardião ao mês, pela tabela pública.
 

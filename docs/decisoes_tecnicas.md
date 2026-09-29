@@ -1,6 +1,6 @@
 # Principais decisões técnicas
 
-Clube Guardiões do Começo | Instituto Ebenézer | registro atualizado em 28/09/2026 (CPF cifrado incluído na DT-14)
+Clube Guardiões do Começo | Instituto Ebenézer | registro atualizado em 29/09/2026 (decisões de 29/09 na DT-17 e login da Minha Área na DT-18)
 
 Cada decisão traz o contexto, a escolha, as alternativas descartadas e a consequência para quem vai operar a solução depois dos autores.
 
@@ -74,7 +74,7 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 
 **Contexto.** No Supabase, qualquer pessoa pode criar uma conta pela API pública e passar a ter o papel "autenticado". Uma regra do tipo "autenticado lê tudo" exporia a base de doadores a quem criasse uma conta.
 
-**Decisão.** Só lê dados e opera o fluxo quem tem login **e** está na tabela `voluntario`. A checagem é feita pelo banco, nas políticas de leitura e dentro de cada função do painel (`eh_voluntario`). O visitante anônimo lê apenas a lista de canais e só pode chamar a função de adesão pública.
+**Decisão.** Só lê dados e opera o fluxo quem tem login **e** está na tabela `voluntario`. A checagem é feita pelo banco, nas políticas de leitura e dentro de cada função do painel (`eh_voluntario`). O visitante anônimo lê apenas a lista de canais e só pode chamar as funções públicas: adesão, doação única, confirmação da doação na demonstração, Minha Área (entrar, agir, recibo) e nome de quem convidou (DT-17, DT-18).
 
 **Verificado.** Anônimo não lê Guardiões nem executa funções do painel (S01, S02, S04); conta criada por terceiro, sem cadastro de voluntário, não vê nada (S05); voluntário cadastrado opera normalmente (S06); ninguém altera tabelas sem passar pelas funções (S07).
 
@@ -82,7 +82,7 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 
 ## DT-10. Página de adesão pública com função própria
 
-**Decisão.** A página pública chama `fn_aderir_publico`, que fixa o Pix como meio de pagamento, usa a data do dia, limita o valor entre R$ 10 e R$ 5.000 e não devolve identificadores internos. O canal de origem vem do link (`?origem=qr`, `?origem=instagram`...), o que mede as horas de aquisição por canal.
+**Decisão.** A página pública chama `fn_aderir_publico`, que fixa o Pix como meio de pagamento, usa a data do dia, aceita só o valor do Guardião (R$ 85, parâmetro `valor_guardiao`, DT-17) e não devolve identificadores internos. Outros valores entram como doação única (`fn_doar_unica`, de R$ 10 a R$ 50.000). O canal de origem vem do link (`?origem=qr`, `?origem=instagram`...), o que mede as horas de aquisição por canal.
 
 **Em produção.** A adesão passa a acontecer no checkout da Asaas; esta função é substituída pelo registro do cliente vindo do webhook.
 
@@ -146,7 +146,49 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 
 **Decisão.** Reconstruir a jornada pública nas telas do protótipo (Início, Cadastro em 3 etapas, Pagamento Pix, Erro no Pix, Confirmação, Convite, Aviso de Privacidade) e trazer ao painel as telas da equipe que faltavam (Atividades e prestação de contas; Registrar contato feito), tudo sobre o banco real. O convite passa a ser rastreável (`codigo_convite`, `indicado_por`) e a notícia mensal de impacto leva o texto registrado por atividade (`atividade`, `impacto_mensal`), que passa a ser obrigatório antes do envio.
 
-**Descartado nesta entrega.** Minha Área, login da Guardiã e recibo: exigem autenticação real da doadora (US06 da semana 5), que não cabe com segurança antes da banca. Ficam para a fase 2 sobre os mesmos dados.
+**Descartado nesta entrega (revisto em 29/09).** Minha Área, login da Guardiã e recibo ficariam para a fase 2 por exigirem autenticação real da doadora (US06 da semana 5). Em 29/09 o escopo P1 e P2 da semana 5 foi fechado por inteiro: as três telas foram construídas, com o login por WhatsApp e CPF do protótipo e as mitigações da DT-18.
 
 **Consequência.** Cada tela da semana 5 tem destino registrado em `docs/rastreabilidade_semana5.md`. O visitante anônimo passa a poder descobrir só o primeiro nome de quem o convidou, e apenas com o código do link. Testes: T13, T16, T29 a T31, S12, E19 a E21.
 
+## DT-17. Decisões de 29/09: valor do Guardião, doação única, pausa, estrelas e indicação
+
+**Contexto.** Na revisão de 29/09, o Instituto e o grupo fecharam o escopo P1 e P2 da semana 5 e ajustaram a oferta: um valor único e simples para o Guardião, uma porta para quem não pode doar todo mês e uma alternativa ao cancelamento.
+
+**Decisões.**
+1. **Guardião doa R$ 85 por mês.** O valor está na tabela `parametro` (`valor_guardiao = 85`), e `fn_aderir_publico` recusa outro valor mensal. Os Guardiões que já doam (os 35 reais em Pix direto e os da base sintética) mantêm o valor atual; os R$ 85 valem para novas adesões e reativações. Trocar o valor é editar o parâmetro, sem mexer em código.
+2. **Doação única de qualquer valor, em tabela própria.** `doacao_unica` guarda nome, WhatsApp, CPF só como HMAC, e-mail opcional, valor (R$ 10 a R$ 50.000), status (`pendente`, `paga`, `falhou`), código de convite e convite usado. A página sugere R$ 30, R$ 60 e R$ 120, os valores do protótipo da semana 5, ou outro. Ficar fora de `assinatura` e `cobranca` mantém honestas as métricas de recorrência (ativos, ticket médio, churn), que são o objeto do Clube. A confirmação vem de `fn_processar_doacao_unica` (caminho do webhook, só equipe); na demonstração, `fn_confirmar_doacao_demo` faz esse papel e só funciona com `modo_demonstracao = 1`.
+3. **E-mail opcional.** Vale para Guardião e doação única. Se informado, precisa ser válido. WhatsApp e CPF continuam obrigatórios, porque são o canal da régua e o identificador único (DT-14).
+4. **Pausa com volta automática.** O Guardião pausa de 1 a 3 meses (`pausa_maxima_meses = 3`) em vez de cancelar. A cobrança do mês em aberto é cancelada, não há cobrança durante a pausa e `fn_gerar_cobrancas` reativa a assinatura no mês de volta (`pausada_ate`, sempre o primeiro dia do mês), registrando a comunicação `retomada`. O próprio Guardião pausa e retoma pela Minha Área (`fn_area_acao`); a equipe, pelo painel a pedido (`fn_pausar`, `fn_retomar`). O pausado continua no Clube e conta em "Guardiões no Clube".
+5. **Estrelas calculadas, não guardadas.** Uma estrela a cada 3 meses pagos (`meses_por_estrela = 3`); 3 estrelas é Guardião Bronze, 4 é Prata, 5 ou mais é Ouro (`fn_nivel`). `vw_situacao_guardiao` conta as cobranças pagas ou recuperadas e calcula meses pagos, estrelas e nível. Nenhuma coluna nova, nada a reconciliar: a estrela nunca discorda do histórico de pagamentos.
+6. **Indicação pelas duas tabelas.** Todo doador, Guardião ou de doação única, tem `codigo_convite` e vê "Indique um novo Doador" depois de doar. O botão abre o WhatsApp com uma mensagem de impacto e o link pessoal. Quem entra pelo link fica com `convite_usado` registrado, em `guardiao` ou em `doacao_unica`, e as views somam as indicações das duas tabelas. O link de uma doação única só vale depois de paga.
+
+**Descartado.**
+- Faixas de valor para o Guardião (R$ 50, R$ 80, R$ 95 ou livre): a oferta única simplifica a comunicação ("Com R$ 85 por mês você vira Guardião") e a doação única absorve quem quer doar outro valor.
+- Doação única como cobrança avulsa dentro de `assinatura`: misturaria doação pontual com recorrência e distorceria churn e ticket médio.
+- Coluna de estrelas no Guardião: exigiria atualização a cada pagamento e poderia divergir das cobranças.
+- Pausa sem prazo: vira cancelamento silencioso, invisível no churn.
+
+**Consequência.** Painel com 9 indicadores (inclui Guardiões no Clube, Pausados e Doações únicas no mês), coluna Nível com estrelas, botões Pausar 1 mês e Retomar, aba Doações únicas (`vw_doacoes_unicas`, sem CPF) e filtro "pausado". Em produção, a doação única vira cobrança avulsa na Asaas e a pausa precisa ser espelhada na assinatura da Asaas. O recibo anual informa que a doação não dá dedução de Imposto de Renda para pessoa física. Testes: T16, T32 a T34, T36, T37, S13, E19, E22 a E24.
+
+## DT-18. Login da Minha Área por WhatsApp e CPF
+
+**Contexto.** A Minha Área do protótipo da semana 5 pedia WhatsApp e CPF. A própria semana 5 registrou (US06) que o login real exige código de verificação, expiração e bloqueio por tentativas. Em 29/09 decidiu-se entregar a Minha Área completa na banca, com dados sintéticos.
+
+**Decisão.** A entrada é por WhatsApp e CPF, como no protótipo. `fn_area` confere o CPF pela impressão digital (DT-14) e o WhatsApp cadastrado; `fn_area_acao` (pausar, retomar, cancelar com motivo, reativar por R$ 85 e, só na demonstração, regularizar o Pix em atraso) e `fn_area_recibo` (recibo anual) repetem a conferência a cada chamada. Não há sessão no servidor; a tela guarda WhatsApp e CPF só na memória da página, nada em `localStorage`, e fechar a aba encerra o acesso.
+
+**Por quê.** Nenhum serviço de envio de código cabe no prazo e no custo zero do MVP, e a banca precisa ver a jornada da Célia inteira. Com dados sintéticos, o risco é aceitável.
+
+**Riscos.** WhatsApp e CPF não são segredo: familiares, ex-empregadores ou vazamentos de terceiros podem conhecer os dois. Quem os tiver vê o histórico de doações e pode pausar ou cancelar a doação de outra pessoa.
+
+**Mitigações já no MVP.**
+- Bloqueio após 5 tentativas erradas em 15 minutos para o mesmo WhatsApp (`tentativa_acesso`, com o telefone guardado só como HMAC).
+- Mensagem de erro genérica, que não diz se o WhatsApp ou o CPF não confere.
+- Nenhum dado sensível devolvido: só primeiro nome, status, valores, histórico e impacto; nunca e-mail, telefone ou CPF.
+- O recibo só sai para o próprio Guardião.
+- O anônimo não lê `doacao_unica` nem `tentativa_acesso`, não pausa pelo painel e não confirma doação pelo caminho do webhook (S13).
+
+**Antes de produção.** Trocar a entrada por código de uso único enviado ao WhatsApp, com expiração curta (US06 original), ou por link mágico por e-mail do Supabase Auth, e passar a Minha Área para uma política de acesso por Guardião. Desligar `modo_demonstracao` (parâmetro em 0), o que desativa a confirmação manual da doação única e a regularização pela Minha Área. Retirar o botão "Entrar com o Guardião de demonstração".
+
+**Descartado.** Deixar a Minha Área para a fase 2 (a posição anterior da DT-16): a banca não veria a jornada completa da semana 5. Login por senha: mais uma senha para o doador esquecer, e o problema de recuperação volta ao WhatsApp ou ao e-mail.
+
+**Consequência.** A Minha Área é adequada para demonstração, não para doadores reais. Testes: T35, T36, T38, S13, E23.
