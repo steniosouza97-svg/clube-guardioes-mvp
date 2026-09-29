@@ -24,7 +24,8 @@ select g.id                    as guardiao_id,
                          where c.assinatura_id = a.id and c.status = 'falhou') then 'em_risco'
            else 'ativo'
        end                     as situacao,
-       a.meio_pagamento
+       a.meio_pagamento,
+       (select count(*) from guardiao x where x.indicado_por = g.id) as indicacoes
   from guardiao g
   join origem o on o.id = g.origem_id
   left join lateral (
@@ -45,7 +46,10 @@ select g.nome,
        (current_date - c.vencimento)            as dias_em_atraso,
        case when c.tentativas >= 2 then 'alta' else 'media' end as prioridade,
        c.id                                      as cobranca_id,
-       a.id                                      as assinatura_id
+       a.id                                      as assinatura_id,
+       g.id                                      as guardiao_id,
+       (select max(m.enviada_em) from comunicacao m
+         where m.guardiao_id = g.id and m.tipo = 'contato_pessoal') as ultimo_contato
   from cobranca c
   join assinatura a on a.id = c.assinatura_id and a.status = 'ativa'
   join guardiao g   on g.id = a.guardiao_id

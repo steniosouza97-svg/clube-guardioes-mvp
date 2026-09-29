@@ -20,7 +20,8 @@
   const NOME_SIT = { ativo: "Ativo", em_risco: "Em risco", cancelado: "Cancelado" };
   const NOME_COB = { pendente: "Pendente", pago: "Pago", falhou: "Falhou", recuperado: "Recuperado", cancelado: "Cancelado" };
   const NOME_COM = { boas_vindas: "Boas-vindas", agradecimento: "Agradecimento pelo Pix", recuperacao: "Lembrete de Pix em atraso",
-                     impacto_mensal: "Notícia mensal de impacto", cancelamento: "Confirmação de cancelamento" };
+                     impacto_mensal: "Notícia mensal de impacto", cancelamento: "Confirmação de cancelamento",
+                     contato_pessoal: "Contato pessoal da equipe" };
   const whats = tel => { const d = String(tel || "").replace(/\D/g, ""); return d ? `https://wa.me/55${d}` : null; };
   const idEvento = () => "evt_painel_" + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "") : Date.now());
 
@@ -136,14 +137,15 @@
     const b = $("#badge-alerta"); b.hidden = !linhas.length; b.textContent = linhas.length;
     if (!linhas.length) { $("#tab-alerta").innerHTML = `<tbody><tr><td class="vazio">Nenhum Guardião em risco. Tudo em dia.</td></tr></tbody>`; return; }
     $("#tab-alerta").innerHTML = `<thead><tr><th>Prioridade</th><th>Guardião</th><th>Contato</th><th class="num">Valor</th><th>Mês</th>
-      <th>Vencimento</th><th class="num">Tentativas</th></tr></thead><tbody>` +
+      <th>Vencimento</th><th class="num">Tentativas</th><th>Contato da equipe</th></tr></thead><tbody>` +
       linhas.map(l => {
         const w = whats(l.telefone);
         const texto = encodeURIComponent(`Olá, ${l.nome.split(" ")[0]}! Aqui é do Instituto Ebenézer. Vimos que o Pix do Clube Guardiões de ${fmt.mesLongo(l.competencia)} ainda não foi pago. Posso te ajudar?`);
         return `<tr><td>${selo(l.prioridade, l.prioridade === "alta" ? "Alta" : "Média")}</td><td>${esc(l.nome)}</td>
           <td>${w ? `<a href="${w}?text=${texto}" target="_blank" rel="noopener">WhatsApp</a>` : "–"} · <a href="mailto:${esc(l.email)}">e-mail</a></td>
           <td class="num">${fmt.brl(l.valor_mensal)}</td><td>${fmt.mesLongo(l.competencia)}</td><td>${fmt.data(l.vencimento)}</td>
-          <td class="num">${l.tentativas} de ${estado.parametros.tentativas_ate_cancelar || 3}</td></tr>`;
+          <td class="num">${l.tentativas} de ${estado.parametros.tentativas_ate_cancelar || 3}</td>
+          <td>${l.ultimo_contato ? `<div class="ajuda">Último: ${fmt.dataHora(l.ultimo_contato)}</div>` : ""}<button class="btn sec peq" data-contato="${l.guardiao_id}" data-nome="${esc(l.nome)}">Registrar contato</button></td></tr>`;
       }).join("") + `</tbody>`;
   }
 
@@ -188,11 +190,11 @@
     const assin = await consulta(sb.from("assinatura").select("id,valor_mensal,dia_vencimento,status,iniciada_em,cancelada_em,motivo_cancelamento").eq("guardiao_id", id).order("iniciada_em"));
     const [cobs, coms] = await Promise.all([
       consulta(sb.from("cobranca").select("competencia,valor,vencimento,status,tentativas,pago_em").in("assinatura_id", assin.map(a => a.id)).order("competencia", { ascending: false })),
-      consulta(sb.from("comunicacao").select("tipo,canal,enviada_em,competencia").eq("guardiao_id", id).order("enviada_em", { ascending: false }))
+      consulta(sb.from("comunicacao").select("tipo,canal,enviada_em,competencia,conteudo").eq("guardiao_id", id).order("enviada_em", { ascending: false }))
     ]);
     const pago = cobs.filter(c => ["pago", "recuperado"].includes(c.status)).reduce((s, c) => s + Number(c.valor), 0);
     $("#dlg-g-corpo").innerHTML = `
-      <p style="margin-top:0">${selo(g.situacao, NOME_SIT[g.situacao])} · ${esc(g.email)} · ${esc(g.telefone || "sem telefone")} · canal: ${esc(g.origem)}</p>
+      <p style="margin-top:0">${selo(g.situacao, NOME_SIT[g.situacao])} · ${esc(g.email)} · ${esc(g.telefone || "sem telefone")} · canal: ${esc(g.origem)}${g.indicacoes ? ` · trouxe ${g.indicacoes} Guardião(ões) pelo link de convite` : ""}</p>
       <div class="kpis"><div class="kpi"><div class="rot">Total doado</div><div class="val">${fmt.brl0(pago)}</div></div>
         <div class="kpi"><div class="rot">Pix pagos</div><div class="val">${cobs.filter(c => ["pago", "recuperado"].includes(c.status)).length}</div></div>
         <div class="kpi"><div class="rot">Assinaturas</div><div class="val">${assin.length}</div><div class="sub">${assin.map(a => `${fmt.brl(a.valor_mensal)} desde ${fmt.data(a.iniciada_em)}`).join("<br>")}</div></div></div>
@@ -202,7 +204,7 @@
           <td>${selo(c.status, NOME_COB[c.status])}${c.tentativas ? ` <span class="ajuda">${c.tentativas} tentativa(s)</span>` : ""}</td><td>${fmt.dataHora(c.pago_em)}</td></tr>`).join("") || `<tr><td colspan="5" class="vazio">Sem cobranças ainda.</td></tr>`}
       </tbody></table></div>
       <h3 style="font-size:.95rem;margin-top:1rem">Régua de relacionamento</h3>
-      <ul class="linha-tempo">${coms.map(m => `<li><time>${fmt.dataHora(m.enviada_em)}</time><span>${esc(NOME_COM[m.tipo] || m.tipo)}${m.competencia ? ` · ${fmt.mesLongo(m.competencia)}` : ""} <span class="ajuda">(${esc(m.canal)})</span></span></li>`).join("")}</ul>`;
+      <ul class="linha-tempo">${coms.map(m => `<li><time>${fmt.dataHora(m.enviada_em)}</time><span>${esc(NOME_COM[m.tipo] || m.tipo)}${m.competencia ? ` · ${fmt.mesLongo(m.competencia)}` : ""} <span class="ajuda">(${esc(m.canal)})</span>${m.conteudo ? `<div class="conteudo-msg">${esc(m.conteudo).replace(/\n/g, "<br>")}</div>` : ""}</span></li>`).join("")}</ul>`;
   }
 
   async function registrarAdesao(ev) {
@@ -308,7 +310,64 @@
       const r = await consulta(sb.rpc(rpc, args));
       aviso("ok", texto(r));
       await Promise.all([carregarMes(), carregarAlerta(), carregarResumo(), carregarGuardioes()]);
-    } finally { btn.disabled = false; }
+    } catch (e) { /* a mensagem de erro já foi exibida no painel */ }
+    finally { btn.disabled = false; }
+  }
+
+  // ------------------------------------------------------------ ATIVIDADES
+  const compAtiv = () => $("#comp-atividades").value + "-01";
+  async function carregarAtividades(salvo) {
+    const [ativs, textos] = await Promise.all([
+      consulta(sb.from("atividade").select("id,nome,descricao").eq("ativa", true).order("nome")),
+      consulta(sb.from("impacto_mensal").select("atividade_id,texto,atualizado_em").eq("competencia", compAtiv()))
+    ]);
+    const porAtiv = Object.fromEntries(textos.map(t => [t.atividade_id, t]));
+    // preserva o que a equipe digitou e ainda não salvou nas outras atividades
+    const rascunho = {};
+    document.querySelectorAll("#lista-atividades textarea").forEach(t => { rascunho[t.id] = t.value; });
+    const mesmoMes = $("#lista-atividades").dataset.mes === compAtiv();
+    $("#lista-atividades").dataset.mes = compAtiv();
+    $("#lista-atividades").innerHTML = ativs.map(a => {
+      const t = porAtiv[a.id];
+      return `<div class="atividade" data-atividade="${a.id}">
+        <h3>${esc(a.nome)}</h3><p class="ajuda">${esc(a.descricao || "")}</p>
+        <label for="ativ-${a.id}">O que essa atividade sustentou em ${fmt.mesLongo(compAtiv())}</label>
+        <textarea id="ativ-${a.id}" rows="3" maxlength="600" placeholder="Ex.: garantiu refeições e apoio nas tarefas escolares">${esc(mesmoMes && rascunho[`ativ-${a.id}`] != null && !(t && salvo === a.id) ? rascunho[`ativ-${a.id}`] : (t ? t.texto : ""))}</textarea>
+        <div class="linha-acao">${t ? selo("pago", "Registrado") + ` <span class="ajuda">em ${fmt.dataHora(t.atualizado_em)}</span>` : selo("pendente", "Pendente")}
+          <button class="btn peq" data-salvar-atividade="${a.id}">Salvar</button></div></div>`;
+    }).join("");
+    const prontos = ativs.filter(a => porAtiv[a.id]);
+    $("#previa-noticia").innerHTML = prontos.length
+      ? `<h3>Prévia da notícia de ${fmt.mesLongo(compAtiv())}</h3><p>${prontos.map(a => `<strong>${esc(a.nome)}:</strong> ${esc(porAtiv[a.id].texto)}`).join("<br>")}</p>
+         <p class="ajuda">Enviada em "Operação do mês", passo 3, uma vez para cada Guardião ativo.</p>`
+      : `<p class="ajuda">Nenhuma atividade registrada para este mês. A notícia de impacto só pode ser enviada depois do registro.</p>`;
+    document.querySelectorAll("[data-salvar-atividade]").forEach(b => b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        await consulta(sb.rpc("fn_salvar_impacto", { p_atividade: Number(b.dataset.salvarAtividade), p_competencia: compAtiv(),
+                                                     p_texto: $(`#ativ-${b.dataset.salvarAtividade}`).value }));
+        aviso("ok", "Prestação de contas da atividade salva.");
+        await carregarAtividades(Number(b.dataset.salvarAtividade));
+      } catch (e) { /* mensagem já exibida */ }
+      finally { b.disabled = false; }
+    }));
+  }
+
+  // ------------------------------------------------------------ CONTATO PESSOAL
+  function abrirContato(id, nome) {
+    $("#form-contato").dataset.guardiao = id;
+    $("#contato-nome").textContent = nome;
+    $("#contato-anotacao").value = "";
+    $("#dlg-contato").showModal();
+  }
+  async function registrarContato(ev) {
+    ev.preventDefault();
+    try {
+      await consulta(sb.rpc("fn_registrar_contato", { p_guardiao: $("#form-contato").dataset.guardiao, p_anotacao: $("#contato-anotacao").value }));
+    } catch (e) { $("#dlg-contato").close(); return; }
+    $("#dlg-contato").close();
+    aviso("ok", "Contato registrado no histórico do Guardião.");
+    await carregarAlerta();
   }
 
   // ------------------------------------------------------------ navegação e sessão
@@ -334,8 +393,9 @@
     // Na demonstração, abre no mês seguinte ao último com cobranças, para simular um novo mês de operação
     if (DEMO && ult) { const [a, m] = ult.competencia.split("-").map(Number); padrao = m === 12 ? `${a + 1}-01` : `${a}-${String(m + 1).padStart(2, "0")}`; }
     $("#competencia").value = padrao;
+    $("#comp-atividades").value = padrao;
     await carregarCanais();
-    await Promise.all([carregarResumo(), carregarAlerta(), carregarGuardioes(), carregarMes()]);
+    await Promise.all([carregarResumo(), carregarAlerta(), carregarGuardioes(), carregarMes(), carregarAtividades()]);
     abrirAba((location.hash || "#resumo").slice(1).replace(/[^a-z]/g, "") || "resumo");
   }
 
@@ -356,6 +416,9 @@
     cpf.mascara($("#a-cpf")); cpf.mascara($("#consulta-cpf"));
     $("#a-direto").addEventListener("change", ev => { $("#a-origem").disabled = ev.target.checked; });
     $("#competencia").addEventListener("change", carregarMes);
+    $("#comp-atividades").addEventListener("change", () => carregarAtividades());
+    $("#tab-alerta").addEventListener("click", ev => { const b = ev.target.closest("[data-contato]"); if (b) abrirContato(b.dataset.contato, b.dataset.nome); });
+    $("#form-contato").addEventListener("submit", registrarContato);
     $("#filtro-cob").addEventListener("change", carregarMes);
     $("#btn-gerar").addEventListener("click", ev => acaoMes(ev.currentTarget, "fn_gerar_cobrancas", { p_competencia: competencia() },
       n => n ? `${fmt.int(n)} cobranças geradas para ${fmt.mesLongo(competencia())}.` : "As cobranças deste mês já existiam. Nada foi duplicado."));

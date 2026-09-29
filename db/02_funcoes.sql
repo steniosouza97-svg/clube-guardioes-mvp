@@ -285,12 +285,21 @@ create or replace function fn_enviar_impacto_mensal(p_competencia date, p_quando
 returns integer
 language plpgsql as $$
 declare
-    v_comp date := date_trunc('month', p_competencia)::date;
-    v_qtd  integer;
+    v_comp     date := date_trunc('month', p_competencia)::date;
+    v_qtd      integer;
+    v_conteudo text;
 begin
     perform exigir_voluntario();
-    insert into comunicacao (guardiao_id, competencia, tipo, enviada_em)
-    select a.guardiao_id, v_comp, 'impacto_mensal', p_quando
+    -- A notícia leva a prestação de contas por atividade registrada pela equipe
+    select string_agg(at.nome || ': ' || im.texto, E'\n' order by at.nome)
+      into v_conteudo
+      from impacto_mensal im join atividade at on at.id = im.atividade_id
+     where im.competencia = v_comp;
+    if v_conteudo is null then
+        raise exception 'Registre em Atividades o que o mês sustentou antes de enviar a notícia de impacto';
+    end if;
+    insert into comunicacao (guardiao_id, competencia, tipo, enviada_em, conteudo)
+    select a.guardiao_id, v_comp, 'impacto_mensal', p_quando, v_conteudo
       from assinatura a
      where a.status = 'ativa'
     on conflict (guardiao_id, competencia) where tipo = 'impacto_mensal' do nothing;
@@ -316,9 +325,15 @@ create or replace function fn_aderir_publico(
     p_origem        text,
     p_valor         numeric,
     p_dia           smallint,
-    p_consentimento boolean
-) returns boolean
+    p_consentimento boolean,
+    p_convite       text default null      -- código do link pessoal de quem convidou
+) returns jsonb
 language plpgsql as $$
+declare
+    v_assinatura uuid;
+    v_guardiao   uuid;
+    v_padrinho   uuid;
+    v_origem     text := coalesce(p_origem, 'Site institucional');
 begin
     if p_valor is null or p_valor < 10 or p_valor > 5000 then
         raise exception 'Valor mensal deve estar entre R$ 10 e R$ 5.000';
@@ -326,9 +341,79 @@ begin
     if length(coalesce(p_nome, '')) > 120 or length(coalesce(p_telefone, '')) > 30 then
         raise exception 'Dados de contato inválidos';
     end if;
-    perform fn_aderir(p_nome, p_email, p_cpf, p_telefone, coalesce(p_origem, 'Site institucional'),
-                      p_valor, p_dia, 'pix', p_consentimento, current_date);
-    return true;
+    -- Convite válido: quem convidou é um Guardião com assinatura ativa
+    if nullif(trim(p_convite), '') is not null then
+        select g.id into v_padrinho
+          from guardiao g
+         where g.codigo_convite = lower(trim(p_convite))
+           and exists (select 1 from assinatura a where a.guardiao_id = g.id and a.status = 'ativa');
+        if v_padrinho is not null then
+            v_origem := 'Indicação de Guardião';
+        end if;
+    end if;
+
+    v_assinatura := fn_aderir(p_nome, p_email, p_cpf, p_telefone, v_origem,
+                              p_valor, p_dia, 'pix', p_consentimento, current_date);
+    select guardiao_id into v_guardiao from assinatura where id = v_assinatura;
+
+    if v_padrinho is not null and v_padrinho <> v_guardiao then
+        update guardiao set indicado_por = v_padrinho
+         where id = v_guardiao and indicado_por is null;
+    end if;
+
+    -- Devolve só o necessário para as telas seguintes (Pix, confirmação, convite)
+    return jsonb_build_object(
+        'primeiro_nome',  split_part(trim(p_nome), ' ', 1),
+        'valor',          p_valor,
+        'dia',            p_dia,
+        'codigo_convite', (select codigo_convite from guardiao where id = v_guardiao),
+        'convidado_por',  (select split_part(nome, ' ', 1) from guardiao where id = v_padrinho));
+end;
+$$;
+
+-- Nome de quem convidou, para a faixa "Você foi convidada por..." da página.
+-- Devolve só o primeiro nome, e só de Guardião ativo.
+create or replace function fn_convite_nome(p_codigo text)
+returns text
+language sql stable as $$
+    select split_part(g.nome, ' ', 1)
+      from guardiao g
+     where g.codigo_convite = lower(trim(p_codigo))
+       and exists (select 1 from assinatura a where a.guardiao_id = g.id and a.status = 'ativa');
+$$;
+
+-- A equipe registra o que cada atividade sustentou no mês (tela Atividades).
+create or replace function fn_salvar_impacto(p_atividade smallint, p_competencia date, p_texto text)
+returns void
+language plpgsql as $$
+declare
+    v_comp date := date_trunc('month', p_competencia)::date;
+begin
+    perform exigir_voluntario();
+    if not exists (select 1 from atividade where id = p_atividade and ativa) then
+        raise exception 'Atividade % não encontrada ou inativa', p_atividade;
+    end if;
+    if length(trim(coalesce(p_texto, ''))) < 10 then
+        raise exception 'Descreva o que a atividade sustentou no mês (mínimo de 10 caracteres)';
+    end if;
+    insert into impacto_mensal (atividade_id, competencia, texto, atualizado_em)
+    values (p_atividade, v_comp, trim(p_texto), now())
+    on conflict (atividade_id, competencia)
+    do update set texto = excluded.texto, atualizado_em = now();
+end;
+$$;
+
+-- Contato pessoal feito pela equipe com um Guardião (alerta de churn).
+create or replace function fn_registrar_contato(p_guardiao uuid, p_anotacao text default null)
+returns void
+language plpgsql as $$
+begin
+    perform exigir_voluntario();
+    if not exists (select 1 from guardiao where id = p_guardiao) then
+        raise exception 'Guardião % não encontrado', p_guardiao;
+    end if;
+    insert into comunicacao (guardiao_id, tipo, conteudo)
+    values (p_guardiao, 'contato_pessoal', nullif(trim(coalesce(p_anotacao, '')), ''));
 end;
 $$;
 
@@ -445,7 +530,10 @@ alter function fn_gerar_cobrancas(date)                                   set se
 alter function fn_cancelar(uuid, text, date)                              set search_path = public;
 alter function fn_processar_evento(text, uuid, text, timestamptz)         set search_path = public;
 alter function fn_enviar_impacto_mensal(date, timestamptz)                set search_path = public;
-alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) set search_path = public;
+alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean, text) set search_path = public;
+alter function fn_convite_nome(text)                                     set search_path = public;
+alter function fn_salvar_impacto(smallint, date, text)                    set search_path = public;
+alter function fn_registrar_contato(uuid, text)                           set search_path = public;
 alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    set search_path = public;
 alter function fn_cadastrar_pix_direto(text, text, text, text, numeric, smallint, boolean, date) set search_path = public;
 alter function fn_registrar_pix_direto(uuid, boolean, timestamptz)       set search_path = public;

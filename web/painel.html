@@ -36,6 +36,7 @@
       <button role="tab" data-aba="alerta" aria-selected="false">Alerta de churn <span class="badge" id="badge-alerta" hidden></span></button>
       <button role="tab" data-aba="guardioes" aria-selected="false">Guardiões</button>
       <button role="tab" data-aba="canais" aria-selected="false">Canais</button>
+      <button role="tab" data-aba="atividades" aria-selected="false">Atividades</button>
       <button role="tab" data-aba="operacao" aria-selected="false">Operação do mês</button>
     </div>
   </nav>
@@ -95,6 +96,16 @@
       <div class="tabela-wrap"><table id="tab-canais"></table></div>
     </section>
 
+    <!-- ATIVIDADES E PRESTAÇÃO DE CONTAS -->
+    <section class="aba" id="aba-atividades" role="tabpanel" hidden>
+      <div class="cabecalho-aba">
+        <div><h2>Atividades e prestação de contas</h2><p>Registre o que cada atividade sustentou no mês. É esse texto que chega aos Guardiões na notícia mensal de impacto, sempre de forma agregada, sem identificar crianças.</p></div>
+        <div class="campo" style="margin:0;min-width:200px"><label for="comp-atividades">Mês</label><input id="comp-atividades" type="month"></div>
+      </div>
+      <div class="atividades" id="lista-atividades"></div>
+      <div class="previa" id="previa-noticia"></div>
+    </section>
+
     <!-- OPERAÇÃO -->
     <section class="aba" id="aba-operacao" role="tabpanel" hidden>
       <div class="cabecalho-aba">
@@ -107,7 +118,7 @@
         <div class="acao" id="acao-simular"><span class="tag">Somente demonstração</span><h3>2. Simular a Asaas</h3>
           <p>Emite os avisos de pagamento e de atraso que a Asaas enviaria, pelo mesmo caminho do webhook real.</p>
           <button class="btn" id="btn-simular">Simular pagamentos do mês</button></div>
-        <div class="acao"><h3>3. Enviar notícia de impacto</h3><p>Registra a mensagem mensal de prestação de contas para todos os Guardiões ativos, uma vez por mês.</p>
+        <div class="acao"><h3>3. Enviar notícia de impacto</h3><p>Envia a todos os Guardiões ativos a prestação de contas registrada na aba Atividades, uma vez por mês.</p>
           <button class="btn" id="btn-impacto">Enviar notícia do mês</button></div>
       </div>
       <div class="kpis" id="kpis-mes"></div>
@@ -125,6 +136,16 @@
 <dialog id="dlg-guardiao" aria-labelledby="dlg-g-titulo">
   <div class="dlg-cab"><h2 id="dlg-g-titulo" style="font-size:1.1rem;margin:0"></h2><button class="btn sec peq" data-fechar>Fechar</button></div>
   <div class="dlg-corpo" id="dlg-g-corpo"></div>
+</dialog>
+
+<!-- contato pessoal (alerta de churn) -->
+<dialog id="dlg-contato" aria-labelledby="dlg-c-titulo">
+  <div class="dlg-cab"><h2 id="dlg-c-titulo" style="font-size:1.1rem;margin:0">Registrar contato feito</h2><button class="btn sec peq" data-fechar>Fechar</button></div>
+  <form class="dlg-corpo" id="form-contato">
+    <p style="font-size:.9rem;color:var(--tinta-2);margin-top:0">Contato pessoal com <strong id="contato-nome"></strong>. Fica no histórico do Guardião e no alerta de churn.</p>
+    <div class="campo"><label for="contato-anotacao">Anotação (opcional)</label><textarea id="contato-anotacao" rows="3" maxlength="300" placeholder="Ex.: liguei, vai pagar sexta"></textarea></div>
+    <button class="btn" type="submit">Registrar contato</button>
+  </form>
 </dialog>
 
 <!-- adesão pelo voluntário -->

@@ -3,8 +3,9 @@
 -- (depende dos papéis anon e authenticated, que só existem lá)
 --
 -- Regras:
---   - Visitante anônimo (página pública do Clube): lê a lista de origens
---     e chama fn_aderir_publico. Nada mais.
+--   - Visitante anônimo (página pública do Clube): lê a lista de origens,
+--     chama fn_aderir_publico e descobre o primeiro nome de quem o convidou
+--     (fn_convite_nome). Nada mais.
 --   - Voluntário (login no Supabase E e-mail na tabela voluntario): lê
 --     tudo e chama as funções do fluxo. Criar conta não dá acesso.
 --   - Nenhum papel grava direto nas tabelas: toda gravação passa pelas
@@ -21,6 +22,8 @@ alter table cobranca       enable row level security;
 alter table comunicacao    enable row level security;
 alter table evento_gateway enable row level security;
 alter table voluntario     enable row level security;   -- sem política: só via SQL Editor
+alter table atividade      enable row level security;
+alter table impacto_mensal enable row level security;
 
 create policy leitura_voluntario on parametro      for select to authenticated using (eh_voluntario());
 create policy leitura_voluntario on origem         for select to authenticated using (eh_voluntario());
@@ -30,14 +33,16 @@ create policy leitura_voluntario on assinatura     for select to authenticated u
 create policy leitura_voluntario on cobranca       for select to authenticated using (eh_voluntario());
 create policy leitura_voluntario on comunicacao    for select to authenticated using (eh_voluntario());
 create policy leitura_voluntario on evento_gateway for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on atividade      for select to authenticated using (eh_voluntario());
+create policy leitura_voluntario on impacto_mensal for select to authenticated using (eh_voluntario());
 
 -- 2. Privilégios de tabela explícitos (não depender dos padrões do projeto)
 revoke all on all tables in schema public from anon, authenticated;
 grant usage on schema public to anon, authenticated;
-grant select on parametro, origem, assinatura, cobranca, comunicacao, evento_gateway to authenticated;
+grant select on parametro, origem, assinatura, cobranca, comunicacao, evento_gateway, atividade, impacto_mensal to authenticated;
 -- Guardião: o voluntário lê tudo, menos o CPF cifrado (coluna cpf_hash fica de fora)
 grant select (id, nome, email, telefone, origem_id, consentimento_lgpd, consentimento_em,
-              entrou_em, id_externo_gateway, criado_em) on guardiao to authenticated;
+              entrou_em, id_externo_gateway, criado_em, codigo_convite, indicado_por) on guardiao to authenticated;
 
 -- Esquema privado (chave do CPF): nenhum acesso externo
 revoke all on schema privado from anon, authenticated;
@@ -61,7 +66,10 @@ alter function fn_gerar_cobrancas(date)                                   securi
 alter function fn_cancelar(uuid, text, date)                              security definer;
 alter function fn_processar_evento(text, uuid, text, timestamptz)         security definer;
 alter function fn_enviar_impacto_mensal(date, timestamptz)                security definer;
-alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) security definer;
+alter function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean, text) security definer;
+alter function fn_convite_nome(text)                                     security definer;
+alter function fn_salvar_impacto(smallint, date, text)                    security definer;
+alter function fn_registrar_contato(uuid, text)                           security definer;
 alter function fn_simular_gateway(date, numeric, numeric, timestamptz)    security definer;
 alter function fn_cadastrar_pix_direto(text, text, text, text, numeric, smallint, boolean, date) security definer;
 alter function fn_registrar_pix_direto(uuid, boolean, timestamptz)       security definer;
@@ -69,7 +77,10 @@ alter function fn_migrar_para_asaas(uuid)                                 securi
 
 revoke all on all functions in schema public from public, anon, authenticated;
 
-grant execute on function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean) to anon, authenticated;
+grant execute on function fn_aderir_publico(text, text, text, text, text, numeric, smallint, boolean, text) to anon, authenticated;
+grant execute on function fn_convite_nome(text)                                     to anon, authenticated;
+grant execute on function fn_salvar_impacto(smallint, date, text)                    to authenticated;
+grant execute on function fn_registrar_contato(uuid, text)                           to authenticated;
 grant execute on function fn_consultar_cpf(text)                                    to authenticated;
 grant execute on function eh_voluntario() to authenticated;
 grant execute on function fn_gerar_cobrancas(date)                                   to authenticated;

@@ -214,11 +214,24 @@ begin
             end loop;
         end if;
 
-        -- mensagem mensal de impacto no dia 28 para quem está ativo
+        -- mensagem mensal de impacto no dia 28 para quem está ativo, com a
+        -- prestação de contas por atividade registrada pela equipe
         d := make_date(extract(year from comp)::int, extract(month from comp)::int, 28);
         if d <= p_hoje then
-            insert into comunicacao (guardiao_id, competencia, tipo, enviada_em)
-            select a.guardiao_id, comp, 'impacto_mensal', d::timestamptz + interval '18 hours'
+            insert into impacto_mensal (atividade_id, competencia, texto, atualizado_em)
+            select at.id, comp,
+                   case at.nome
+                     when 'Contraturno Escolar'    then format('Garantiu %s refeições e o apoio às tarefas escolares no contraturno de %s.', 1800 + abs(hashtext(comp::text)) % 400, to_char(comp, 'MM/YYYY'))
+                     when 'Laboratório de Sonhos'  then format('Custeou materiais e %s oficinas criativas em %s.', 6 + abs(hashtext(comp::text || 'lab')) % 6, to_char(comp, 'MM/YYYY'))
+                     else format('Sustentou %s sessões de acompanhamento terapêutico em grupo em %s.', 3 + abs(hashtext(comp::text || 'viv')) % 4, to_char(comp, 'MM/YYYY'))
+                   end,
+                   d::timestamptz + interval '10 hours'
+              from atividade at where at.ativa;
+            insert into comunicacao (guardiao_id, competencia, tipo, enviada_em, conteudo)
+            select a.guardiao_id, comp, 'impacto_mensal', d::timestamptz + interval '18 hours',
+                   (select string_agg(at.nome || ': ' || im.texto, E'\n' order by at.nome)
+                      from impacto_mensal im join atividade at on at.id = im.atividade_id
+                     where im.competencia = comp)
               from assinatura a
              where a.iniciada_em <= d and (a.cancelada_em is null or a.cancelada_em > d);
         end if;
@@ -243,6 +256,14 @@ begin
     update evento_gateway e set id_evento = replace(e.id_evento, 'evt_sint_', 'manual_sint_')
       from cobranca c join assinatura a on a.id = c.assinatura_id
      where c.id = e.cobranca_id and a.meio_pagamento = 'pix_direto';
+
+    -- Convites: quem entrou pelo canal de indicação foi convidado por um
+    -- Guardião que já estava no Clube (link pessoal da jornada da semana 5)
+    update guardiao g set indicado_por = (
+        select p.id from guardiao p
+         where p.entrou_em < g.entrou_em and p.id <> g.id
+         order by md5(g.id::text || p.id::text) limit 1)
+     where g.origem_id = (select id from origem where nome = 'Indicação de Guardião');
 
     return format('%s Guardiões (%s ativos), %s cobranças, %s eventos | %s a %s',
                   n_g, (select count(*) from assinatura where status = 'ativa'), n_c, n_e, inicio, p_hoje);

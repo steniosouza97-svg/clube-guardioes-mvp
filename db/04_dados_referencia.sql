@@ -21,3 +21,9 @@ insert into origem (nome, tipo) values
     ('Campanha Dia das Crianças',   'campanha'),
     ('Campanha de Natal',           'campanha'),
     ('Site institucional',          'site');
+
+-- Atividades da rotina das crianças (as mesmas do protótipo da semana 5)
+insert into atividade (nome, descricao) values
+    ('Contraturno Escolar',     'Refeições e apoio às tarefas escolares, de segunda a sexta.'),
+    ('Laboratório de Sonhos',   'Oficinas criativas e culturais.'),
+    ('Vivências Terapêuticas',  'Acompanhamento terapêutico em grupo.');

@@ -23,7 +23,7 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 | Banco e API | Supabase, projeto `clube-guardioes`, região São Paulo, plano gratuito |
 | Endereço da API | `https://fakihzzncafuqtgxnqbi.supabase.co` |
 | Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
-| Página de adesão | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
+| Página de adesão (jornada da doadora, telas da semana 5) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html |
 | Dados | 305 Guardiões sintéticos, 12 meses de operação simulada (out/2025 a set/2026) |
 
@@ -40,6 +40,7 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 
 Documentação de handover:
 
+- [Da semana 5 à semana 10: rastreabilidade do protótipo ao MVP](docs/rastreabilidade_semana5.md)
 - [Modelo de dados](docs/modelo_de_dados.md)
 - [Principais decisões técnicas](docs/decisoes_tecnicas.md)
 - [Casos de teste e evidências](docs/casos_de_teste.md)
@@ -81,8 +82,8 @@ Documentação de handover:
 **No Supabase (SQL Editor):**
 
 ```sql
-select * from qa.fn_rodar_testes();       -- 28 testes do fluxo
-select * from qa.fn_testes_seguranca();   -- 11 testes de acesso
+select * from qa.fn_rodar_testes();       -- 31 testes do fluxo
+select * from qa.fn_testes_seguranca();   -- 12 testes de acesso
 ```
 
 Cada linha traz `PASS`, `INFO` ou `FALHA`. Os testes rodam num bloco desfeito ao final: nenhum dado é alterado. Usam um mês futuro sem movimento, então podem ser repetidos a qualquer momento, inclusive depois da demonstração.
@@ -94,9 +95,9 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 ./tests/rodar_testes.sh              # recria o banco, carrega tudo e roda as duas suítes
 ```
 
-**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 19 passos no navegador com Playwright: adesão com CPF, consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
+**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 22 passos no navegador com Playwright: jornada da semana 5 (cadastro em 3 etapas, Pix, confirmação, convite), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento e celular. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais: 28 de 28 testes do fluxo e 11 de 11 de acesso no Supabase e localmente, 19 de 19 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF).
+Evidências atuais: 31 de 31 testes do fluxo e 12 de 12 de acesso no Supabase e localmente, 22 de 22 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF).
 
 ## Publicar a interface
 
@@ -132,9 +133,9 @@ Quem opera: a pessoa dedicada ao Clube (80 horas por mês, 70% aquisição e 30%
 
 | Frequência | Tarefa | Onde |
 |---|---|---|
-| Diária (10 min) | Aba **Alerta de churn**: contatar pelo WhatsApp os Guardiões de prioridade alta | Painel |
+| Diária (10 min) | Aba **Alerta de churn**: contatar pelo WhatsApp os Guardiões de prioridade alta e clicar em **Registrar contato** | Painel |
 | Semanal | Registrar adesões presenciais; acompanhar **Canais** (o uso semanal também mantém o Supabase ativo) | Painel |
-| Mensal | **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
+| Mensal | **Atividades**: registrar o que cada atividade sustentou no mês. **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
 | Jan a mar/2027 | Convidar cada Guardião da base atual a migrar para a Asaas; quem aceitar, botão **Migrar para Asaas** na aba Guardiões. Meta: 80% migrados (indicador "Base ainda em Pix direto" no Resumo) | Painel e WhatsApp |
 | Trimestral | Rodar os testes; revisar parâmetros e comparar com o plano do business case | SQL Editor |
 

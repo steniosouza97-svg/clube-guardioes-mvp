@@ -55,6 +55,10 @@ declare
     c9 text := '700000009' || fn_cpf_digitos('700000009');
     c11 text := '700000011' || fn_cpf_digitos('700000011');
     c12 text := '700000012' || fn_cpf_digitos('700000012');
+    c13 text := '700000013' || fn_cpf_digitos('700000013');
+    c14 text := '700000014' || fn_cpf_digitos('700000014');
+    v_cod   text;       -- código de convite (jornada da semana 5)
+    v_gc    uuid;
     v_ad    uuid;       -- assinatura em Pix direto (modelo híbrido)
     v_ad2   uuid;
     v_cd    uuid;
@@ -186,8 +190,15 @@ begin
         assert (select count(*) from assinatura where guardiao_id = v_g) = 2, 'T12 histórico da assinatura anterior perdido';
         v_log := v_log || 'PASS T12 ex-Guardião pode voltar com o mesmo e-mail, preservando o histórico'::text;
 
-        -- T13 impacto mensal
+        -- T13 impacto mensal: só sai com a prestação de contas do mês registrada
         select count(*) into ativos from assinatura where status = 'ativa';
+        falhou := false;
+        begin
+            perform fn_enviar_impacto_mensal(v_comp, (v_comp + 27)::timestamptz + interval '18 hours');
+        exception when others then falhou := sqlerrm like '%Registre em Atividades%';
+        end;
+        assert falhou, 'T13 notícia de impacto enviada sem prestação de contas registrada';
+        perform fn_salvar_impacto(a.id, v_comp, 'Sustentou as atividades de teste do mês.') from atividade a where a.ativa;
         n1 := fn_enviar_impacto_mensal(v_comp, (v_comp + 27)::timestamptz + interval '18 hours');
         n2 := fn_enviar_impacto_mensal(v_comp, (v_comp + 27)::timestamptz + interval '18 hours 30 minutes');
         assert n1 = ativos, format('T13 esperava %s mensagens, enviou %s', ativos, n1);
@@ -209,9 +220,10 @@ begin
         v_log := v_log || 'PASS T15 aviso de atraso para assinatura já cancelada é ignorado sem erro'::text;
 
         -- T16 adesão pela página pública
-        ok := fn_aderir_publico('Visitante Site', 'Visitante.Site@Example.com', c7, '(11) 90000-9990',
-                                'QR Code na comunidade', 80, 10::smallint, true);
-        assert ok, 'T16 adesão pública não retornou sucesso';
+        v_res := fn_aderir_publico('Visitante Site', 'Visitante.Site@Example.com', c7, '(11) 90000-9990',
+                                   'QR Code na comunidade', 80, 10::smallint, true);
+        assert v_res ->> 'primeiro_nome' = 'Visitante' and length(v_res ->> 'codigo_convite') = 8,
+               'T16 adesão pública não devolveu os dados da confirmação';
         assert exists (select 1 from vw_situacao_guardiao where email = 'visitante.site@example.com'
                           and situacao = 'ativo' and origem = 'QR Code na comunidade'),
                'T16 adesão pública não registrada com a origem';
@@ -351,6 +363,53 @@ begin
         assert (select status from cobranca where assinatura_id = v_ad and competencia = v_seg) = 'pago',
                'T28 cobrança do Guardião migrado não passou pela Asaas';
         v_log := v_log || 'PASS T28 migração para a Asaas mantém valor e histórico, não se repete e a cobrança seguinte passa pela Asaas'::text;
+
+        -- T29 convite: o link pessoal registra quem convidou e o canal de indicação
+        select g.codigo_convite, g.id into v_cod, v_gc
+          from guardiao g join assinatura a on a.guardiao_id = g.id and a.status = 'ativa'
+         order by g.entrou_em limit 1;
+        assert fn_convite_nome(upper(v_cod)) = split_part((select nome from guardiao where id = v_gc), ' ', 1),
+               'T29 nome de quem convidou não encontrado pelo código';
+        v_res := fn_aderir_publico('Convidada Teste', 'convidada.teste@example.com', c13, '(11) 90000-1313',
+                                   'Site institucional', 60, 15::smallint, true, v_cod);
+        select id into v_g from guardiao where email = 'convidada.teste@example.com';
+        assert (select indicado_por from guardiao where id = v_g) = v_gc, 'T29 indicação não registrada';
+        assert (select o.nome from guardiao g join origem o on o.id = g.origem_id where g.id = v_g) = 'Indicação de Guardião',
+               'T29 canal de indicação não registrado';
+        assert v_res ->> 'convidado_por' is not null, 'T29 confirmação não devolveu quem convidou';
+        v_res := fn_aderir_publico('Sem Convite', 'sem.convite@example.com', c14, null,
+                                   'Instagram', 60, 15::smallint, true, 'naoexiste');
+        assert (select indicado_por from guardiao where email = 'sem.convite@example.com') is null
+           and (select o.nome from guardiao g join origem o on o.id = g.origem_id where g.email = 'sem.convite@example.com') = 'Instagram',
+               'T29 código de convite inválido alterou a indicação';
+        v_log := v_log || 'PASS T29 link pessoal de convite registra quem convidou e o canal de indicação; código inválido é ignorado'::text;
+
+        -- T30 prestação de contas por atividade: a notícia do mês leva o texto registrado pela equipe
+        perform fn_salvar_impacto(a.id, v_prox, 'Primeira versão do texto do mês.') from atividade a where a.ativa;
+        perform fn_salvar_impacto(a.id, v_prox, 'Garantiu refeições e apoio escolar no mês de teste.') from atividade a where a.nome = 'Contraturno Escolar';
+        assert (select count(*) from impacto_mensal where competencia = v_prox) = (select count(*) from atividade where ativa),
+               'T30 texto do mês duplicado ao atualizar';
+        falhou := false;
+        begin
+            perform fn_salvar_impacto(a.id, v_prox, 'curto') from atividade a limit 1;
+        exception when others then falhou := true;
+        end;
+        assert falhou, 'T30 texto de impacto vazio ou curto foi aceito';
+        n := fn_enviar_impacto_mensal(v_prox, (v_prox + 27)::timestamptz + interval '18 hours');
+        assert n > 0 and not exists (select 1 from comunicacao where tipo = 'impacto_mensal' and competencia = v_prox
+                                         and conteudo not like '%Garantiu refeições e apoio escolar no mês de teste.%'),
+               'T30 notícia do mês não levou o texto da atividade';
+        v_log := v_log || format('PASS T30 prestação de contas por atividade registrada pela equipe chega aos %s Guardiões na notícia do mês', n);
+
+        -- T31 contato pessoal registrado aparece no alerta de churn
+        select guardiao_id into v_g from vw_alerta_churn limit 1;
+        assert v_g is not null, 'T31 alerta de churn vazio no mês de teste';
+        perform fn_registrar_contato(v_g, 'Liguei, vai pagar sexta.');
+        assert (select ultimo_contato from vw_alerta_churn where guardiao_id = v_g limit 1) is not null,
+               'T31 contato registrado não aparece no alerta';
+        assert (select conteudo from comunicacao where guardiao_id = v_g and tipo = 'contato_pessoal'
+                 order by enviada_em desc limit 1) = 'Liguei, vai pagar sexta.', 'T31 anotação do contato perdida';
+        v_log := v_log || 'PASS T31 contato pessoal feito pela equipe fica registrado e aparece no alerta de churn'::text;
 
         raise exception 'QA_DESFAZER';
     exception when assert_failure or others then

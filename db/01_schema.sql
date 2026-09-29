@@ -54,8 +54,13 @@ create table guardiao (
     consentimento_em    timestamptz not null default now(),
     entrou_em           date not null default current_date,
     id_externo_gateway  text unique,          -- id do cliente na Asaas (cus_...)
-    criado_em           timestamptz not null default now()
+    codigo_convite      text not null unique default substr(md5(gen_random_uuid()::text), 1, 8),
+                            -- link pessoal de convite (?convite=...), jornada da semana 5
+    indicado_por        uuid references guardiao (id),   -- quem convidou, se veio por convite
+    criado_em           timestamptz not null default now(),
+    check (indicado_por is distinct from id)
 );
+create index ix_guardiao_indicado_por on guardiao (indicado_por);
 
 -- Compromisso de doação mensal. Um Guardião tem no máximo uma assinatura ativa.
 create table assinatura (
@@ -105,7 +110,8 @@ create table comunicacao (
     competencia  date,
     tipo         text not null check (tipo in (
                      'boas_vindas', 'agradecimento', 'recuperacao',
-                     'impacto_mensal', 'cancelamento')),
+                     'impacto_mensal', 'cancelamento', 'contato_pessoal')),
+    conteudo     text,                        -- texto da notícia de impacto ou anotação do contato
     canal        text not null default 'whatsapp' check (canal in ('whatsapp', 'email', 'sms')),
     enviada_em   timestamptz not null default now(),
     check (tipo <> 'impacto_mensal' or competencia is not null)
@@ -135,6 +141,25 @@ create table voluntario (
     criado_em  timestamptz not null default now()
 );
 
+-- Atividades da rotina das crianças que a doação sustenta (jornada da semana 5).
+-- A prestação de contas é sempre agregada por atividade, nunca por criança.
+create table atividade (
+    id         smallint generated always as identity primary key,
+    nome       text not null unique,
+    descricao  text,
+    ativa      boolean not null default true
+);
+
+-- O que cada atividade sustentou no mês. A equipe registra antes de enviar a
+-- notícia mensal de impacto; a notícia leva esses textos aos Guardiões.
+create table impacto_mensal (
+    atividade_id   smallint not null references atividade (id),
+    competencia    date not null check (competencia = date_trunc('month', competencia)::date),
+    texto          text not null check (length(trim(texto)) between 10 and 600),
+    atualizado_em  timestamptz not null default now(),
+    primary key (atividade_id, competencia)
+);
+
 comment on table parametro      is 'Parâmetros de negócio editáveis pelo Instituto.';
 comment on table origem         is 'Canal de aquisição de cada Guardião.';
 comment on table guardiao       is 'Doador recorrente. Cópia mínima do cliente na Asaas.';
@@ -143,3 +168,5 @@ comment on table cobranca       is 'Cobrança mensal. Cópia da cobrança na Asa
 comment on table comunicacao    is 'Mensagens da régua de relacionamento.';
 comment on table evento_gateway is 'Eventos de webhook já processados (idempotência).';
 comment on table voluntario     is 'Pessoas autorizadas a operar o painel.';
+comment on table atividade      is 'Atividades da rotina das crianças apoiadas pelo Clube.';
+comment on table impacto_mensal is 'Prestação de contas mensal por atividade, enviada na notícia de impacto.';

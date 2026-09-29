@@ -40,7 +40,7 @@ O banco guarda uma impressão digital do CPF: o mesmo CPF sempre gera o mesmo c�
 
 | # | Pendência | Artigo da LGPD | Quem resolve | Prioridade |
 |---|---|---|---|---|
-| L1 | **Política de privacidade** publicada na página de adesão: quais dados, para quê, por quanto tempo, com quem são compartilhados (Asaas), como exercer direitos | art. 6º, VI; art. 9º | Instituto e jurídico | Antes de abrir a página ao público |
+| L1 | **Política de privacidade** (há uma versão do MVP em `web/privacidade.html`, a validar) publicada na página de adesão: quais dados, para quê, por quanto tempo, com quem são compartilhados (Asaas), como exercer direitos | art. 6º, VI; art. 9º | Instituto e jurídico | Antes de abrir a página ao público |
 | L2 | **Canal de atendimento ao titular** (e-mail dedicado) e procedimento para acesso, correção, portabilidade e exclusão, com prazo de resposta | art. 18 | Instituto | Antes de abrir a página ao público |
 | L3 | **Encarregado ou canal de contato.** O Instituto provavelmente se enquadra como agente de tratamento de pequeno porte (Resolução CD/ANPD nº 2/2022), que dispensa indicar encarregado, mas exige canal de comunicação | art. 41 | Jurídico confirma o enquadramento | Antes de abrir a página ao público |
 | L4 | **Prazo de guarda e descarte:** o que acontece com os dados de quem cancelou. Sugestão: manter o histórico de doações pelo prazo exigido para a prestação de contas e a contabilidade, e anonimizar o contato depois | art. 15 e 16 | Instituto, com o contador | Antes do primeiro cancelamento real |
@@ -54,6 +54,11 @@ O banco guarda uma impressão digital do CPF: o mesmo CPF sempre gera o mesmo c�
 ### Base atual em Pix direto
 
 Os 35 Guardiões de hoje entram no painel com CPF e consentimento colhidos na conversa de convite (DT-15). O consentimento precisa ser registrado antes do cadastro: o banco recusa o cadastro sem ele (T25). O convite deve informar para que o CPF será usado e que a tarifa da Asaas é paga pelo Instituto, não pelo doador.
+
+### Convite e Aviso de Privacidade (jornada da semana 5)
+
+- O link pessoal de convite revela ao visitante só o primeiro nome de quem convidou, e apenas a quem tem o código (T29, S12). O convite é iniciativa da própria Guardiã.
+- A página de adesão tem um Aviso de Privacidade em linguagem simples, ligado ao consentimento. É uma versão do MVP: o texto oficial depende do jurídico (L1).
 
 ## 4. O que dizer à banca
 
