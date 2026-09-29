@@ -1,5 +1,5 @@
 -- =====================================================================
--- Clube Guardiões do Começo | Instituto Ebenézer
+-- Clube Guardiões do Futuro | Instituto Ebenézer
 -- 01_schema.sql: modelo de dados do MVP
 -- Compatível com PostgreSQL 15+ (Supabase) e PostgreSQL 16 local.
 --

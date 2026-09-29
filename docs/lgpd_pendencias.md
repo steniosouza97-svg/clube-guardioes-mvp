@@ -1,6 +1,6 @@
 # Privacidade e LGPD: o que está feito e o que falta
 
-Clube Guardiões do Começo | Instituto Ebenézer | registro de 28/09/2026, atualizado em 29/09/2026 (doação única, e-mail opcional, Minha Área, pausa, recibo)
+Clube Guardiões do Futuro | Instituto Ebenézer | registro de 28/09/2026, atualizado em 29/09/2026 (doação única, e-mail opcional, Minha Área, pausa, recibo)
 
 Este documento separa o que o MVP já garante tecnicamente do que o Instituto precisa definir antes de operar com doadores reais. Não substitui a avaliação do jurídico do Instituto.
 

@@ -10,7 +10,7 @@ insert into parametro (chave, valor, descricao) values
     ('tentativas_ate_cancelar', 3,         'Falhas de cobrança seguidas até cancelar a assinatura por inadimplência.'),
     ('custo_pix',               1.99,      'Taxa Asaas por Pix recebido (tabela pública).'),
     ('custo_mensagem_whatsapp', 0.55,      'Taxa Asaas por mensagem WhatsApp da régua (tabela pública).'),
-    ('valor_guardiao',          85,        'Doação mensal do Guardião do Começo (decisão de 29/09). Doação única aceita qualquer valor.'),
+    ('valor_guardiao',          85,        'Doação mensal do Guardião do Futuro (decisão de 29/09). Doação única aceita qualquer valor.'),
     ('meses_por_estrela',       3,         'Gamificação: o Guardião ganha uma estrela a cada 3 meses de doação paga.'),
     ('pausa_maxima_meses',      3,         'Pausa da doação mensal: de 1 a 3 meses, depois volta sozinha.'),
     ('modo_demonstracao',       1,         '1 = ambiente de demonstração ("Já paguei" confirma a doação única sem a Asaas). 0 em produção.');

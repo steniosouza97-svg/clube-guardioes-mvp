@@ -1,6 +1,6 @@
 # Casos de teste e evidências
 
-Clube Guardiões do Começo | Instituto Ebenézer | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | atualizado em 29/09/2026
 
 Três camadas de teste, todas automatizadas:
 

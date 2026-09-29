@@ -1,6 +1,6 @@
 # Conferência cruzada: deck × MVP × modelo financeiro
 
-Clube Guardiões do Começo | tarefa CJ1 | realizada em 28/09/2026, revista em 29/09/2026 após as decisões de 29/09 (Guardião R$ 85, doação única, pausa, Minha Área, estrelas, indicação, recibo)
+Clube Guardiões do Futuro | tarefa CJ1 | realizada em 28/09/2026, revista em 29/09/2026 após as decisões de 29/09 (Guardião R$ 85, doação única, pausa, Minha Área, estrelas, indicação, recibo)
 
 As duas trilhas contam a mesma história com os mesmos números. Esta conferência compara cada afirmação do pitch deck que depende do MVP ou do modelo financeiro com o que o repositório e a planilha efetivamente fazem.
 

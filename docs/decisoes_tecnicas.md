@@ -1,6 +1,6 @@
 # Principais decisões técnicas
 
-Clube Guardiões do Começo | Instituto Ebenézer | registro atualizado em 29/09/2026 (decisões de 29/09 na DT-17 e login da Minha Área na DT-18)
+Clube Guardiões do Futuro | Instituto Ebenézer | registro atualizado em 29/09/2026 (decisões de 29/09 na DT-17 e login da Minha Área na DT-18)
 
 Cada decisão traz o contexto, a escolha, as alternativas descartadas e a consequência para quem vai operar a solução depois dos autores.
 

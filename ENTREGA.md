@@ -1,6 +1,6 @@
 # Entrega da semana 10: trilha de Tecnologia
 
-Clube Guardiões do Começo | Instituto de Cultura e Lazer Ebenézer | MBA Inteli, Módulo 3 | apresentação em 09/10/2026
+Clube Guardiões do Futuro | Instituto de Cultura e Lazer Ebenézer | MBA Inteli, Módulo 3 | apresentação em 09/10/2026
 
 ## Links
 

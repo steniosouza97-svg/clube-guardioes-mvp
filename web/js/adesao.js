@@ -67,7 +67,7 @@
       const f = $("#faixa-convite");
       if (data) {
         f.innerHTML = `💌 <span><strong>${esc(data)}</strong> já ajuda as crianças do Jardim Ângela e convidou você. ` +
-                      `Seja Guardião do Começo com R$ 85 por mês, ou faça uma doação única de qualquer valor.</span>`;
+                      `Seja Guardião do Futuro com R$ 85 por mês, ou faça uma doação única de qualquer valor.</span>`;
         f.hidden = false;
       }
     });
@@ -184,9 +184,9 @@
     return `${base}index.html?convite=${encodeURIComponent(codigo)}`;
   }
   function mensagemConvite(link) {
-    return "Oi! 💚 Eu apoio o Instituto Ebenézer, que cuida de 120 crianças no Jardim Ângela, em São Paulo, " +
+    return "Oi! 💚 Eu apoio o Instituto Ebenézer, que atende 120 crianças todos os meses no Jardim Ângela, em São Paulo, " +
       "com contraturno escolar, oficinas e acompanhamento terapêutico.\n\n" +
-      "Com R$ 85 por mês você vira Guardião do Começo e recebe todo mês a prestação de contas do que a sua doação sustentou. " +
+      "Com R$ 85 por mês você vira Guardião do Futuro e recebe todo mês a prestação de contas do que a sua doação sustentou. " +
       "Se não puder ser mensal, uma doação única de qualquer valor já faz diferença.\n\n" +
       "\"Se mudarmos o começo da história, mudamos a história toda.\"\n\n" +
       "Doe pelo meu link: " + link;

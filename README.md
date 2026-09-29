@@ -1,4 +1,4 @@
-# Clube Guardiões do Começo | MVP funcional
+# Clube Guardiões do Futuro | MVP funcional
 
 Instituto de Cultura e Lazer Ebenézer | Jardim Ângela, São Paulo
 MBA Inteli, Módulo 3 | entrega da semana 10, trilha de Tecnologia
@@ -16,7 +16,7 @@ página de adesão → cobrança mensal → Pix pago ou vencido → régua de re
 
 O que o MVP faz hoje (decisões de 29/09/2026):
 
-- **Guardião do Começo:** doação mensal de R$ 85 por Pix, recorrente (parâmetro `valor_guardiao`). Guardiões da base atual mantêm o valor que já doam; R$ 85 vale para novas adesões e reativações.
+- **Guardião do Futuro:** doação mensal de R$ 85 por Pix, recorrente (parâmetro `valor_guardiao`). Guardiões da base atual mantêm o valor que já doam; R$ 85 vale para novas adesões e reativações.
 - **Doação única:** qualquer pessoa doa uma vez, de qualquer valor (referências de R$ 30, R$ 60, R$ 120 ou outro; mínimo técnico de R$ 10).
 - **Cadastro:** nome, WhatsApp e CPF obrigatórios; e-mail opcional (se informado, precisa ser válido). CPF guardado só cifrado.
 - **Minha Área:** o Guardião entra com WhatsApp e CPF e vê status, nível com estrelas, linha do tempo de impacto, histórico e recibo anual; pode pausar, retomar, cancelar com motivo ou reativar.

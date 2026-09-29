@@ -15,7 +15,7 @@ LOG="evidencias/testes_local_$(date +%Y-%m-%d_%H%M).log"
 Q="psql -q -v ON_ERROR_STOP=1 -d $DB"
 
 {
-  echo "== Clube Guardiões do Começo | execução dos testes"
+  echo "== Clube Guardiões do Futuro | execução dos testes"
   echo "== data: $(date '+%d/%m/%Y %H:%M')  banco: $DB  servidor: PostgreSQL $(psql -d postgres -Atc 'show server_version')"
   dropdb --if-exists "$DB"
   createdb "$DB"

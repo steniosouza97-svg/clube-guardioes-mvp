@@ -1,6 +1,6 @@
 # Da semana 5 à semana 10: rastreabilidade do protótipo ao MVP
 
-Clube Guardiões do Começo | Instituto Ebenézer | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | atualizado em 29/09/2026
 
 O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na semana 5. O protótipo simulava as telas com dados de exemplo; o MVP executa o mesmo fluxo sobre um banco real, com dados sintéticos, regras de acesso e testes automatizados. Este documento mostra, tela a tela, o que foi implementado, o que evoluiu e o que ficou para a fase 2, com o motivo de cada decisão. Em 29/09 o escopo P1 e P2 da semana 5 foi fechado por inteiro: Login da Guardiã, Minha Área e Recibo, antes previstos para a fase 2, estão implementados (DT-17 e DT-18).
 

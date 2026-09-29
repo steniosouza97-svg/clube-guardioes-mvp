@@ -1,6 +1,6 @@
 # Roteiro do vídeo demonstrativo
 
-Clube Guardiões do Começo | duração alvo: 7 minutos | gravação de tela com narração
+Clube Guardiões do Futuro | duração alvo: 7 minutos | gravação de tela com narração
 
 Objetivo: mostrar o fluxo principal rodando de ponta a ponta sobre o banco real no Supabase, com dados sintéticos, e provar que foi testado. Cada cena cita o requisito do enunciado que ela atende.
 

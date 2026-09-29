@@ -1,4 +1,4 @@
-/* Clube Guardiões do Começo | estilo único das duas telas */
+/* Clube Guardiões do Futuro | estilo único das duas telas */
 :root {
   --verde-900: #14532d;
   --verde-700: #1b6b3a;
@@ -409,3 +409,30 @@ body.pub .jornada .form-adesao { box-shadow: none; border-top: 0; padding: 0; }
   .recibo-folha { box-shadow: none; }
 }
 .estrelas-p { color: #e0a800; letter-spacing: .05rem; }
+
+/* Convite para Guardião do Futuro Ouro (cartão "Por que recorrência") */
+.convite-ouro { margin: 1.1rem 0 .5rem; padding: 1.1rem 1.1rem 1.2rem; border-radius: 14px;
+  background: linear-gradient(160deg, #fff8dc 0%, #fdefb2 100%); border: 1px solid #f0d36b; }
+.ouro-cabeca { text-align: center; }
+.ouro-estrelas { display: block; color: #d49b00; font-size: 2rem; letter-spacing: .35rem; line-height: 1;
+  text-shadow: 0 1px 0 #fff, 0 2px 6px rgba(212,155,0,.35); }
+.convite-ouro h3 { font-family: var(--fonte-titulo); font-size: 1.15rem; font-weight: 800; color: var(--preto); margin: .5rem 0 .3rem; }
+.convite-ouro .ouro-cabeca p { margin: 0 auto; max-width: 34rem; color: #3f3a1f; }
+.trilha-estrelas { list-style: none; padding: 0; margin: 1rem 0 .6rem; display: grid; grid-template-columns: repeat(5, 1fr); gap: .4rem; }
+.trilha-estrelas li { background: #fff; border-radius: 10px; padding: .55rem .25rem; text-align: center;
+  display: flex; flex-direction: column; gap: .1rem; border: 1px solid #f3e2a0; }
+.trilha-estrelas .est { color: #d49b00; font-size: .85rem; letter-spacing: .02rem; min-height: 1.1rem; }
+.trilha-estrelas b { font-size: .85rem; color: var(--preto); }
+.trilha-estrelas small { font-size: .75rem; color: #5b5a4b; font-weight: 600; }
+.trilha-estrelas .nivel-bronze { background: #f7e1c9; border-color: #e3bb8e; }
+.trilha-estrelas .nivel-prata { background: #eceff3; border-color: #c9d0d8; }
+.trilha-estrelas .nivel-ouro { background: #f9e08b; border-color: #d49b00; box-shadow: 0 0 0 2px rgba(212,155,0,.25); }
+.trilha-estrelas .nivel-ouro small { color: #7a5600; }
+.ouro-rodape { font-size: .88rem; text-align: center; color: #4d4526 !important; margin: .2rem 0 .8rem; }
+.convite-ouro .btn-pilula { display: flex; justify-content: center; text-align: center; }
+@media (max-width: 520px) {
+  .trilha-estrelas { grid-template-columns: repeat(5, minmax(0,1fr)); gap: .25rem; }
+  .trilha-estrelas .est { font-size: .6rem; }
+  .trilha-estrelas b { font-size: .72rem; } .trilha-estrelas small { font-size: .66rem; }
+  .ouro-estrelas { font-size: 1.6rem; }
+}

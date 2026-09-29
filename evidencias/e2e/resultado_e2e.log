@@ -11,11 +11,11 @@ PASS E24 painel mostra doações únicas, Guardiões pausados com a data de volt
 PASS E07 busca encontra a nova Guardiã e o histórico mostra a mensagem de boas-vindas
 PASS E07b voluntário consulta se um CPF já é Guardião, sem ver o número guardado
 PASS E08 geração de cobranças de out/2026: 273 criadas, segunda tentativa não duplica
-PASS E09 simulador da Asaas processa todas as cobranças da Asaas: 240 pagos, 26 em atraso. 7 de Pix direto ficam para conferência no extrato
-PASS E10 alerta de churn lista 33 Guardiões com link de WhatsApp pronto
+PASS E09 simulador da Asaas processa todas as cobranças da Asaas: 241 pagos, 25 em atraso. 7 de Pix direto ficam para conferência no extrato
+PASS E10 alerta de churn lista 32 Guardiões com link de WhatsApp pronto
 PASS E21 equipe registra o contato feito com quem está em atraso, e o alerta mostra o último contato
-PASS E11 Pix pago após o lembrete: Eduarda Almeida vira 'recuperado' e sai do alerta
-PASS E12 terceiro aviso de atraso cancela a assinatura de Flávia Martins por inadimplência e encerra a simulação para ela
+PASS E11 Pix pago após o lembrete: Gabriela Martins vira 'recuperado' e sai do alerta
+PASS E12 terceiro aviso de atraso cancela a assinatura de Renata Nunes por inadimplência e encerra a simulação para ela
 PASS E20 equipe registra o que cada atividade sustentou no mês; sem isso a notícia de impacto não sai
 PASS E13 notícia mensal de impacto enviada uma vez; repetir não duplica
 PASS E14 cancelamento a pedido exige confirmação e registra o motivo

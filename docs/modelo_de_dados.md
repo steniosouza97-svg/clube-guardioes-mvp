@@ -1,6 +1,6 @@
 # Modelo de dados adotado
 
-Clube Guardiões do Começo | Instituto Ebenézer | MVP funcional, semana 10 | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10 | atualizado em 29/09/2026
 
 ## Princípio
 

@@ -1,6 +1,6 @@
 # User stories e critérios de aceite
 
-Clube Guardiões do Começo | Instituto Ebenézer | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | atualizado em 29/09/2026
 
 A numeração US01 a US06 é a mesma da semana 5 (protótipo navegável V7.0), para que a banca compare as duas entregas. Os critérios foram reescritos sobre o que o MVP executa, depois da decisão pela Asaas (DT-01), do CPF como identificador único (DT-14), da evolução das telas da semana 5 (DT-16) e das decisões de 29/09 (DT-17 e DT-18): Guardião doa R$ 85 por mês, doação única de qualquer valor, e-mail opcional, pausa, Minha Área, recibo anual, estrelas e "Indique um novo Doador". US07 a US10 são histórias novas da pessoa dedicada ao Clube; US11 a US15 vêm das decisões de 29/09. Cada critério aponta o teste que o comprova.
 
