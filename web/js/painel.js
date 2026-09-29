@@ -17,7 +17,8 @@
     return data;
   }
   const selo = (classe, texto) => `<span class="selo ${esc(classe)}">${esc(texto)}</span>`;
-  const NOME_SIT = { ativo: "Ativo", em_risco: "Em risco", cancelado: "Cancelado" };
+  const VALOR_GUARDIAO = 85;   // decisão de 29/09: o Guardião doa R$ 85 por mês
+  const NOME_SIT = { ativo: "Ativo", em_risco: "Em risco", pausado: "Pausado", cancelado: "Cancelado" };
   const NOME_COB = { pendente: "Pendente", pago: "Pago", falhou: "Falhou", recuperado: "Recuperado", cancelado: "Cancelado" };
   const NOME_COM = { boas_vindas: "Boas-vindas", agradecimento: "Agradecimento pelo Pix", recuperacao: "Lembrete de Pix em atraso",
                      impacto_mensal: "Notícia mensal de impacto", cancelamento: "Confirmação de cancelamento",
@@ -98,13 +99,15 @@
     const kpi = (rot, val, sub, progresso) => `<div class="kpi"><div class="rot">${esc(rot)}</div><div class="val">${esc(val)}</div>
       <div class="sub">${esc(sub)}</div>${progresso != null ? `<div class="barra-meta" role="progressbar" aria-valuenow="${Math.round(progresso * 100)}" aria-valuemin="0" aria-valuemax="100"><div style="width:${Math.min(100, progresso * 100)}%"></div></div>` : ""}</div>`;
     $("#kpis").innerHTML =
-      kpi("Guardiões ativos", fmt.int(r.guardioes_ativos), `Meta: ${fmt.int(metaG)} (${fmt.pct((r.guardioes_ativos || 0) / metaG)})`, (r.guardioes_ativos || 0) / metaG) +
+      kpi("Guardiões no Clube", fmt.int(r.guardioes_ativos), `Ativos e pausados. Meta: ${fmt.int(metaG)} (${fmt.pct((r.guardioes_ativos || 0) / metaG)})`, (r.guardioes_ativos || 0) / metaG) +
       kpi("Receita recorrente do mês", fmt.brl0(r.receita_recorrente_mes), `Meta mensal: ${fmt.brl0(metaR)}`, (r.receita_recorrente_mes || 0) / metaR) +
       kpi("Cobertura do custeio", fmt.pct(r.cobertura_custeio_2025), `Receita anualizada sobre o custeio realizado em 2025 (${fmt.brl0(P.custeio_anual_2025)})`, r.cobertura_custeio_2025) +
       kpi("Ticket médio", fmt.brl(r.ticket_medio), "Por Guardião pagante no mês") +
       kpi("Churn do mês", fmt.pct(r.churn_mes), "Cancelamentos sobre a base do início do mês. Plano: até 2%") +
       kpi("Em risco agora", fmt.int(r.guardioes_em_risco), "Com Pix vencido e não pago") +
-      kpi("Base ainda em Pix direto", fmt.int(r.guardioes_pix_direto), "A convidar para a Asaas. Meta: 80% da base atual migrada");
+      kpi("Base ainda em Pix direto", fmt.int(r.guardioes_pix_direto), "A convidar para a Asaas. Meta: 80% da base atual migrada") +
+      kpi("Pausados", fmt.int(r.guardioes_pausados), "Pediram um tempo em vez de cancelar; voltam sozinhos") +
+      kpi("Doações únicas no mês", fmt.brl0(r.doacoes_unicas_valor_mes), `${fmt.int(r.doacoes_unicas_mes)} doações de qualquer valor, fora da recorrência`);
 
     const ult = metricas.slice(-13);
     grafico($("#graf-base"), ult.map(d => ({ rot: fmt.mes(d.mes), val: d.ativos_fim, dica: `${fmt.mesLongo(d.mes)}: ${fmt.int(d.ativos_fim)} Guardiões` })),
@@ -142,7 +145,7 @@
         const w = whats(l.telefone);
         const texto = encodeURIComponent(`Olá, ${l.nome.split(" ")[0]}! Aqui é do Instituto Ebenézer. Vimos que o Pix do Clube Guardiões de ${fmt.mesLongo(l.competencia)} ainda não foi pago. Posso te ajudar?`);
         return `<tr><td>${selo(l.prioridade, l.prioridade === "alta" ? "Alta" : "Média")}</td><td>${esc(l.nome)}</td>
-          <td>${w ? `<a href="${w}?text=${texto}" target="_blank" rel="noopener">WhatsApp</a>` : "–"} · <a href="mailto:${esc(l.email)}">e-mail</a></td>
+          <td>${w ? `<a href="${w}?text=${texto}" target="_blank" rel="noopener">WhatsApp</a>` : "–"} ${l.email ? ` · <a href="mailto:${esc(l.email)}">e-mail</a>` : ""}</td>
           <td class="num">${fmt.brl(l.valor_mensal)}</td><td>${fmt.mesLongo(l.competencia)}</td><td>${fmt.data(l.vencimento)}</td>
           <td class="num">${l.tentativas} de ${estado.parametros.tentativas_ate_cancelar || 3}</td>
           <td>${l.ultimo_contato ? `<div class="ajuda">Último: ${fmt.dataHora(l.ultimo_contato)}</div>` : ""}<button class="btn sec peq" data-contato="${l.guardiao_id}" data-nome="${esc(l.nome)}">Registrar contato</button></td></tr>`;
@@ -159,20 +162,31 @@
   }
   function desenharGuardioes() {
     const q = $("#busca").value.trim().toLowerCase(), sit = $("#filtro-sit").value, org = $("#filtro-origem").value;
-    const lista = estado.guardioes.filter(g => (!q || g.nome.toLowerCase().includes(q) || g.email.includes(q)) &&
+    const lista = estado.guardioes.filter(g => (!q || g.nome.toLowerCase().includes(q) || (g.email || "").includes(q)) &&
       (!sit || g.situacao === sit) && (!org || g.origem === org));
     $("#contagem-guardioes").textContent = `${fmt.int(lista.length)} de ${fmt.int(estado.guardioes.length)} Guardiões`;
     const vis = lista.slice(0, 300);
-    $("#tab-guardioes").innerHTML = `<thead><tr><th>Nome</th><th>Situação</th><th class="num">Valor mensal</th><th>Canal</th><th>Desde</th><th></th></tr></thead><tbody>` +
-      (vis.length ? vis.map(g => `<tr><td><a href="#" data-detalhe="${g.guardiao_id}">${esc(g.nome)}</a><div class="ajuda">${esc(g.email)}</div></td>
-        <td>${selo(g.situacao, NOME_SIT[g.situacao])}${g.meio_pagamento === "pix_direto" && g.status_assinatura === "ativa" ? ` ${selo("direto", "Pix direto")}` : ""}${g.motivo_cancelamento ? `<div class="ajuda">${g.motivo_cancelamento === "inadimplencia" ? "por inadimplência" : "a pedido"} em ${fmt.data(g.cancelada_em)}</div>` : ""}</td>
+    $("#tab-guardioes").innerHTML = `<thead><tr><th>Nome</th><th>Situação</th><th>Nível</th><th class="num">Valor mensal</th><th>Canal</th><th>Desde</th><th></th></tr></thead><tbody>` +
+      (vis.length ? vis.map(g => `<tr><td><a href="#" data-detalhe="${g.guardiao_id}">${esc(g.nome)}</a><div class="ajuda">${esc(g.email || "sem e-mail")}</div></td>
+        <td>${selo(g.situacao, NOME_SIT[g.situacao])}${g.meio_pagamento === "pix_direto" && g.status_assinatura === "ativa" ? ` ${selo("direto", "Pix direto")}` : ""}${g.motivo_cancelamento ? `<div class="ajuda">${g.motivo_cancelamento === "inadimplencia" ? "por inadimplência" : "a pedido"} em ${fmt.data(g.cancelada_em)}</div>` : ""}${g.situacao === "pausado" ? `<div class="ajuda">volta em ${fmt.mesLongo(g.pausada_ate)}</div>` : ""}</td>
+        <td><span class="estrelas-p" title="${g.meses_pagos} meses pagos">${"★".repeat(Math.min(g.estrelas, 5))}</span> <span class="ajuda">${esc(g.nivel)}</span></td>
         <td class="num">${fmt.brl(g.valor_mensal)}</td><td>${esc(g.origem)}</td><td>${fmt.data(g.iniciada_em)}</td>
-        <td>${g.status_assinatura === "ativa" && g.meio_pagamento === "pix_direto" ? `<button class="btn sec peq" data-migrar="${g.assinatura_id}">Migrar para Asaas</button> ` : ""}${g.status_assinatura === "ativa" ? `<button class="btn perigo peq" data-cancelar="${g.assinatura_id}">Cancelar</button>` : ""}</td></tr>`).join("")
-        : `<tr><td colspan="6" class="vazio">Nenhum Guardião encontrado.</td></tr>`) +
-      (lista.length > vis.length ? `<tr><td colspan="6" class="vazio">Mostrando os primeiros 300. Use a busca para refinar.</td></tr>` : "") + `</tbody>`;
+        <td>${g.status_assinatura === "ativa" && g.meio_pagamento === "pix_direto" ? `<button class="btn sec peq" data-migrar="${g.assinatura_id}">Migrar para Asaas</button> ` : ""}${g.status_assinatura === "ativa" ? `<button class="btn sec peq" data-pausar="${g.assinatura_id}">Pausar 1 mês</button> ` : ""}${g.status_assinatura === "pausada" ? `<button class="btn sec peq" data-retomar="${g.assinatura_id}">Retomar</button> ` : ""}${["ativa", "pausada"].includes(g.status_assinatura) ? `<button class="btn perigo peq" data-cancelar="${g.assinatura_id}">Cancelar</button>` : ""}</td></tr>`).join("")
+        : `<tr><td colspan="7" class="vazio">Nenhum Guardião encontrado.</td></tr>`) +
+      (lista.length > vis.length ? `<tr><td colspan="7" class="vazio">Mostrando os primeiros 300. Use a busca para refinar.</td></tr>` : "") + `</tbody>`;
     document.querySelectorAll("[data-migrar]").forEach(b => doisCliques(b, "Confirmar: o Guardião aceitou", async () => {
       await consulta(sb.rpc("fn_migrar_para_asaas", { p_assinatura: b.dataset.migrar }));
       aviso("ok", "Guardião migrado para a Asaas. Valor, dia e histórico mantidos; a próxima cobrança chega pela Asaas.");
+      await Promise.all([carregarGuardioes(), carregarResumo()]);
+    }));
+    document.querySelectorAll("[data-pausar]").forEach(b => doisCliques(b, "Confirmar pausa", async () => {
+      const volta = await consulta(sb.rpc("fn_pausar", { p_assinatura: b.dataset.pausar, p_meses: 1 }));
+      aviso("ok", `Doação pausada a pedido do Guardião. Volta sozinha em ${fmt.mesLongo(volta)}.`);
+      await Promise.all([carregarGuardioes(), carregarResumo(), carregarAlerta()]);
+    }));
+    document.querySelectorAll("[data-retomar]").forEach(b => b.addEventListener("click", async () => {
+      await consulta(sb.rpc("fn_retomar", { p_assinatura: b.dataset.retomar }));
+      aviso("ok", "Doação retomada.");
       await Promise.all([carregarGuardioes(), carregarResumo()]);
     }));
     document.querySelectorAll("[data-cancelar]").forEach(b => doisCliques(b, "Confirmar cancelamento", async () => {
@@ -194,7 +208,7 @@
     ]);
     const pago = cobs.filter(c => ["pago", "recuperado"].includes(c.status)).reduce((s, c) => s + Number(c.valor), 0);
     $("#dlg-g-corpo").innerHTML = `
-      <p style="margin-top:0">${selo(g.situacao, NOME_SIT[g.situacao])} · ${esc(g.email)} · ${esc(g.telefone || "sem telefone")} · canal: ${esc(g.origem)}${g.indicacoes ? ` · trouxe ${g.indicacoes} Guardião(ões) pelo link de convite` : ""}</p>
+      <p style="margin-top:0">${selo(g.situacao, NOME_SIT[g.situacao])} · ${esc(g.nivel)} ${"★".repeat(Math.min(g.estrelas, 5))} · ${esc(g.email || "sem e-mail")} · ${esc(g.telefone || "sem telefone")} · canal: ${esc(g.origem)}${g.indicacoes ? ` · trouxe ${g.indicacoes} doador(es) pelo link de convite` : ""}</p>
       <div class="kpis"><div class="kpi"><div class="rot">Total doado</div><div class="val">${fmt.brl0(pago)}</div></div>
         <div class="kpi"><div class="rot">Pix pagos</div><div class="val">${cobs.filter(c => ["pago", "recuperado"].includes(c.status)).length}</div></div>
         <div class="kpi"><div class="rot">Assinaturas</div><div class="val">${assin.length}</div><div class="sub">${assin.map(a => `${fmt.brl(a.valor_mensal)} desde ${fmt.data(a.iniciada_em)}`).join("<br>")}</div></div></div>
@@ -213,7 +227,7 @@
     if (!cpf.valido($("#a-cpf").value)) { msg.innerHTML = `<div class="msg erro">Confira o CPF informado.</div>`; return; }
     const base = {
       p_nome: $("#a-nome").value.trim(), p_email: $("#a-email").value.trim(), p_cpf: cpf.digitos($("#a-cpf").value), p_telefone: $("#a-tel").value.trim() || null,
-      p_valor: Number($("#a-valor").value), p_dia: Number($("#a-dia").value), p_consentimento: $("#a-consent").checked
+      p_valor: $("#a-direto").checked ? Number($("#a-valor").value) : VALOR_GUARDIAO, p_dia: Number($("#a-dia").value), p_consentimento: $("#a-consent").checked
     };
     const direto = $("#a-direto").checked;
     const { error } = direto
@@ -370,6 +384,19 @@
     await carregarAlerta();
   }
 
+  // ------------------------------------------------------------ DOAÇÕES ÚNICAS
+  async function carregarUnicas() {
+    const linhas = await consulta(sb.from("vw_doacoes_unicas").select("*").limit(1000));
+    const pagas = linhas.filter(l => l.status === "paga");
+    $("#unicas-resumo").textContent = `${fmt.int(pagas.length)} doações pagas, ${fmt.brl0(pagas.reduce((s, l) => s + Number(l.valor), 0))} no total. ` +
+      `${fmt.int(linhas.filter(l => l.indicacoes > 0).length)} doadores já indicaram alguém.`;
+    $("#tab-unicas").innerHTML = `<thead><tr><th>Doador(a)</th><th class="num">Valor</th><th>Situação</th><th>Canal</th><th>Convite de</th><th class="num">Indicou</th><th>Data</th></tr></thead><tbody>` +
+      (linhas.map(l => `<tr><td>${esc(l.nome)}<div class="ajuda">${esc(l.telefone || "")}${l.email ? " · " + esc(l.email) : ""}</div></td>
+        <td class="num">${fmt.brl(l.valor)}</td><td>${selo(l.status === "paga" ? "pago" : l.status === "falhou" ? "falhou" : "pendente", { paga: "Paga", pendente: "Aguardando Pix", falhou: "Não paga" }[l.status])}</td>
+        <td>${esc(l.origem)}</td><td>${esc(l.convidado_por || "")}</td><td class="num">${fmt.int(l.indicacoes)}</td><td>${fmt.dataHora(l.paga_em || l.criada_em)}</td></tr>`).join("")
+        || `<tr><td colspan="7" class="vazio">Nenhuma doação única ainda.</td></tr>`) + `</tbody>`;
+  }
+
   // ------------------------------------------------------------ navegação e sessão
   function abrirAba(nome) {
     document.querySelectorAll("[role=tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.aba === nome)));
@@ -395,7 +422,7 @@
     $("#competencia").value = padrao;
     $("#comp-atividades").value = padrao;
     await carregarCanais();
-    await Promise.all([carregarResumo(), carregarAlerta(), carregarGuardioes(), carregarMes(), carregarAtividades()]);
+    await Promise.all([carregarResumo(), carregarAlerta(), carregarGuardioes(), carregarMes(), carregarAtividades(), carregarUnicas()]);
     abrirAba((location.hash || "#resumo").slice(1).replace(/[^a-z]/g, "") || "resumo");
   }
 

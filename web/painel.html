@@ -35,6 +35,7 @@
       <button role="tab" data-aba="resumo" aria-selected="true">Resumo</button>
       <button role="tab" data-aba="alerta" aria-selected="false">Alerta de churn <span class="badge" id="badge-alerta" hidden></span></button>
       <button role="tab" data-aba="guardioes" aria-selected="false">Guardiões</button>
+      <button role="tab" data-aba="unicas" aria-selected="false">Doações únicas</button>
       <button role="tab" data-aba="canais" aria-selected="false">Canais</button>
       <button role="tab" data-aba="atividades" aria-selected="false">Atividades</button>
       <button role="tab" data-aba="operacao" aria-selected="false">Operação do mês</button>
@@ -76,7 +77,7 @@
       <div class="filtros">
         <div class="campo"><label for="busca">Buscar</label><input id="busca" type="text" placeholder="Nome ou e-mail"></div>
         <div class="campo"><label for="filtro-sit">Situação</label>
-          <select id="filtro-sit"><option value="">Todas</option><option value="ativo">Ativo</option><option value="em_risco">Em risco</option><option value="cancelado">Cancelado</option></select></div>
+          <select id="filtro-sit"><option value="">Todas</option><option value="ativo">Ativo</option><option value="em_risco">Em risco</option><option value="pausado">Pausado</option><option value="cancelado">Cancelado</option></select></div>
         <div class="campo"><label for="filtro-origem">Canal</label><select id="filtro-origem"><option value="">Todos</option></select></div>
       </div>
       <form class="filtros" id="form-consulta-cpf" style="background:#fff;border:1px solid var(--linha);border-radius:var(--raio);padding:.75rem">
@@ -86,6 +87,15 @@
       </form>
       <p id="contagem-guardioes" style="font-size:.85rem;color:var(--tinta-2);margin:.25rem 0 .5rem"></p>
       <div class="tabela-wrap"><table id="tab-guardioes"></table></div>
+    </section>
+
+    <!-- DOAÇÕES ÚNICAS -->
+    <section class="aba" id="aba-unicas" role="tabpanel" hidden>
+      <div class="cabecalho-aba">
+        <div><h2>Doações únicas</h2><p>Quem doou uma vez, de qualquer valor. São candidatos naturais a Guardião: convide pelo WhatsApp.</p></div>
+      </div>
+      <p id="unicas-resumo" style="font-size:.9rem;color:var(--tinta-2)"></p>
+      <div class="tabela-wrap"><table id="tab-unicas"></table></div>
     </section>
 
     <!-- CANAIS -->
@@ -154,16 +164,17 @@
   <form class="dlg-corpo" id="form-adesao-painel">
     <p style="font-size:.85rem;color:var(--tinta-2);margin-top:0">Para quem aderiu pessoalmente, por exemplo em evento ou pelo QR Code na comunidade.</p>
     <div class="campo"><label for="a-nome">Nome</label><input id="a-nome" type="text" required maxlength="120"></div>
-    <div class="campo"><label for="a-email">E-mail</label><input id="a-email" type="email" required></div>
+    <div class="campo"><label for="a-email">E-mail <span class="ajuda">(opcional)</span></label><input id="a-email" type="email"></div>
     <div class="campo"><label for="a-cpf">CPF</label><input id="a-cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required></div>
     <div class="campo"><label for="a-tel">WhatsApp</label><input id="a-tel" type="tel" maxlength="30"></div>
     <div class="grade-2">
-      <div class="campo"><label for="a-valor">Valor mensal (R$)</label><input id="a-valor" type="number" min="10" max="5000" value="80" required></div>
+      <div class="campo"><label for="a-valor">Valor mensal (R$)</label><input id="a-valor" type="number" min="10" max="5000" value="85" required>
+        <div class="ajuda">Guardião novo: R$ 85. Outro valor só para quem já doa por Pix direto.</div></div>
       <div class="campo"><label for="a-dia">Dia do Pix</label><select id="a-dia"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></div>
     </div>
     <div class="campo"><label for="a-origem">Canal</label><select id="a-origem"></select></div>
     <label class="consent campo"><input type="checkbox" id="a-direto"><span><strong>Já doa por Pix direto</strong> na conta do Instituto (base atual). Entra no painel sem trocar a forma de pagar; o convite para migrar à Asaas vem depois.</span></label>
-    <label class="consent campo"><input type="checkbox" id="a-consent"><span>A pessoa autorizou o uso de nome, CPF, e-mail e WhatsApp para a doação mensal e as notícias do Clube (LGPD).</span></label>
+    <label class="consent campo"><input type="checkbox" id="a-consent"><span>A pessoa autorizou o uso de nome, CPF, WhatsApp e e-mail (se informado) para a doação mensal e as notícias do Clube (LGPD).</span></label>
     <button class="btn" type="submit">Registrar</button>
     <div id="a-msg" aria-live="polite"></div>
   </form>

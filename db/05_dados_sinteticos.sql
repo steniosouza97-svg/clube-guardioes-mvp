@@ -264,9 +264,60 @@ begin
          where p.entrou_em < g.entrou_em and p.id <> g.id
          order by md5(g.id::text || p.id::text) limit 1)
      where g.origem_id = (select id from origem where nome = 'Indicação de Guardião');
+    update guardiao g set convite_usado = p.codigo_convite
+      from guardiao p where p.id = g.indicado_por;
 
-    return format('%s Guardiões (%s ativos), %s cobranças, %s eventos | %s a %s',
-                  n_g, (select count(*) from assinatura where status = 'ativa'), n_c, n_e, inicio, p_hoje);
+    -- Pausa (decisão de 29/09): 4 Guardiões pediram para pausar de 1 a 2
+    -- meses em vez de cancelar. A doação volta sozinha no mês indicado.
+    with pausas as (
+        select a.id, a.guardiao_id, 1 + (row_number() over (order by md5(a.id::text)) % 2)::int as meses
+          from assinatura a
+         where a.status = 'ativa' and a.meio_pagamento = 'pix'
+           and not exists (select 1 from cobranca c where c.assinatura_id = a.id and c.status = 'falhou')
+         order by md5(a.id::text) limit 4),
+    marcadas as (
+        update assinatura a set status = 'pausada',
+               pausada_ate = (date_trunc('month', p_hoje) + make_interval(months => 1 + p.meses))::date
+          from pausas p where a.id = p.id
+        returning a.guardiao_id, a.pausada_ate)
+    insert into comunicacao (guardiao_id, tipo, enviada_em, conteudo)
+    select guardiao_id, 'pausa', (p_hoje - 5)::timestamptz + interval '15 hours',
+           'Pausa pedida pelo Guardião; volta em ' || to_char(pausada_ate, 'MM/YYYY')
+      from marcadas;
+
+    -- Doações únicas (decisão de 29/09): quem não pode ou não quer ser
+    -- Guardião mensal doa qualquer valor, uma vez. Algumas vieram por convite.
+    for i in 1 .. 48 loop
+        comp := (inicio + make_interval(months => (i - 1) % p_meses))::date;
+        d := least(comp + floor(random() * 27)::int, p_hoje);
+        r := random();
+        v_nome   := nomes[1 + floor(random() * array_length(nomes, 1))::int];
+        v_sobren := sobrenomes[1 + floor(random() * array_length(sobrenomes, 1))::int];
+        insert into doacao_unica (nome, email, cpf_hash, telefone, valor, origem_id, convite_usado, status,
+                                  consentimento_lgpd, criada_em, paga_em, id_externo_gateway)
+        values (v_nome || ' ' || v_sobren,
+                case when random() < 0.5 then translate(lower(v_nome || '.' || v_sobren), 'áéíóúãõçâêô', 'aeiouaocaeo')
+                                              || '.u' || lpad(i::text, 3, '0') || '@example.com' end,
+                fn_cpf_hash(lpad((810000000 + i)::text, 9, '0') || fn_cpf_digitos(lpad((810000000 + i)::text, 9, '0'))),
+                '(11) 91000-' || lpad(i::text, 4, '0'),
+                case when r < 0.25 then 30 when r < 0.55 then 60 when r < 0.80 then 120
+                     when r < 0.95 then 200 else 500 end,
+                (select id from origem where nome = case when i % 4 = 0 then 'Indicação de Guardião'
+                                                         when i % 4 = 1 then 'Instagram'
+                                                         when i % 4 = 2 then 'Site institucional'
+                                                         else 'WhatsApp' end),
+                case when i % 4 = 0 then (select codigo_convite from guardiao order by md5(id::text || i::text) limit 1) end,
+                case when d > p_hoje - 2 then 'pendente' else 'paga' end,
+                true,
+                d::timestamptz + interval '11 hours',
+                case when d > p_hoje - 2 then null else d::timestamptz + interval '11 hours 5 minutes' end,
+                'pay_sint_u' || lpad(i::text, 4, '0'));
+    end loop;
+
+    return format('%s Guardiões (%s ativos, %s pausados), %s cobranças, %s eventos, %s doações únicas | %s a %s',
+                  n_g, (select count(*) from assinatura where status = 'ativa'),
+                  (select count(*) from assinatura where status = 'pausada'), n_c, n_e,
+                  (select count(*) from doacao_unica), inicio, p_hoje);
 end;
 $$;
 

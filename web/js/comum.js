@@ -49,6 +49,10 @@
     if (/já possui assinatura ativa/.test(m)) return "Este CPF já é de um Guardião ativo. Obrigado!";
     if (/E-mail já cadastrado para outro CPF/.test(m)) return "Este e-mail já está cadastrado com outro CPF.";
     if (/Valor mensal/.test(m)) return "Escolha um valor mensal entre R$ 10 e R$ 5.000.";
+    if (/doação mensal do Guardião é de/.test(m)) return m;
+    if (/Valor da doação/.test(m)) return "Escolha um valor entre R$ 10 e R$ 50.000.";
+    if (/Muitas tentativas/.test(m)) return "Muitas tentativas. Aguarde 15 minutos e tente de novo.";
+    if (/pausa é de|pausada|Só uma doação mensal ativa/.test(m)) return m;
     if (/Acesso restrito/.test(m)) return "Seu usuário não está cadastrado como voluntário do Clube.";
     if (/Invalid login credentials/.test(m)) return "E-mail ou senha incorretos.";
     if (/Failed to fetch|NetworkError/.test(m)) return "Sem conexão com o servidor. Verifique a internet e tente de novo.";

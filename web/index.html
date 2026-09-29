@@ -15,7 +15,10 @@
       <img src="img/logo-ebenezer.png" alt="Instituto Ebenézer" width="48" height="47">
       <span><strong>Instituto Ebenézer</strong><small>Clube Guardiões do Começo</small></span>
     </a>
-    <a class="link-topo" href="painel.html">Área do voluntário</a>
+    <nav class="nav-topo">
+      <a class="link-topo destaque" href="#entrar" data-ir="entrar">Minha Área</a>
+      <a class="link-topo" href="painel.html">Área do voluntário</a>
+    </nav>
   </div>
 </header>
 
@@ -29,7 +32,7 @@
     <div class="vitrine-texto">
       <h1>Sua doação de todo mês muda o começo da história de uma criança do Jardim Ângela.</h1>
       <p>O Instituto Ebenézer atua dentro do Jardim Ângela e cuida de 120 crianças por ano. Sua doação recorrente via Pix sustenta atividades da rotina das crianças atendidas, e todo mês você recebe a prestação de contas do que ela tornou possível. Acompanhe o impacto da sua doação.</p>
-      <a class="btn-pilula" href="#cadastro" data-ir="cadastro">Quero participar</a>
+      <a class="btn-pilula" href="#cadastro" data-ir="cadastro" data-tipo="guardiao">Quero participar</a>
       <p class="lema">"Se mudarmos o começo da história, mudamos a história toda."</p>
       <a class="insta" href="https://www.instagram.com/institutosocialebenezer/" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f9a825"/><stop offset=".5" stop-color="#e91e63"/><stop offset="1" stop-color="#7b1fa2"/></linearGradient></defs><rect x="2" y="2" width="20" height="20" rx="6" fill="url(#ig)"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="#fff" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.3" fill="#fff"/></svg>
@@ -51,18 +54,36 @@
 
 <section class="bloco">
   <div class="bloco-cartao">
-    <h2>Por que recorrência, e não uma doação avulsa?</h2>
+    <h2>Por que recorrência, e não só uma doação avulsa?</h2>
     <p>Doações pontuais fazem bem, mas não dão previsibilidade para o Instituto planejar o cuidado das crianças ao longo do ano. Como Guardião do Começo, você recebe todo mês uma atualização simples do que as doações sustentaram em cada atividade (Contraturno Escolar, Laboratório de Sonhos, Vivências Terapêuticas), sempre de forma agregada, nunca identificando uma criança.</p>
+    <p class="nota-suave">Não pode ser mensal agora? Toda doação importa: a doação única aceita qualquer valor.</p>
   </div>
   <div class="bloco-cartao">
-    <h2>Como funciona, em 3 passos</h2>
-    <ol class="passos-lista">
-      <li><strong>Cadastre-se e escolha o valor</strong> R$ 50, R$ 80, R$ 95 ou outro valor por mês, no dia que for melhor.</li>
-      <li><strong>Pague com Pix, todo mês</strong> Sem taxa para você e sem precisar lembrar.</li>
-      <li><strong>Acompanhe o impacto</strong> Todo mês, uma notícia do que a sua doação sustentou.</li>
-    </ol>
-    <p class="nota-suave">Você pode cancelar quando quiser, sem burocracia. Nunca vamos te pressionar.</p>
-    <a class="btn-pilula" href="#cadastro" data-ir="cadastro">Quero ser Guardião</a>
+    <h2>Escolha como ajudar</h2>
+    <div class="formas">
+      <div class="forma destaque">
+        <span class="etiqueta">Recomendado</span>
+        <h3>Guardião do Começo</h3>
+        <div class="forma-valor">R$ 85<small>/mês</small></div>
+        <ul>
+          <li>Pix automático todo mês, sem taxa para você</li>
+          <li>Prestação de contas mensal do que sua doação sustentou</li>
+          <li>Estrelas a cada 3 meses: Guardião Bronze, Prata e Ouro</li>
+          <li>Pode pausar por até 3 meses ou cancelar quando quiser</li>
+        </ul>
+        <a class="btn-pilula largo" href="#cadastro" data-ir="cadastro" data-tipo="guardiao">Quero ser Guardião</a>
+      </div>
+      <div class="forma">
+        <h3>Doação única</h3>
+        <div class="forma-valor">Qualquer valor</div>
+        <ul>
+          <li>R$ 30, R$ 60, R$ 120 ou o valor que quiser</li>
+          <li>Uma vez só, por Pix</li>
+          <li>Você também ganha um link para indicar novos doadores</li>
+        </ul>
+        <a class="btn-contorno largo" href="#cadastro" data-ir="cadastro" data-tipo="unica">Fazer uma doação única</a>
+      </div>
+    </div>
   </div>
 </section>
 </div>
@@ -77,31 +98,38 @@
   <div class="jornada-cartao">
     <img class="jornada-foto" src="img/guardioes-grupo.jpg" alt="Crianças e equipe do Instituto Ebenézer com a camiseta verde do Instituto" width="1200" height="900">
     <h1>Fazer parte do Clube Guardiões do Começo</h1>
-    <p class="sub">Doação mensal via Pix, em poucos passos, sem burocracia.</p>
+    <p class="sub">Doação via Pix, em poucos passos, sem burocracia.</p>
     <form class="cartao form-adesao" id="form-adesao" novalidate>
-            <fieldset class="campo" style="border:0;padding:0;margin:0 0 1rem">
-        <legend style="font-weight:600;font-size:.9rem;margin-bottom:.3rem">Quanto por mês?</legend>
+      <fieldset class="campo escolha-tipo">
+        <legend>Como você quer ajudar?</legend>
+        <label class="tipo"><input type="radio" name="tipo" value="guardiao" id="tipo-guardiao" checked>
+          <span><strong>Guardião do Começo · R$ 85 por mês</strong><small>Doação mensal recorrente, com prestação de contas todo mês</small></span></label>
+        <label class="tipo"><input type="radio" name="tipo" value="unica" id="tipo-unica">
+          <span><strong>Doação única · qualquer valor</strong><small>Uma vez só. Para quem não pode ser mensal agora ou quer doar mais</small></span></label>
+      </fieldset>
+      <fieldset class="campo" id="bloco-valor-unica" hidden style="border:0;padding:0;margin:0 0 1rem">
+        <legend style="font-weight:600;font-size:.9rem;margin-bottom:.3rem">Quanto você quer doar?</legend>
         <div class="faixas">
-          <label class="faixa"><input type="radio" name="valor" value="50"><span>R$ 50<small>&nbsp;</small></span></label>
-          <label class="faixa"><input type="radio" name="valor" value="80" checked><span>R$ 80<small>mais escolhido</small></span></label>
-          <label class="faixa"><input type="radio" name="valor" value="95"><span>R$ 95<small>uma criança</small></span></label>
+          <label class="faixa"><input type="radio" name="valor" value="30"><span>R$ 30<small>&nbsp;</small></span></label>
+          <label class="faixa"><input type="radio" name="valor" value="60" checked><span>R$ 60<small>&nbsp;</small></span></label>
+          <label class="faixa"><input type="radio" name="valor" value="120"><span>R$ 120<small>&nbsp;</small></span></label>
           <label class="faixa"><input type="radio" name="valor" value="outro"><span>Outro<small>&nbsp;</small></span></label>
         </div>
         <div class="campo" id="campo-outro" hidden style="margin-top:.5rem">
-          <label for="valor-outro">Outro valor mensal (R$)</label>
-          <input id="valor-outro" type="number" min="10" max="5000" step="1" inputmode="numeric" placeholder="Ex.: 150">
+          <label for="valor-outro">Outro valor (R$)</label>
+          <input id="valor-outro" type="number" min="10" max="50000" step="1" inputmode="numeric" placeholder="Ex.: 500">
         </div>
       </fieldset>
       <div class="campo"><label for="nome">Nome</label><input id="nome" type="text" autocomplete="name" required maxlength="120"></div>
-      <div class="campo"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div>
+      <div class="campo"><label for="telefone">WhatsApp</label><input id="telefone" type="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="30">
+        <div class="ajuda">É por onde chegam o Pix do mês, o agradecimento e as notícias das crianças. Também é o seu acesso à Minha Área.</div></div>
       <div class="campo"><label for="cpf">CPF</label><input id="cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required>
         <div class="ajuda">Exigido para o Pix. Guardamos o CPF cifrado: a equipe do Clube não vê o número.</div></div>
-      <div class="campo"><label for="telefone">WhatsApp</label><input id="telefone" type="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="30">
-        <div class="ajuda">É por onde chegam o Pix do mês e as notícias das crianças.</div></div>
-      <div class="campo"><label for="dia">Melhor dia para o Pix</label>
+      <div class="campo"><label for="email">E-mail <span class="opcional">(opcional)</span></label><input id="email" type="email" autocomplete="email"></div>
+      <div class="campo" id="campo-dia"><label for="dia">Melhor dia para o Pix</label>
         <select id="dia"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></div>
       <label class="consent campo"><input type="checkbox" id="consent" required>
-        <span>Autorizo o Instituto Ebenézer a usar meu nome, CPF, e-mail e WhatsApp para a doação mensal e para enviar notícias do Clube, conforme o <a href="privacidade.html" target="_blank">Aviso de Privacidade (LGPD)</a>. Posso cancelar quando quiser.</span></label>
+        <span>Autorizo o Instituto Ebenézer a usar meu nome, CPF, WhatsApp e e-mail (se informado) para processar a doação e enviar notícias do Clube, conforme o <a href="privacidade.html" target="_blank">Aviso de Privacidade (LGPD)</a>. Posso cancelar quando quiser.</span></label>
       <button class="btn-pilula largo" type="submit" id="btn-aderir">Continuar para o pagamento</button>
       <div id="resultado" aria-live="polite"></div>
       <p class="rodape-form"><a href="#inicio" data-ir="inicio">Cancelar e voltar ao início</a></p>
@@ -118,12 +146,12 @@
     </ol>
   <div class="jornada-cartao">
     <h1>Pagar via Pix</h1>
-    <p class="sub">Falta pouco, <strong data-campo="nome"></strong>. Este é o Pix do seu primeiro mês.</p>
+    <p class="sub">Falta pouco, <strong data-campo="nome"></strong>. <span data-se="guardiao">Este é o Pix do seu primeiro mês.</span><span data-se="unica">Este é o Pix da sua doação.</span></p>
     <div class="aviso-teste" data-so-demo>Tela de demonstração: nenhuma cobrança real é feita. Em produção, este Pix é gerado pela Asaas, que já é o gateway do Instituto.</div>
     <div class="pix">
       <div class="pix-qr" id="pix-qr" aria-hidden="true"></div>
       <div class="pix-valor" data-campo="valor"></div>
-      <div class="pix-sub">por mês · Instituto Ebenézer · todo dia <span data-campo="dia"></span></div>
+      <div class="pix-sub"><span data-se="guardiao">por mês · Instituto Ebenézer · todo dia <span data-campo="dia"></span></span><span data-se="unica">doação única · Instituto Ebenézer</span></div>
       <div class="pix-copia">
         <code id="pix-codigo"></code>
         <button class="btn-contorno" type="button" id="btn-copiar-pix">Copiar</button>
@@ -132,7 +160,7 @@
     <ol class="instrucoes">
       <li>Abra o app do seu banco e escolha <strong>Pix</strong>.</li>
       <li>Leia o QR Code ou cole o código <strong>copia e cola</strong>.</li>
-      <li>Confirme o pagamento. Nos próximos meses, o Pix chega no seu WhatsApp.</li>
+      <li>Confirme o pagamento.<span data-se="guardiao"> Nos próximos meses, o Pix chega no seu WhatsApp.</span></li>
     </ol>
     <div class="acoes">
       <button class="btn-pilula" type="button" id="btn-ja-paguei">Já paguei</button>
@@ -168,16 +196,22 @@
   <div class="jornada-cartao centro">
     <div class="selo-ok" aria-hidden="true">✓</div>
     <h1>Obrigado(a), <span data-campo="nome"></span>! 💚</h1>
-    <p class="sub">Sua doação recorrente está registrada. Este é o resumo.</p>
+    <p class="sub"><span data-se="guardiao">Você agora é Guardião do Começo. Este é o resumo.</span><span data-se="unica">Sua doação faz diferença na rotina das crianças. Este é o resumo.</span></p>
     <dl class="resumo">
-      <div><dt>Guardião</dt><dd data-campo="nome-completo"></dd></div>
-      <div><dt>Valor</dt><dd><span data-campo="valor"></span> / mês</dd></div>
-      <div><dt>Recorrência</dt><dd>Mensal, via Pix, todo dia <span data-campo="dia"></span></dd></div>
+      <div><dt>Doador(a)</dt><dd data-campo="nome-completo"></dd></div>
+      <div><dt>Valor</dt><dd><span data-campo="valor"></span><span data-se="guardiao"> / mês</span></dd></div>
+      <div><dt>Forma</dt><dd><span data-se="guardiao">Mensal, via Pix, todo dia <span data-campo="dia"></span></span><span data-se="unica">Doação única, via Pix</span></dd></div>
       <div data-se="convidado"><dt>Convite de</dt><dd data-campo="convidado"></dd></div>
     </dl>
-    <div class="aviso-suave">A Asaas confirma o Pix em instantes e você recebe o agradecimento no WhatsApp. Todo mês chega a notícia do que as doações sustentaram nas atividades do Instituto.</div>
+    <div class="indique">
+      <h2>Indique um novo Doador</h2>
+      <p>Uma mensagem sua vale mais que qualquer campanha. Mande pelo WhatsApp para quem você sabe que se importa.</p>
+      <a class="btn-whats" id="btn-indicar" href="#" target="_blank" rel="noopener"><span aria-hidden="true">💬</span> Indique um novo Doador</a>
+      <a class="link" href="#convite" data-ir="convite">Ver a mensagem e copiar o meu link</a>
+    </div>
+    <div class="aviso-suave"><span data-se="guardiao">A Asaas confirma o Pix em instantes e você recebe o agradecimento no WhatsApp. Todo mês chega a notícia do que as doações sustentaram. A cada 3 meses você ganha uma estrela.</span><span data-se="unica">Você recebe o agradecimento no WhatsApp. Quando quiser, pode virar Guardião do Começo com R$ 85 por mês.</span></div>
     <div class="acoes coluna">
-      <a class="btn-pilula" href="#convite" data-ir="convite">Continuar o ciclo: convidar alguém</a>
+      <a class="btn-pilula" href="#area" data-ir="area" data-se="guardiao">Ir para minha Área</a>
       <a class="link" href="#inicio" data-ir="inicio">Voltar ao início</a>
     </div>
   </div>
@@ -186,18 +220,100 @@
 <!-- ================= CONVITE ================= -->
 <section class="tela jornada" id="tela-convite" data-tela="convite" hidden>
   <div class="jornada-cartao">
-    <h1>O ciclo continua: convide alguém</h1>
-    <p class="sub">Seu link pessoal. Quem entrar por ele vê esta mesma página, já como seu convite, e o Instituto sabe que veio de você.</p>
+    <h1>Indique um novo Doador</h1>
+    <p class="sub">Seu link pessoal. Quem entrar por ele vê esta página já como seu convite, e o Instituto sabe que veio de você.</p>
+    <div class="msg-convite" id="msg-convite"></div>
     <div class="pix-copia">
       <code id="link-convite"></code>
       <button class="btn-contorno" type="button" id="btn-copiar-convite">Copiar link</button>
     </div>
     <div class="acoes coluna">
-      <a class="btn-pilula" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Compartilhar no WhatsApp</a>
+      <a class="btn-whats" id="btn-whatsapp" href="#" target="_blank" rel="noopener"><span aria-hidden="true">💬</span> Enviar pelo WhatsApp</a>
       <a class="link" href="#inicio" data-ir="inicio">Pular por agora</a>
     </div>
   </div>
 </section>
+
+<!-- ================= MINHA ÁREA: ENTRAR ================= -->
+<section class="tela jornada" id="tela-entrar" data-tela="entrar" hidden>
+  <div class="jornada-cartao">
+    <h1>🔐 Entrar na minha Área</h1>
+    <p class="sub">Para quem já é Guardião: acompanhe sua doação, seu impacto, suas estrelas e seu recibo.</p>
+    <form id="form-entrar" novalidate>
+      <div class="campo"><label for="lg-whats">WhatsApp cadastrado</label><input id="lg-whats" type="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="30"></div>
+      <div class="campo"><label for="lg-cpf">CPF cadastrado</label><input id="lg-cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14"></div>
+      <button class="btn-pilula largo" type="submit" id="btn-entrar">Entrar</button>
+      <div id="msg-entrar" aria-live="polite"></div>
+    </form>
+    <p class="demo-link" data-so-demo><button type="button" class="link" id="btn-entrar-demo">Entrar como Guardião de demonstração</button></p>
+    <p class="rodape-form"><a href="#inicio" data-ir="inicio">Voltar ao início</a></p>
+  </div>
+</section>
+
+<!-- ================= MINHA ÁREA ================= -->
+<section class="tela area" id="tela-area" data-tela="area" hidden>
+  <div class="area-topo">
+    <div>
+      <h1>Olá, <span id="area-nome"></span>!</h1>
+      <p class="sub">Acompanhe sua doação, seu impacto e seu histórico.</p>
+    </div>
+    <button class="btn-contorno" type="button" id="btn-sair-area">Sair</button>
+  </div>
+  <div class="area-grade">
+    <div class="area-cartao nivel-cartao" id="area-nivel"></div>
+    <div class="area-cartao" id="area-status"></div>
+  </div>
+  <div class="area-cartao alerta-atraso" id="area-atraso" hidden></div>
+  <div class="area-cartao indique compacto">
+    <div>
+      <h2>Indique um novo Doador</h2>
+      <p id="area-indicacoes"></p>
+    </div>
+    <a class="btn-whats" id="area-btn-indicar" href="#" target="_blank" rel="noopener"><span aria-hidden="true">💬</span> Indique um novo Doador</a>
+  </div>
+  <div class="area-grade">
+    <div class="area-cartao">
+      <h2>Linha do tempo de impacto</h2>
+      <p class="sub">O que as doações sustentaram, mês a mês.</p>
+      <ol class="linha-tempo" id="area-impacto"></ol>
+    </div>
+    <div class="area-cartao">
+      <h2>Histórico de doações</h2>
+      <table class="tabela-simples" id="area-historico"></table>
+      <button class="btn-contorno" type="button" id="btn-recibo">Emitir recibo de <span id="ano-recibo"></span></button>
+    </div>
+  </div>
+  <div id="msg-area" aria-live="polite"></div>
+</section>
+
+<!-- ================= RECIBO ================= -->
+<section class="tela recibo" id="tela-recibo" data-tela="recibo" hidden>
+  <div class="recibo-folha" id="recibo-folha"></div>
+  <div class="acoes nao-imprimir">
+    <button class="btn-pilula" type="button" onclick="window.print()">Imprimir ou salvar em PDF</button>
+    <a class="link" href="#area" data-ir="area">Voltar para minha Área</a>
+  </div>
+</section>
+
+<dialog id="dlg-cancelar" class="dialogo">
+  <form method="dialog">
+    <h2>Cancelar sua doação mensal?</h2>
+    <p>Antes de cancelar: você pode <strong>pausar por até 3 meses</strong> e a doação volta sozinha. Sua história como Guardião continua.</p>
+    <label for="cr-motivo">Motivo (opcional)</label>
+    <select id="cr-motivo">
+      <option value="">Prefiro não informar</option>
+      <option>O valor ficou apertado no momento</option>
+      <option>Não estou vendo o impacto com clareza</option>
+      <option>Vou apoiar o Instituto de outra forma</option>
+      <option>Outro motivo</option>
+    </select>
+    <div class="acoes">
+      <button class="btn-pilula" value="pausar" type="submit">Prefiro pausar</button>
+      <button class="btn-contorno perigo" value="cancelar" type="submit" id="btn-confirmar-cancelar">Sim, cancelar</button>
+      <button class="link" value="voltar" type="submit">Voltar</button>
+    </div>
+  </form>
+</dialog>
 </main>
 
 <footer class="rodape-pub">

@@ -14,6 +14,7 @@ def cpf_valido(base9):
 CPF_MARIA, CPF_JOAO, CPF_OUTRO = cpf_valido("600000001"), cpf_valido("600000002"), cpf_valido("600000003")
 CPF_BASE = cpf_valido("600000004")
 CPF_PAULA = cpf_valido("600000005")
+CPF_UNICA = cpf_valido("600000006")
 
 def ok(msg): LOG.append("PASS " + msg); print("PASS", msg)
 def sql(q): return subprocess.run(["psql", "-d", os.environ.get("DB", "clube_e2e"), "-Atc", q], capture_output=True, text=True).stdout.strip()
@@ -42,25 +43,27 @@ with sync_playwright() as p:
     pg.click("text=Continuar para o pagamento")
     expect(pg.locator("#resultado .msg.erro")).to_contain_text("autorizar")
     ok("E01 formulário valida nome, CPF (dígito verificador, com máscara) e exige consentimento LGPD")
-    pg.check("#consent"); pg.locator("label.faixa", has_text="Outro").click(); pg.fill("#valor-outro", "150")
-    pg.select_option("#dia", "15"); pg.click("text=Continuar para o pagamento")
+    expect(pg.locator("#tipo-guardiao")).to_be_checked(); expect(pg.locator("#bloco-valor-unica")).to_be_hidden()
+    pg.check("#consent"); pg.select_option("#dia", "15"); pg.click("text=Continuar para o pagamento")
     expect(pg.locator("#tela-pagamento")).to_be_visible()
-    expect(pg.locator("#tela-pagamento")).to_contain_text("R$ 150,00"); expect(pg.locator("#tela-pagamento")).to_contain_text("Maria")
+    expect(pg.locator("#tela-pagamento")).to_contain_text("R$ 85,00"); expect(pg.locator("#tela-pagamento")).to_contain_text("Maria")
     expect(pg.locator("#pix-qr svg")).to_be_visible()
     pg.screenshot(path="evidencias/e2e/02_pagamento_pix.png", full_page=True)
-    assert sql("select o.nome||'|'||a.valor_mensal||'|'||a.dia_vencimento from guardiao g join origem o on o.id=g.origem_id join assinatura a on a.guardiao_id=g.id where g.email='maria.demo@example.com'") == "QR Code na comunidade|150.00|15"
+    assert sql("select o.nome||'|'||a.valor_mensal||'|'||a.dia_vencimento from guardiao g join origem o on o.id=g.origem_id join assinatura a on a.guardiao_id=g.id where g.email='maria.demo@example.com'") == "QR Code na comunidade|85.00|15"
     assert sql(f"select count(*) from guardiao g where g::text like '%{CPF_MARIA}%' or g::text like '%{CPF_MARIA[:3]}.{CPF_MARIA[3:6]}%'") == "0", "CPF gravado em texto aberto"
     assert len(sql("select cpf_hash from guardiao where email='maria.demo@example.com'")) == 64
-    ok("E02 adesão pública grava Guardião com valor, dia, canal (QR Code) e CPF só cifrado")
+    ok("E02 adesão pública grava Guardião de R$ 85 por mês com dia, canal (QR Code) e CPF só cifrado")
 
     # ---------------- E19 jornada da semana 5: Pix, erro, confirmação e convite
     pg.click("text=Simular falha no Pix"); expect(pg.locator("#tela-erro-pix")).to_contain_text("Nenhum valor foi cobrado")
     pg.click("#tela-erro-pix a.btn-pilula"); expect(pg.locator("#tela-pagamento")).to_be_visible()
     pg.click("#btn-ja-paguei"); expect(pg.locator("#tela-confirmacao")).to_contain_text("Obrigado(a), Maria")
     expect(pg.locator("#tela-confirmacao .stepper li.feito")).to_have_count(3)
-    expect(pg.locator("#tela-confirmacao")).to_contain_text("R$ 150,00")
+    expect(pg.locator("#tela-confirmacao")).to_contain_text("R$ 85,00")
+    expect(pg.locator("#btn-indicar")).to_have_text(re.compile("Indique um novo Doador"))
+    expect(pg.locator("#btn-indicar")).to_have_attribute("href", re.compile(r"^https://wa\.me/\?text=.*R%24%2085.*convite"))
     pg.screenshot(path="evidencias/e2e/02_confirmacao.png", full_page=True)
-    pg.click("text=Continuar o ciclo: convidar alguém")
+    pg.click("text=Ver a mensagem e copiar o meu link")
     link = pg.locator("#link-convite").inner_text(); assert "convite=" in link, link
     codigo = link.split("convite=")[1]
     assert codigo == sql("select codigo_convite from guardiao where email='maria.demo@example.com'"), codigo
@@ -69,21 +72,61 @@ with sync_playwright() as p:
     pg.goto(f"{BASE}/index.html?convite={codigo}")
     expect(pg.locator("#faixa-convite")).to_contain_text("Maria")
     pg.locator(".vitrine a", has_text="Quero participar").click()
-    pg.fill("#nome", "Paula Convidada"); pg.fill("#email", "paula.convidada@example.com"); pg.type("#cpf", CPF_PAULA); pg.check("#consent")
+    pg.fill("#nome", "Paula Convidada"); pg.fill("#telefone", "(11) 97777-1111"); pg.type("#cpf", CPF_PAULA); pg.check("#consent")
     pg.click("text=Continuar para o pagamento"); pg.click("#btn-ja-paguei")
     expect(pg.locator("#tela-confirmacao")).to_contain_text("Convite de")
-    assert sql("select o.nome||'|'||(g.indicado_por = (select id from guardiao where email='maria.demo@example.com')) from guardiao g join origem o on o.id=g.origem_id where g.email='paula.convidada@example.com'") == "Indicação de Guardião|true"
+    assert sql("select o.nome||'|'||(g.indicado_por = (select id from guardiao where email='maria.demo@example.com')) from guardiao g join origem o on o.id=g.origem_id where g.nome='Paula Convidada' and g.email is null") == "Indicação de Guardião|true"
     pg.goto(f"{BASE}/privacidade.html"); expect(pg.locator("main")).to_contain_text("Seus direitos")
-    ok("E19 jornada da semana 5: Pix com QR e copia e cola, falha e nova tentativa, confirmação em 3 etapas, link pessoal de convite que registra quem convidou, Aviso de Privacidade")
+    ok("E19 jornada da semana 5: Pix com QR e copia e cola, falha e nova tentativa, confirmação em 3 etapas, 'Indique um novo Doador' pelo WhatsApp, link pessoal que registra quem convidou, e-mail opcional, Aviso de Privacidade")
 
     pg.goto(f"{BASE}/index.html?origem=qr#cadastro")
-    pg.fill("#nome", "Maria Outro Email"); pg.fill("#email", "maria.outro@example.com"); pg.type("#cpf", CPF_MARIA); pg.check("#consent")
+    pg.fill("#nome", "Maria Outro Email"); pg.fill("#email", "maria.outro@example.com"); pg.fill("#telefone", "(11) 98888-7777"); pg.type("#cpf", CPF_MARIA); pg.check("#consent")
     pg.click("text=Continuar para o pagamento")
     expect(pg.locator("#resultado .msg.erro")).to_contain_text("Este CPF já é de um Guardião ativo")
-    pg.fill("#nome", "Maria Demonstração"); pg.fill("#email", "MARIA.DEMO@example.com"); pg.fill("#cpf", ""); pg.type("#cpf", CPF_OUTRO); pg.check("#consent")
+    pg.fill("#nome", "Maria Demonstração"); pg.fill("#email", "MARIA.DEMO@example.com"); pg.fill("#telefone", "(11) 98888-7777"); pg.fill("#cpf", ""); pg.type("#cpf", CPF_OUTRO); pg.check("#consent")
     pg.click("text=Continuar para o pagamento")
     expect(pg.locator("#resultado .msg.erro")).to_contain_text("outro CPF")
     ok("E03 mesmo CPF com outro e-mail é recusado; e-mail já usado não aceita outro CPF")
+
+    # ---------------- E22 doação única de qualquer valor, com indicação
+    pg.goto(f"{BASE}/index.html?origem=instagram")
+    pg.locator(".formas a", has_text="Fazer uma doação única").click()
+    expect(pg.locator("#tipo-unica")).to_be_checked(); expect(pg.locator("#bloco-valor-unica")).to_be_visible(); expect(pg.locator("#campo-dia")).to_be_hidden()
+    pg.locator("label.faixa", has_text="Outro").click(); pg.fill("#valor-outro", "250")
+    pg.fill("#nome", "Rita Doadora"); pg.type("#cpf", CPF_UNICA); pg.check("#consent")
+    pg.click("text=Continuar para o Pix")
+    expect(pg.locator("#tela-pagamento")).to_contain_text("R$ 250,00"); expect(pg.locator("#tela-pagamento")).to_contain_text("doação única")
+    pg.click("#btn-ja-paguei"); expect(pg.locator("#tela-confirmacao")).to_contain_text("Doação única, via Pix")
+    expect(pg.locator("#tela-confirmacao a", has_text="Ir para minha Área")).to_be_hidden()
+    expect(pg.locator("#btn-indicar")).to_have_attribute("href", re.compile(r"^https://wa\.me/\?text=.*convite"))
+    pg.screenshot(path="evidencias/e2e/10_doacao_unica.png", full_page=True)
+    assert sql("select d.status||'|'||d.valor||'|'||o.nome||'|'||coalesce(d.email,'-') from doacao_unica d join origem o on o.id=d.origem_id where d.nome='Rita Doadora'") == "paga|250.00|Instagram|-"
+    ok("E22 doação única de qualquer valor (R$ 250), sem ser recorrente e sem e-mail, com 'Indique um novo Doador' ao final")
+
+    # ---------------- E23 Minha Área do Guardião
+    pg.goto(f"{BASE}/index.html"); pg.click(".nav-topo a:has-text('Minha Área')")
+    expect(pg.locator("#tela-entrar")).to_be_visible()
+    pg.fill("#lg-whats", "(11) 90000-0050"); pg.fill("#lg-cpf", CPF_OUTRO); pg.click("#btn-entrar")
+    expect(pg.locator("#msg-entrar")).to_contain_text("Não encontramos")
+    pg.click("#btn-entrar-demo"); expect(pg.locator("#tela-area")).to_be_visible()
+    expect(pg.locator("#area-nivel .estrelas")).to_be_visible(); expect(pg.locator("#area-nivel")).to_contain_text("Guardião")
+    expect(pg.locator("#area-impacto li").first).to_contain_text("Contraturno Escolar")
+    expect(pg.locator("#area-historico tbody tr").first).to_be_visible()
+    if pg.locator("#btn-retomar").count(): pg.click("#btn-retomar"); expect(pg.locator("#msg-area")).to_contain_text("retomada")
+    pg.screenshot(path="evidencias/e2e/11_minha_area.png", full_page=True)
+    pg.select_option("#meses-pausa", "2"); pg.click("#btn-pausar")
+    expect(pg.locator("#msg-area")).to_contain_text("volta sozinha"); expect(pg.locator("#area-status")).to_contain_text("Pausada")
+    pg.click("#btn-retomar"); expect(pg.locator("#area-status")).to_contain_text("Ativa")
+    pg.click("#btn-cancelar"); expect(pg.locator("#dlg-cancelar")).to_be_visible()
+    pg.select_option("#cr-motivo", "O valor ficou apertado no momento"); pg.click("#btn-confirmar-cancelar")
+    expect(pg.locator("#area-status")).to_contain_text("Cancelada")
+    pg.click("#btn-reativar"); expect(pg.locator("#area-status")).to_contain_text("R$ 85,00")
+    expect(pg.locator("#area-btn-indicar")).to_have_attribute("href", re.compile(r"^https://wa\.me/\?text=.*convite"))
+    pg.click("#btn-recibo"); expect(pg.locator("#recibo-folha")).to_contain_text("Recibo de doações")
+    expect(pg.locator("#recibo-folha")).to_contain_text("sem dedução de Imposto de Renda")
+    pg.screenshot(path="evidencias/e2e/12_recibo.png", full_page=True)
+    assert sql("select motivo_texto from assinatura where motivo_texto is not null order by cancelada_em desc limit 1") == "O valor ficou apertado no momento"
+    ok("E23 Minha Área: entra só com WhatsApp e CPF certos; mostra nível, estrelas, impacto e histórico; pausa, retoma, cancela com motivo, reativa por R$ 85 e emite o recibo")
 
     # ---------------- E04 acesso ao painel
     pg.goto(f"{BASE}/painel.html")
@@ -94,17 +137,29 @@ with sync_playwright() as p:
     ok("E04 senha errada e conta sem cadastro de voluntário não entram no painel")
     pg.fill("#login-email", "voluntario@example.com"); pg.fill("#login-senha", "senha-teste"); pg.click("button:has-text('Entrar')")
     expect(pg.locator("#tela-painel")).to_be_visible()
-    expect(pg.locator("#kpis .kpi")).to_have_count(7)
+    expect(pg.locator("#kpis .kpi")).to_have_count(9)
     pg.wait_for_timeout(300)
     pg.screenshot(path="evidencias/e2e/03_painel_resumo.png", full_page=True)
     ativos_tela = pg.locator("#kpis .kpi").first.locator(".val").inner_text()
     ativos_db = sql("select count(*) from assinatura where status='ativa'")
-    assert ativos_tela.replace(".", "") == ativos_db, (ativos_tela, ativos_db)
-    ok(f"E05 voluntário entra; resumo mostra {ativos_tela} Guardiões ativos, igual ao banco")
+    no_clube = sql("select count(*) from assinatura where status in ('ativa','pausada')")
+    assert ativos_tela.replace(".", "") == no_clube, (ativos_tela, no_clube)
+    ok(f"E05 voluntário entra; resumo mostra {ativos_tela} Guardiões no Clube (ativos e pausados), igual ao banco")
     with pg.expect_download() as d: pg.click("#btn-exportar")
     arq = d.value.path(); linhas = open(arq, encoding="utf-8-sig").read().splitlines()
     assert linhas[0].startswith("mes;ativos_inicio") and len(linhas) >= 13
     ok(f"E06 exportação CSV para prestação de contas com {len(linhas)-1} meses")
+    pg.click("[data-aba=unicas]"); expect(pg.locator("#tab-unicas")).to_contain_text("Rita Doadora")
+    expect(pg.locator("#tab-unicas tbody tr", has_text="Rita Doadora")).to_contain_text("Paga")
+    pg.screenshot(path="evidencias/e2e/13_painel_doacoes_unicas.png", full_page=True)
+    pg.click("[data-aba=guardioes]"); pg.select_option("#filtro-sit", "pausado")
+    expect(pg.locator("#tab-guardioes tbody tr").first).to_contain_text("volta em")
+    pg.select_option("#filtro-sit", ""); pg.fill("#busca", "paula convidada")
+    b = pg.locator("#tab-guardioes button[data-pausar]"); b.click(); expect(b).to_have_text("Confirmar pausa"); b.click()
+    expect(pg.locator("#painel-msg")).to_contain_text("Volta sozinha")
+    pg.locator("#tab-guardioes button[data-retomar]").click(); expect(pg.locator("#painel-msg")).to_contain_text("retomada")
+    pg.fill("#busca", "")
+    ok("E24 painel mostra doações únicas, Guardiões pausados com a data de volta, nível e estrelas; equipe pausa e retoma a pedido")
 
     # ---------------- E07 Guardiões e histórico
     pg.click("[data-aba=guardioes]"); pg.fill("#busca", "maria demo")
@@ -200,7 +255,7 @@ with sync_playwright() as p:
 
     # ---------------- E15 adesão registrada pelo voluntário
     pg.click("#btn-nova-adesao"); pg.fill("#a-nome", "João Evento"); pg.fill("#a-email", "joao.evento@example.com"); pg.type("#a-cpf", CPF_JOAO)
-    pg.fill("#a-valor", "60"); pg.select_option("#a-origem", "Campanha Dia das Crianças"); pg.check("#a-consent")
+    pg.fill("#a-valor", "85"); pg.select_option("#a-origem", "Campanha Dia das Crianças"); pg.check("#a-consent")
     pg.click("#form-adesao-painel button[type=submit]")
     expect(pg.locator("#painel-msg")).to_contain_text("Adesão registrada")
     pg.click("[data-aba=canais]"); expect(pg.locator("#tab-canais")).to_contain_text("Campanha Dia das Crianças")

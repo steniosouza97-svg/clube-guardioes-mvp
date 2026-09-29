@@ -121,11 +121,11 @@ Depois de publicar, gerar os links de cada canal para medir a aquisição:
 Antes de cada ensaio ou gravação, no SQL Editor do Supabase:
 
 ```sql
-truncate evento_gateway, comunicacao, cobranca, assinatura, guardiao restart identity;
+truncate evento_gateway, comunicacao, cobranca, assinatura, doacao_unica, tentativa_acesso, impacto_mensal, guardiao restart identity;
 select fn_gerar_dados_sinteticos();
 ```
 
-O resultado deve ser "305 Guardiões (275 ativos)". Voluntários, logins e a chave do CPF são preservados. Na demonstração, use e-mails `@example.com` e CPFs fictícios válidos, por exemplo `600.000.001-40`, `600.000.002-21` ou `600.000.003-02`.
+O resultado deve ser "305 Guardiões (271 ativos, 4 pausados)", com 48 doações únicas. Voluntários, logins e a chave do CPF são preservados. Na demonstração, use e-mails `@example.com` e CPFs fictícios válidos, por exemplo `600.000.001-40`, `600.000.002-21` ou `600.000.003-02`.
 
 ## Operação depois da semana 10
 
