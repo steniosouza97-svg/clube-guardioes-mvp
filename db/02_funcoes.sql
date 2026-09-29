@@ -808,6 +808,8 @@ begin
         'pausada_ate',   a.pausada_ate,
         'proxima',       v_proxima,
         'meses_pagos',   v_pagos,
+        'total_doado',   (select coalesce(sum(c.valor), 0) from cobranca c join assinatura x on x.id = c.assinatura_id
+                           where x.guardiao_id = p_guardiao and c.status in ('pago', 'recuperado')),
         'estrelas',      v_estrelas,
         'nivel',         fn_nivel(v_estrelas),
         'meses_para_proxima_estrela', v_meses_estrela - (v_pagos % v_meses_estrela),

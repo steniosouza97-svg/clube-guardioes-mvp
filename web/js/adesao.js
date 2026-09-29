@@ -239,17 +239,67 @@
     const cheias = Math.min(n, 5);
     return `<span class="estrelas" aria-label="${n} estrelas">${"★".repeat(cheias)}${"☆".repeat(5 - cheias)}</span>`;
   }
+  function previsao(proxima, faltam) {
+    const [a, m] = String(proxima).slice(0, 7).split("-").map(Number);
+    const alvo = new Date(a, m - 1 + faltam - 1, 1);
+    return alvo.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  }
   function desenharArea() {
     if (!area) return;
     const d = area;
     $("#area-nome").textContent = d.primeiro_nome;
     const classe = { "Guardião Ouro": "ouro", "Guardião Prata": "prata", "Guardião Bronze": "bronze" }[d.nivel] || "inicial";
+    const nivelTexto = classe === "ouro" ? "Guardião do Futuro Ouro" : classe === "inicial" ? "Guardião do Futuro" : d.nivel;
+    const ativo = d.status === "ativa" || d.status === "atrasada";
+    const meses = d.meses_pagos || 0;
+    const doado = Number(d.total_doado || 0);
+    // próximo nível: Bronze aos 9 meses, Prata aos 12, Ouro aos 15 (uma estrela a cada 3 meses)
+    const alvo = d.estrelas < 3 ? { nome: "Guardião Bronze", meses: 9 } : d.estrelas < 4 ? { nome: "Guardião Prata", meses: 12 }
+               : d.estrelas < 5 ? { nome: "Guardião do Futuro Ouro", meses: 15 } : null;
+    const faltam = alvo ? Math.max(alvo.meses - meses, 1) : 0;
+    const plural = n => `${n} ${n === 1 ? "mês" : "meses"}`;
+    const titulo = classe === "inicial"
+      ? `${esc(d.primeiro_nome)}, você já é um Guardião do Futuro!`
+      : `${esc(d.primeiro_nome)}, você já é um ${esc(nivelTexto)}!`;
+    const frase = meses
+      ? `Há ${plural(meses)} você garante, todo mês, o cuidado das 120 crianças do Instituto Ebenézer no Jardim Ângela.`
+      : `A partir do seu primeiro Pix, você passa a garantir, todo mês, o cuidado das 120 crianças do Instituto Ebenézer.`;
+    let proximo;
+    if (!alvo) proximo = `<p class="conquista-meta topo">Você chegou ao topo. Obrigado por estar com as crianças mês após mês. 💛</p>`;
+    else if (ativo) proximo = `<p class="conquista-meta">Faltam <strong>${plural(faltam)}</strong> para você se tornar <strong>${alvo.nome}</strong>.</p>
+        <div class="conquista-barra" role="progressbar" aria-valuemin="0" aria-valuemax="15" aria-valuenow="${Math.min(meses, 15)}"
+             aria-label="${meses} de 15 meses até o nível Ouro"><div style="width:${Math.min(meses / 15 * 100, 100)}%"></div></div>`;
+    else if (d.status === "pausada") proximo = `<p class="conquista-meta">Sua doação está pausada: suas estrelas estão guardadas e a contagem volta em ${fmt.mesLongo(d.pausada_ate)}.</p>`;
+    else proximo = `<p class="conquista-meta">Reative a doação mensal e continue de onde parou: faltam ${plural(faltam)} para ${alvo.nome}.</p>`;
+    $("#area-nivel").className = `conquista ${classe}`;
     $("#area-nivel").innerHTML = `
-      <div class="medalha ${classe}" aria-hidden="true">${classe === "inicial" ? "🌱" : "🏅"}</div>
-      <div><div class="nivel-nome">${esc(d.nivel)}</div>${estrelas(d.estrelas)}
-        <p class="sub">${d.meses_pagos} ${d.meses_pagos === 1 ? "mês" : "meses"} de doação.
-        ${d.status === "ativa" || d.status === "atrasada" ? `Faltam ${d.meses_para_proxima_estrela} para a próxima estrela.` : ""}</p>
-        <p class="legenda-nivel">Uma estrela a cada 3 meses · 3 estrelas: Bronze · 4: Prata · 5: Ouro</p></div>`;
+      <div class="conquista-medalha" aria-hidden="true">${classe === "inicial" ? "🌱" : "🏅"}</div>
+      <div class="conquista-texto">
+        <h1>${titulo}</h1>
+        <div class="conquista-estrelas">${estrelas(d.estrelas)}<span>${d.estrelas} de 5 estrelas</span></div>
+        <p class="conquista-frase">${frase}</p>
+        ${proximo}
+      </div>
+      <dl class="conquista-numeros">
+        <div><dt>${plural(meses)}</dt><dd>ao lado das crianças</dd></div>
+        <div><dt>${fmt.brl(doado)}</dt><dd>doados por você</dd></div>
+        ${d.indicacoes ? `<div><dt>${d.indicacoes}</dt><dd>${d.indicacoes === 1 ? "pessoa trazida" : "pessoas trazidas"} por você</dd></div>`
+                       : `<div><dt>1ª indicação</dt><dd>está a um WhatsApp de distância</dd></div>`}
+      </dl>`;
+    const passos = [[3, "1ª estrela", ""], [6, "2ª estrela", ""], [9, "Bronze", "nivel-bronze"], [12, "Prata", "nivel-prata"], [15, "Ouro", "nivel-ouro"]];
+    $("#area-jornada").innerHTML = `
+      <h2>Sua jornada até o Ouro</h2>
+      <p class="sub">A cada 3 meses de doação você ganha uma estrela.</p>
+      <ol class="trilha-estrelas jornada-pessoal">
+        ${passos.map(([m, nome, cl], i) => {
+          const feito = d.estrelas >= i + 1;
+          const aqui = !feito && d.estrelas === i;
+          return `<li class="${cl} ${feito ? "feito" : "futuro"} ${aqui ? "aqui" : ""}">
+            <span class="est" aria-hidden="true">${"★".repeat(i + 1)}</span><b>${m} meses</b><small>${nome}</small>
+            ${feito ? `<em class="marca-passo">✓<span class="txt"> conquistado</span></em>` : aqui ? `<em class="marca-passo">próximo passo</em>` : ""}</li>`;
+        }).join("")}
+      </ol>
+      ${alvo && ativo && d.proxima ? `<p class="jornada-previsao">Com o Pix em dia, você chega a <strong>${alvo.nome}</strong> em <strong>${previsao(d.proxima, faltam)}</strong>.</p>` : ""}`;
 
     const st = d.status;
     let acoes = "";

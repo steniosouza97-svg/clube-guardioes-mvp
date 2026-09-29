@@ -436,3 +436,48 @@ body.pub .jornada .form-adesao { box-shadow: none; border-top: 0; padding: 0; }
   .trilha-estrelas b { font-size: .72rem; } .trilha-estrelas small { font-size: .66rem; }
   .ouro-estrelas { font-size: 1.6rem; }
 }
+
+/* Minha Área: cartão de conquista e jornada até o Ouro */
+.area-ola { margin: 0; color: #3c4a3c; font-size: 1rem; align-self: center; }
+.conquista { margin-top: 1rem; border-radius: 22px; padding: 1.6rem 1.8rem; display: grid;
+  grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center; color: var(--preto);
+  background: linear-gradient(135deg, var(--marca) 0%, #7ee27d 100%); box-shadow: var(--sombra); }
+.conquista.prata { background: linear-gradient(135deg, #e6ebf1 0%, #c9d3de 55%, #9aed9a 140%); }
+.conquista.bronze { background: linear-gradient(135deg, #f7e1c9 0%, #e3bb8e 60%, #9aed9a 150%); }
+.conquista.ouro { background: linear-gradient(135deg, #fff3bf 0%, #f9d75c 60%, #e0a800 130%); }
+.conquista-medalha { width: 104px; height: 104px; border-radius: 50%; background: rgba(255,255,255,.75);
+  display: grid; place-items: center; font-size: 3.4rem; box-shadow: 0 6px 18px rgba(0,0,0,.12), inset 0 0 0 4px rgba(255,255,255,.9); }
+.conquista h1 { font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.75rem; line-height: 1.2; margin: 0 0 .35rem; }
+.conquista-estrelas { display: flex; align-items: center; gap: .6rem; }
+.conquista-estrelas .estrelas { font-size: 1.9rem; color: #c98f00; text-shadow: 0 1px 0 #fff; }
+.conquista-estrelas span:last-child { font-size: .85rem; font-weight: 700; color: #2d3a2d; }
+.conquista-frase { margin: .4rem 0 .3rem; font-size: 1rem; line-height: 1.5; color: #1f2e1f; }
+.conquista-meta { margin: .3rem 0 .45rem; font-size: 1.05rem; color: var(--preto); }
+.conquista-meta strong { font-weight: 800; }
+.conquista-barra { height: 12px; border-radius: 999px; background: rgba(255,255,255,.65); overflow: hidden; max-width: 420px; }
+.conquista-barra > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #e0a800, #f9d75c); }
+.conquista-numeros { display: grid; gap: .5rem; margin: 0; min-width: 190px; }
+.conquista-numeros > div { background: rgba(255,255,255,.8); border-radius: 12px; padding: .55rem .8rem; }
+.conquista-numeros dt { font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.15rem; }
+.conquista-numeros dd { margin: 0; font-size: .8rem; color: #3c4a3c; }
+.jornada-pessoal li { position: relative; padding-bottom: .7rem; }
+.jornada-pessoal li.futuro { opacity: .55; }
+.jornada-pessoal li.aqui { opacity: 1; outline: 2px dashed #d49b00; outline-offset: 2px; }
+.jornada-pessoal li.feito { box-shadow: inset 0 0 0 2px rgba(31,111,31,.35); }
+.marca-passo { font-style: normal; font-size: .66rem; font-weight: 700; color: var(--marca-escuro); margin-top: .15rem; }
+.jornada-pessoal li.aqui .marca-passo { color: #8a6200; }
+@media (max-width: 760px) {
+  .conquista { grid-template-columns: 1fr; text-align: center; padding: 1.4rem 1.1rem; justify-items: center; }
+  .conquista-estrelas { justify-content: center; flex-wrap: wrap; }
+  .conquista-barra { margin: 0 auto; }
+  .conquista-numeros { grid-template-columns: repeat(3, 1fr); width: 100%; min-width: 0; }
+  .conquista h1 { font-size: 1.4rem; }
+  .conquista-medalha { width: 84px; height: 84px; font-size: 2.7rem; }
+}
+.jornada-previsao { margin: .9rem 0 0; padding: .7rem .9rem; border-radius: 12px; background: #fff8dc; border: 1px solid #f0d36b; color: #4d3f00; }
+@media (max-width: 520px) {
+  .marca-passo .txt { display: none; }
+  .feito .marca-passo { font-size: .85rem; } .aqui .marca-passo { font-size: .6rem; }
+  .conquista-numeros dt { font-size: .95rem; }
+  .conquista-numeros > div { padding: .5rem .4rem; }
+}

@@ -56,11 +56,12 @@
   <div class="bloco-cartao">
     <h2>Por que recorrência, e não só uma doação avulsa?</h2>
     <p><strong>120 crianças são atendidas todos os meses</strong> no Instituto Ebenézer, no Jardim Ângela: Contraturno Escolar, Laboratório de Sonhos e Vivências Terapêuticas. Esse cuidado não tira férias e não pode depender de doações que chegam só de vez em quando. Como Guardião do Futuro, a sua doação mensal garante que ele continue o ano inteiro, e todo mês você recebe a prestação de contas do que as doações sustentaram em cada atividade, sempre de forma agregada, sem identificar nenhuma criança.</p>
+    <p class="nota-suave">Não pode ser mensal agora? Toda doação importa: a doação única aceita qualquer valor.</p>
     <div class="convite-ouro" aria-labelledby="titulo-ouro">
       <div class="ouro-cabeca">
         <span class="ouro-estrelas" aria-hidden="true">★★★★★</span>
         <h3 id="titulo-ouro">Chegue a Guardião do Futuro Ouro</h3>
-        <p>A cada 3 meses de doação você ganha uma estrela. Em 15 meses, as 5 estrelas fazem de você um Guardião do Futuro Ouro.</p>
+        <p>A cada 3 meses de doação você ganha uma estrela.</p>
       </div>
       <ol class="trilha-estrelas" aria-label="Como se ganham as estrelas">
         <li><span class="est" aria-hidden="true">★</span><b>3 meses</b><small>1ª estrela</small></li>
@@ -69,10 +70,8 @@
         <li class="nivel-prata"><span class="est" aria-hidden="true">★★★★</span><b>12 meses</b><small>Prata</small></li>
         <li class="nivel-ouro"><span class="est" aria-hidden="true">★★★★★</span><b>15 meses</b><small>Ouro</small></li>
       </ol>
-      <p class="ouro-rodape">Suas estrelas e seu nível aparecem na Minha Área, e o Instituto celebra cada conquista com você.</p>
       <a class="btn-pilula" href="#cadastro" data-ir="cadastro" data-tipo="guardiao">Quero ser Guardião do Futuro</a>
     </div>
-    <p class="nota-suave">Não pode ser mensal agora? Toda doação importa: a doação única aceita qualquer valor.</p>
   </div>
   <div class="bloco-cartao">
     <h2>Escolha como ajudar</h2>
@@ -269,14 +268,12 @@
 <!-- ================= MINHA ÁREA ================= -->
 <section class="tela area" id="tela-area" data-tela="area" hidden>
   <div class="area-topo">
-    <div>
-      <h1>Olá, <span id="area-nome"></span>!</h1>
-      <p class="sub">Acompanhe sua doação, seu impacto e seu histórico.</p>
-    </div>
+    <p class="area-ola">Olá, <span id="area-nome"></span>! Esta é a sua Área de Guardião.</p>
     <button class="btn-contorno" type="button" id="btn-sair-area">Sair</button>
   </div>
+  <div class="conquista" id="area-nivel"></div>
   <div class="area-grade">
-    <div class="area-cartao nivel-cartao" id="area-nivel"></div>
+    <div class="area-cartao" id="area-jornada"></div>
     <div class="area-cartao" id="area-status"></div>
   </div>
   <div class="area-cartao alerta-atraso" id="area-atraso" hidden></div>

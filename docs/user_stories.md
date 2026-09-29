@@ -186,6 +186,8 @@ Para a demonstração, o botão "Entrar com o Guardião de demonstração" usa o
 | 2 | Com 3 estrelas sou Guardião Bronze, com 4 Prata, com 5 ou mais Ouro | T37 |
 | 3 | Vejo minha medalha de nível com as estrelas na Minha Área | E23 |
 | 4 | A equipe vê o nível e as estrelas de cada Guardião no painel | E24 |
+| 5 | Ao entrar na Minha Área, sou recebida pela minha conquista ("Carlos, você já é um Guardião Prata!"), com meses de doação, total doado e indicações | E23 |
+| 6 | Vejo quantos meses faltam para o próximo nível (por exemplo, "Faltam 3 meses para você se tornar Guardião do Futuro Ouro"), a trilha das 5 estrelas e o mês previsto para chegar lá com o Pix em dia | E23 |
 
 As estrelas são calculadas a partir das cobranças pagas, sem nenhum dado novo guardado; o número de meses por estrela está na tabela `parametro` (DT-17).
 
