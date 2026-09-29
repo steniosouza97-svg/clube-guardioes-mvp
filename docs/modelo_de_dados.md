@@ -67,10 +67,12 @@ erDiagram
 
 | Tabela | O que representa | Regras garantidas pelo banco |
 |---|---|---|
-| `guardiao` | A pessoa que doa | CPF único, guardado só como impressão digital cifrada (`cpf_hash`); e-mail único e em minúsculas; consentimento LGPD obrigatório |
+| `guardiao` | A pessoa que doa | CPF único, guardado só como impressão digital cifrada (`cpf_hash`); e-mail único e em minúsculas; consentimento LGPD obrigatório; código de convite único (`codigo_convite`) e quem convidou (`indicado_por`, nunca a si mesmo) |
 | `assinatura` | O compromisso de doação mensal | No máximo uma ativa por Guardião; valor mínimo de R$ 10; vencimento entre os dias 1 e 28; meio de pagamento `pix` (Asaas) ou `pix_direto` (base atual ainda fora da Asaas, DT-15); cancelamento sempre com data e motivo |
 | `cobranca` | A cobrança de cada mês | Uma por assinatura e mês; status `pendente`, `pago`, `falhou`, `recuperado` ou `cancelado`; pagamento sempre com data; recuperada só após ao menos uma falha |
-| `comunicacao` | Cada mensagem da régua | Tipos `boas_vindas`, `agradecimento`, `recuperacao`, `impacto_mensal`, `cancelamento`; no máximo uma mensagem de impacto por Guardião por mês |
+| `comunicacao` | Cada mensagem da régua e cada contato da equipe | Tipos `boas_vindas`, `agradecimento`, `recuperacao`, `impacto_mensal`, `cancelamento`, `contato_pessoal`; no máximo uma mensagem de impacto por Guardião por mês; `conteudo` guarda o texto da notícia ou a anotação do contato |
+| `atividade` | Atividades da rotina das crianças que a doação sustenta | Contraturno Escolar, Laboratório de Sonhos e Vivências Terapêuticas (as da semana 5) |
+| `impacto_mensal` | O que cada atividade sustentou no mês | Um texto por atividade e mês, de 10 a 600 caracteres; a notícia de impacto só sai com ele registrado |
 | `evento_gateway` | Eventos recebidos da Asaas | Um evento só produz efeito uma vez (idempotência do webhook) |
 | `origem` | Canal de aquisição | Mede o resultado das 56 horas mensais de aquisição |
 | `parametro` | Números de negócio editáveis | Custeio de 2025, metas, taxas e limite de tentativas, alteráveis sem mexer em código |
@@ -92,8 +94,8 @@ Os eventos tratados têm os nomes usados pela Asaas: `PAYMENT_RECEIVED` (pagamen
 
 | View | Mostra | Liga ao business case |
 |---|---|---|
-| `vw_situacao_guardiao` | Cada Guardião como `ativo`, `em_risco` ou `cancelado` | Base de Guardiões |
-| `vw_alerta_churn` | Guardiões ativos com cobrança falhada, por prioridade | Churn, a variável que mais move o resultado |
+| `vw_situacao_guardiao` | Cada Guardião como `ativo`, `em_risco` ou `cancelado`, com o meio de pagamento e quantos Guardiões trouxe por convite | Base de Guardiões |
+| `vw_alerta_churn` | Guardiões ativos com cobrança falhada, por prioridade, com o último contato da equipe | Churn, a variável que mais move o resultado |
 | `vw_metricas_mensais` | Ativos, novos, cancelados, receita, ticket médio e churn por mês | Slides 8 e 9 |
 | `vw_painel_resumo` | Último mês fechado e cobertura do custeio de 2025 | Indicador principal do projeto |
 | `vw_cobrancas_mes` | Cobranças de cada mês com o nome do Guardião | Rotina mensal e prestação de contas |
@@ -103,7 +105,10 @@ Os eventos tratados têm os nomes usados pela Asaas: `PAYMENT_RECEIVED` (pagamen
 
 | Função | Papel | Quem chama |
 |---|---|---|
-| `fn_aderir_publico` | Adesão pela página pública ou pelo voluntário, com CPF | Visitante e voluntário |
+| `fn_aderir_publico` | Adesão pela página pública ou pelo voluntário, com CPF e código de convite opcional; devolve só os dados das telas de Pix e confirmação | Visitante e voluntário |
+| `fn_convite_nome` | Primeiro nome de quem convidou, a partir do código do link | Visitante |
+| `fn_salvar_impacto` | Registra o que uma atividade sustentou no mês | Voluntário |
+| `fn_registrar_contato` | Registra o contato pessoal da equipe com um Guardião | Voluntário |
 | `fn_consultar_cpf` | Responde se um CPF já é Guardião, sem revelar o número | Voluntário |
 | `fn_cpf_valido`, `fn_cpf_hash` | Validam o CPF e calculam a impressão digital | Somente dentro do banco |
 | `fn_gerar_cobrancas` | Cobrança do mês (só no MVP; em produção, a Asaas cria) | Voluntário |
@@ -112,7 +117,7 @@ Os eventos tratados têm os nomes usados pela Asaas: `PAYMENT_RECEIVED` (pagamen
 | `fn_cadastrar_pix_direto` | Cadastra um Guardião da base atual em Pix direto, com CPF e consentimento | Voluntário |
 | `fn_registrar_pix_direto` | Registra o Pix direto conferido no extrato (recebido ou não), pelo mesmo caminho do webhook | Voluntário |
 | `fn_migrar_para_asaas` | Passa a assinatura de Pix direto para a Asaas, mantendo valor, dia e histórico | Voluntário |
-| `fn_enviar_impacto_mensal` | Notícia mensal de impacto, uma vez por mês | Voluntário |
+| `fn_enviar_impacto_mensal` | Notícia mensal de impacto, uma vez por mês, com o texto de cada atividade | Voluntário |
 | `fn_cancelar` | Cancelamento a pedido ou por inadimplência | Voluntário e `fn_processar_evento` |
 | `fn_gerar_dados_sinteticos` | Gera a base de demonstração | Somente pelo SQL Editor |
 

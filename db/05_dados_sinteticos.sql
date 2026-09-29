@@ -214,11 +214,24 @@ begin
             end loop;
         end if;
 
-        -- mensagem mensal de impacto no dia 28 para quem está ativo
+        -- mensagem mensal de impacto no dia 28 para quem está ativo, com a
+        -- prestação de contas por atividade registrada pela equipe
         d := make_date(extract(year from comp)::int, extract(month from comp)::int, 28);
         if d <= p_hoje then
-            insert into comunicacao (guardiao_id, competencia, tipo, enviada_em)
-            select a.guardiao_id, comp, 'impacto_mensal', d::timestamptz + interval '18 hours'
+            insert into impacto_mensal (atividade_id, competencia, texto, atualizado_em)
+            select at.id, comp,
+                   case at.nome
+                     when 'Contraturno Escolar'    then format('Garantiu %s refeições e o apoio às tarefas escolares no contraturno de %s.', 1800 + abs(hashtext(comp::text)) % 400, to_char(comp, 'MM/YYYY'))
+                     when 'Laboratório de Sonhos'  then format('Custeou materiais e %s oficinas criativas em %s.', 6 + abs(hashtext(comp::text || 'lab')) % 6, to_char(comp, 'MM/YYYY'))
+                     else format('Sustentou %s sessões de acompanhamento terapêutico em grupo em %s.', 3 + abs(hashtext(comp::text || 'viv')) % 4, to_char(comp, 'MM/YYYY'))
+                   end,
+                   d::timestamptz + interval '10 hours'
+              from atividade at where at.ativa;
+            insert into comunicacao (guardiao_id, competencia, tipo, enviada_em, conteudo)
+            select a.guardiao_id, comp, 'impacto_mensal', d::timestamptz + interval '18 hours',
+                   (select string_agg(at.nome || ': ' || im.texto, E'\n' order by at.nome)
+                      from impacto_mensal im join atividade at on at.id = im.atividade_id
+                     where im.competencia = comp)
               from assinatura a
              where a.iniciada_em <= d and (a.cancelada_em is null or a.cancelada_em > d);
         end if;
@@ -244,8 +257,67 @@ begin
       from cobranca c join assinatura a on a.id = c.assinatura_id
      where c.id = e.cobranca_id and a.meio_pagamento = 'pix_direto';
 
-    return format('%s Guardiões (%s ativos), %s cobranças, %s eventos | %s a %s',
-                  n_g, (select count(*) from assinatura where status = 'ativa'), n_c, n_e, inicio, p_hoje);
+    -- Convites: quem entrou pelo canal de indicação foi convidado por um
+    -- Guardião que já estava no Clube (link pessoal da jornada da semana 5)
+    update guardiao g set indicado_por = (
+        select p.id from guardiao p
+         where p.entrou_em < g.entrou_em and p.id <> g.id
+         order by md5(g.id::text || p.id::text) limit 1)
+     where g.origem_id = (select id from origem where nome = 'Indicação de Guardião');
+    update guardiao g set convite_usado = p.codigo_convite
+      from guardiao p where p.id = g.indicado_por;
+
+    -- Pausa (decisão de 29/09): 4 Guardiões pediram para pausar de 1 a 2
+    -- meses em vez de cancelar. A doação volta sozinha no mês indicado.
+    with pausas as (
+        select a.id, a.guardiao_id, 1 + (row_number() over (order by md5(a.id::text)) % 2)::int as meses
+          from assinatura a
+         where a.status = 'ativa' and a.meio_pagamento = 'pix'
+           and not exists (select 1 from cobranca c where c.assinatura_id = a.id and c.status = 'falhou')
+         order by md5(a.id::text) limit 4),
+    marcadas as (
+        update assinatura a set status = 'pausada',
+               pausada_ate = (date_trunc('month', p_hoje) + make_interval(months => 1 + p.meses))::date
+          from pausas p where a.id = p.id
+        returning a.guardiao_id, a.pausada_ate)
+    insert into comunicacao (guardiao_id, tipo, enviada_em, conteudo)
+    select guardiao_id, 'pausa', (p_hoje - 5)::timestamptz + interval '15 hours',
+           'Pausa pedida pelo Guardião; volta em ' || to_char(pausada_ate, 'MM/YYYY')
+      from marcadas;
+
+    -- Doações únicas (decisão de 29/09): quem não pode ou não quer ser
+    -- Guardião mensal doa qualquer valor, uma vez. Algumas vieram por convite.
+    for i in 1 .. 48 loop
+        comp := (inicio + make_interval(months => (i - 1) % p_meses))::date;
+        d := least(comp + floor(random() * 27)::int, p_hoje);
+        r := random();
+        v_nome   := nomes[1 + floor(random() * array_length(nomes, 1))::int];
+        v_sobren := sobrenomes[1 + floor(random() * array_length(sobrenomes, 1))::int];
+        insert into doacao_unica (nome, email, cpf_hash, telefone, valor, origem_id, convite_usado, status,
+                                  consentimento_lgpd, criada_em, paga_em, id_externo_gateway)
+        values (v_nome || ' ' || v_sobren,
+                case when random() < 0.5 then translate(lower(v_nome || '.' || v_sobren), 'áéíóúãõçâêô', 'aeiouaocaeo')
+                                              || '.u' || lpad(i::text, 3, '0') || '@example.com' end,
+                fn_cpf_hash(lpad((810000000 + i)::text, 9, '0') || fn_cpf_digitos(lpad((810000000 + i)::text, 9, '0'))),
+                '(11) 91000-' || lpad(i::text, 4, '0'),
+                case when r < 0.25 then 30 when r < 0.55 then 60 when r < 0.80 then 120
+                     when r < 0.95 then 200 else 500 end,
+                (select id from origem where nome = case when i % 4 = 0 then 'Indicação de Guardião'
+                                                         when i % 4 = 1 then 'Instagram'
+                                                         when i % 4 = 2 then 'Site institucional'
+                                                         else 'WhatsApp' end),
+                case when i % 4 = 0 then (select codigo_convite from guardiao order by md5(id::text || i::text) limit 1) end,
+                case when d > p_hoje - 2 then 'pendente' else 'paga' end,
+                true,
+                d::timestamptz + interval '11 hours',
+                case when d > p_hoje - 2 then null else d::timestamptz + interval '11 hours 5 minutes' end,
+                'pay_sint_u' || lpad(i::text, 4, '0'));
+    end loop;
+
+    return format('%s Guardiões (%s ativos, %s pausados), %s cobranças, %s eventos, %s doações únicas | %s a %s',
+                  n_g, (select count(*) from assinatura where status = 'ativa'),
+                  (select count(*) from assinatura where status = 'pausada'), n_c, n_e,
+                  (select count(*) from doacao_unica), inicio, p_hoje);
 end;
 $$;
 

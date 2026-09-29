@@ -6,5 +6,7 @@ window.CLUBE_CONFIG = {
   supabaseUrl: "https://fakihzzncafuqtgxnqbi.supabase.co",
   supabaseKey: "sb_publishable_p9IqiIWRaOf3F4MV4hg4yw_ffvxzE3p",
   // true enquanto a base for de demonstração: mostra o aviso e o simulador do gateway
-  demonstracao: true
+  demonstracao: true,
+  // Guardião sintético para demonstrar a Minha Área (dados fictícios da base de demonstração)
+  guardiaoDemo: { telefone: "(11) 90000-0050", cpf: "800.000.050-45" }
 };

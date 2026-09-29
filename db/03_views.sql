@@ -20,18 +20,30 @@ select g.id                    as guardiao_id,
        a.motivo_cancelamento,
        case
            when a.id is null or a.status = 'cancelada' then 'cancelado'
+           when a.status = 'pausada' then 'pausado'
            when exists (select 1 from cobranca c
                          where c.assinatura_id = a.id and c.status = 'falhou') then 'em_risco'
            else 'ativo'
        end                     as situacao,
-       a.meio_pagamento
+       a.meio_pagamento,
+       (select count(*) from guardiao x where x.convite_usado = g.codigo_convite)
+     + (select count(*) from doacao_unica d where d.convite_usado = g.codigo_convite) as indicacoes,
+       a.pausada_ate,
+       n.meses_pagos,
+       n.estrelas,
+       fn_nivel(n.estrelas)    as nivel
   from guardiao g
   join origem o on o.id = g.origem_id
   left join lateral (
         select * from assinatura a
          where a.guardiao_id = g.id
-         order by (a.status = 'ativa') desc, a.iniciada_em desc
-         limit 1) a on true;
+         order by (a.status in ('ativa', 'pausada')) desc, a.iniciada_em desc
+         limit 1) a on true
+  cross join lateral (
+        select count(*)::int as meses_pagos,
+               floor(count(*) / coalesce((select valor from parametro where chave = 'meses_por_estrela'), 3))::int as estrelas
+          from cobranca c join assinatura x on x.id = c.assinatura_id
+         where x.guardiao_id = g.id and c.status in ('pago', 'recuperado')) n;
 
 -- Alerta de churn: Guardiões ativos com cobrança falhada ainda não recuperada
 create or replace view vw_alerta_churn as
@@ -45,7 +57,10 @@ select g.nome,
        (current_date - c.vencimento)            as dias_em_atraso,
        case when c.tentativas >= 2 then 'alta' else 'media' end as prioridade,
        c.id                                      as cobranca_id,
-       a.id                                      as assinatura_id
+       a.id                                      as assinatura_id,
+       g.id                                      as guardiao_id,
+       (select max(m.enviada_em) from comunicacao m
+         where m.guardiao_id = g.id and m.tipo = 'contato_pessoal') as ultimo_contato
   from cobranca c
   join assinatura a on a.id = c.assinatura_id and a.status = 'ativa'
   join guardiao g   on g.id = a.guardiao_id
@@ -109,7 +124,12 @@ select u.mes                                                        as ultimo_me
        round(u.receita * 12 / (select valor from parametro where chave = 'custeio_anual_2025'), 4)
                                                                     as cobertura_custeio_2025,
        (select count(*) from assinatura where status = 'ativa' and meio_pagamento = 'pix_direto')
-                                                                    as guardioes_pix_direto
+                                                                    as guardioes_pix_direto,
+       (select count(*) from assinatura where status = 'pausada')   as guardioes_pausados,
+       (select count(*) from doacao_unica where status = 'paga'
+           and paga_em >= date_trunc('month', current_date))        as doacoes_unicas_mes,
+       (select coalesce(sum(valor), 0) from doacao_unica where status = 'paga'
+           and paga_em >= date_trunc('month', current_date))        as doacoes_unicas_valor_mes
   from ultimo u;
 
 -- Cobranças do mês para a tela do simulador e para o acompanhamento diário
@@ -141,3 +161,21 @@ select o.nome                                                  as origem,
   left join assinatura a on a.guardiao_id = g.id
  group by o.nome, o.tipo
  order by guardioes desc;
+
+-- Doações únicas (não recorrentes), para o painel
+create or replace view vw_doacoes_unicas as
+select d.codigo_convite  as codigo,
+       d.nome,
+       d.telefone,
+       d.email,
+       d.valor,
+       d.status,
+       o.nome            as origem,
+       d.criada_em,
+       d.paga_em,
+       fn_convite_nome(d.convite_usado) as convidado_por,
+       (select count(*) from guardiao g where g.convite_usado = d.codigo_convite)
+     + (select count(*) from doacao_unica x where x.convite_usado = d.codigo_convite) as indicacoes
+  from doacao_unica d
+  join origem o on o.id = d.origem_id
+ order by d.criada_em desc;

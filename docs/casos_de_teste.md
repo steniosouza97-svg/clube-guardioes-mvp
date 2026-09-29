@@ -6,9 +6,9 @@ Três camadas de teste, todas automatizadas:
 
 | Camada | Onde roda | Quantidade | Resultado |
 |---|---|---|---|
-| Fluxo principal (banco) | Supabase e PostgreSQL local | 28 testes | 28 aprovados |
-| Regras de acesso (banco) | Supabase e PostgreSQL local | 11 testes | 11 aprovados |
-| Interface ponta a ponta | Chromium sobre réplica local do Supabase | 19 passos | 19 aprovados |
+| Fluxo principal (banco) | Supabase e PostgreSQL local | 31 testes | 31 aprovados |
+| Regras de acesso (banco) | Supabase e PostgreSQL local | 12 testes | 12 aprovados |
+| Interface ponta a ponta | Chromium sobre réplica local do Supabase | 22 passos | 22 aprovados |
 
 Mais dois **controles negativos**, que provam que os testes detectam defeitos.
 
@@ -36,8 +36,11 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | Cancelamento | Passo 4 | T10, T11, T15 | E12, E14 |
 | Painel e prestação de contas | Slides 8, 9 e 11 | T14 | E05, E06, E07 |
 | Qualidade e integridade dos dados | Handover | T18, T19, T20 | E17 |
-| Acesso e privacidade | Handover | S01 a S11 | E04 |
+| Acesso e privacidade | Handover | S01 a S12 | E04 |
 | Base atual em Pix direto (modelo híbrido): cadastro, registro manual, migração para a Asaas | Slide 10, Fase 1 | T25 a T28 | E09, E18 |
+| Jornada da semana 5: Pix, erro, confirmação, convite rastreável, Aviso de Privacidade | Slide 5, Passos 1 e 2 | T16, T29 | E19 |
+| Prestação de contas por atividade (tela Atividades da semana 5) | Slide 5, Passo 3 | T13, T30 | E20 |
+| Contato pessoal com quem está em atraso (tela Lembretes da semana 5) | Slide 5, Passo 4 | T31 | E21 |
 | Uso no celular | Handover | | E16 |
 
 ## Fluxo principal (banco)
@@ -72,6 +75,9 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T26 | Mês de um Guardião em Pix direto | O simulador da Asaas não o processa; o registro manual paga, envia agradecimento e deixa rastro `manual_`; cobrança da Asaas recusa registro manual |
 | T27 | Pix direto não recebido no mês | Lembrete registrado e Guardião no alerta de churn |
 | T28 | Migração para a Asaas | Valor e histórico mantidos; não se repete; a cobrança seguinte passa pela Asaas |
+| T29 | Adesão pelo link pessoal de convite de um Guardião | Registra quem convidou e o canal "Indicação de Guardião"; código inválido é ignorado |
+| T30 | Equipe registra o que cada atividade sustentou no mês | Texto atualizado sem duplicar; texto curto recusado; a notícia do mês leva o texto |
+| T31 | Equipe registra o contato feito com quem está em atraso | Contato com anotação no histórico; alerta mostra o último contato |
 
 ## Regras de acesso (banco)
 
@@ -88,6 +94,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | S09 | Anônimo consulta CPF | Bloqueado |
 | S10 | Voluntário tenta ler o CPF cifrado, a chave ou calcular impressões digitais | Bloqueado nos três casos |
 | S11 | Anônimo ou conta sem cadastro de voluntário tenta cadastrar a base, registrar Pix direto ou migrar | Bloqueado |
+| S12 | Anônimo resolve um link de convite; tenta ler a prestação de contas, registrar impacto ou contato | Vê só o primeiro nome de quem convidou; o resto é bloqueado |
 
 ## Interface ponta a ponta
 
@@ -112,6 +119,9 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | E16 | Abrir a adesão no celular | Cabe na tela, sem rolagem lateral |
 | E17 | Todo o roteiro | Nenhum erro de JavaScript no console |
 | E18 | Cadastrar Guardião da base em Pix direto, registrar o Pix do mês pelo extrato e migrar para a Asaas | Canal fixo em "Base Pix manual"; pagamento com rastro manual; migração em dois cliques |
+| E19 | Jornada da semana 5: Pix com QR Code e copia e cola, simular falha e tentar de novo, confirmação, convite; nova adesão pelo link de convite; Aviso de Privacidade | Etapas 1 a 3 marcadas; link com o código do Guardião; indicação gravada |
+| E20 | Tentar enviar a notícia sem prestação de contas; registrar o texto de cada atividade | Envio recusado até o registro; prévia da notícia com as três atividades |
+| E21 | Registrar contato feito no alerta de churn | Anotação gravada; alerta mostra o último contato |
 
 ## Controles negativos
 
@@ -137,7 +147,8 @@ Um teste que nunca falha não prova nada; estes provam.
 | `evidencias/testes_supabase_2026-09-28.log` | Primeira execução no Supabase: 24 de fluxo e 10 de acesso aprovados |
 | `evidencias/testes_local_2026-09-28_1612.log` | Mesma execução em PostgreSQL 16 local |
 | `evidencias/testes_supabase_2026-09-28_modelo_hibrido.log` | Execução no Supabase depois do modelo híbrido: 28 de fluxo e 11 de acesso aprovados |
-| `evidencias/testes_local_2026-09-28_1933.log` | Mesma execução em PostgreSQL 16 local |
+| `evidencias/testes_supabase_2026-09-28_jornada_semana5.log` | Execução no Supabase depois da jornada da semana 5: 30 de 31 de fluxo (T20 detectou um e-mail real inserido pela página; zerar a base resolve) e 12 de 12 de acesso |
+| `evidencias/testes_local_2026-09-28_2041.log` | Execução completa em PostgreSQL 16 local: 31 de 31 de fluxo e 12 de 12 de acesso |
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
-| `evidencias/e2e/resultado_e2e.log` | Os 19 passos de interface aprovados |
+| `evidencias/e2e/resultado_e2e.log` | Os 22 passos de interface aprovados |
 | `evidencias/e2e/*.png` | Capturas de tela de cada tela do roteiro |

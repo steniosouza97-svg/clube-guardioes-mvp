@@ -140,3 +140,13 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 
 **Consequência.** Para o doador, nada muda no bolso: continua pagando por Pix, sem taxa; a tarifa da Asaas (R$ 3,09 por Guardião ao mês) é do Instituto e já está no modelo financeiro para toda a base. Meta operacional: 80% da base atual migrada até março de 2027. Enquanto houver Pix direto, a conferência do extrato é tarefa mensal da pessoa dedicada. O simulador da Asaas ignora o Pix direto, porque a Asaas não o enxerga. Testes: T25 a T28, S11 e E18.
 
+## DT-16. O MVP evolui o protótipo navegável da semana 5
+
+**Contexto.** A primeira versão do MVP foi construída a partir do enunciado da semana 10 e da documentação do projeto, não das telas do protótipo V7.0. A navegação ficou diferente da entregue na semana 5: sem cadastro em etapas, sem tela de Pix, sem convite e sem a tela de Atividades da equipe.
+
+**Decisão.** Reconstruir a jornada pública nas telas do protótipo (Início, Cadastro em 3 etapas, Pagamento Pix, Erro no Pix, Confirmação, Convite, Aviso de Privacidade) e trazer ao painel as telas da equipe que faltavam (Atividades e prestação de contas; Registrar contato feito), tudo sobre o banco real. O convite passa a ser rastreável (`codigo_convite`, `indicado_por`) e a notícia mensal de impacto leva o texto registrado por atividade (`atividade`, `impacto_mensal`), que passa a ser obrigatório antes do envio.
+
+**Descartado nesta entrega.** Minha Área, login da Guardiã e recibo: exigem autenticação real da doadora (US06 da semana 5), que não cabe com segurança antes da banca. Ficam para a fase 2 sobre os mesmos dados.
+
+**Consequência.** Cada tela da semana 5 tem destino registrado em `docs/rastreabilidade_semana5.md`. O visitante anônimo passa a poder descobrir só o primeiro nome de quem o convidou, e apenas com o código do link. Testes: T13, T16, T29 a T31, S12, E19 a E21.
+
