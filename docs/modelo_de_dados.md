@@ -8,7 +8,15 @@ A Asaas, gateway de pagamento já contratado pelo Instituto, é a **fonte da ver
 
 Dado pessoal mínimo, por LGPD: nome, telefone, e-mail (opcional desde 29/09), CPF **cifrado** e o registro do consentimento. Nenhum dado de cartão. O CPF é o identificador único do Guardião, mas o banco só guarda a sua impressão digital com chave secreta (ver [DT-14](decisoes_tecnicas.md) e [LGPD](lgpd_pendencias.md)).
 
-## Diagrama
+## Desenho oficial do banco (entrega)
+
+Lido do catálogo do Supabase em 30/09/2026 (PostgreSQL 17.6, migração 32):
+
+- [`docs/diagramas/diagrama_banco_de_dados.pdf`](diagramas/diagrama_banco_de_dados.pdf): 3 páginas A3. (1) Diagrama entidade-relacionamento físico, notação pé de galinha, com as 13 tabelas, todas as colunas, tipos, chaves, relações e regras; (2) camadas de acesso: papéis, 34 funções, 7 views e matriz de permissões por tabela; (3) dicionário de dados de cada coluna, índices, regras CHECK e valores permitidos.
+- [`docs/diagramas/diagrama_banco_de_dados_erd.png`](diagramas/diagrama_banco_de_dados_erd.png): a página 1 em imagem.
+- [`docs/diagramas/diagrama_banco_de_dados.dbml`](diagramas/diagrama_banco_de_dados.dbml): o mesmo modelo em DBML, formato aberto que pode ser importado em ferramentas como o dbdiagram.io para editar o diagrama.
+
+## Diagrama resumido
 
 ```mermaid
 erDiagram

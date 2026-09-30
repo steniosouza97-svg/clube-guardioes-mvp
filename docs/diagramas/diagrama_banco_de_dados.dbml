@@ -1,0 +1,147 @@
+// Clube Guardiões do Futuro · banco do MVP no Supabase (PostgreSQL 17.6)
+// Gerado do catálogo em 30/09/2026 (migração 32). Abra em https://dbdiagram.io para ver o diagrama.
+
+Table public.origem [note: "Canal de aquisição do doador"] {
+  id smallint [pk, not null, note: 'identity']
+  nome text [unique, not null]
+  tipo text [not null, note: '8 tipos de canal']
+  ativa boolean [not null, note: 'padrão true']
+  criado_em timestamptz [not null, note: 'now()']
+}
+
+Table public.guardiao [note: "Doador recorrente (Guardião do Futuro)"] {
+  id uuid [pk, not null, note: 'gen_random_uuid()']
+  nome text [not null, note: '≥ 2 caracteres']
+  email text [unique, note: 'opcional, minúsculo']
+  telefone text [note: 'WhatsApp']
+  origem_id smallint [not null, note: '→ origem.id']
+  consentimento_lgpd boolean [not null, note: 'obrigatório = true']
+  consentimento_em timestamptz [not null, note: 'now()']
+  entrou_em date [not null, note: 'current_date']
+  id_externo_gateway text [unique, note: 'id do cliente na Asaas']
+  criado_em timestamptz [not null, note: 'now()']
+  cpf_hash text [unique, not null, note: 'HMAC-SHA256 do CPF']
+  codigo_convite text [unique, not null, note: '8 caracteres, link pessoal']
+  indicado_por uuid [note: '→ guardiao.id']
+  convite_usado text [note: 'código de quem convidou']
+}
+
+Table public.assinatura [note: "Doação mensal recorrente do Guardião"] {
+  id uuid [pk, not null, note: 'gen_random_uuid()']
+  guardiao_id uuid [not null, note: '→ guardiao.id']
+  valor_mensal numeric(10,2) [not null, note: '≥ 10 (R$ 85 novas)']
+  dia_vencimento smallint [not null, note: '1 a 28']
+  meio_pagamento text [not null, note: 'pix, pix_direto, cartao, boleto']
+  status text [not null, note: 'ativa, pausada, cancelada']
+  iniciada_em date [not null]
+  cancelada_em date [note: 'só se cancelada']
+  motivo_cancelamento text [note: 'voluntario, inadimplencia']
+  id_externo_gateway text [unique, note: 'id na Asaas']
+  pausada_ate date [note: '1º dia do mês de volta']
+  motivo_texto text [note: 'até 200 caracteres']
+}
+
+Table public.cobranca [note: "Cobrança mensal (uma por competência)"] {
+  id uuid [pk, not null, note: 'gen_random_uuid()']
+  assinatura_id uuid [not null, note: '→ assinatura.id']
+  competencia date [not null, note: '1º dia do mês']
+  valor numeric(10,2) [not null, note: '> 0']
+  vencimento date [not null]
+  status text [not null, note: 'pendente, pago, falhou, recuperado, cancelado']
+  tentativas smallint [not null, note: '≥ 0']
+  pago_em timestamptz [note: 'só se paga']
+  id_externo_gateway text [unique, note: 'id na Asaas']
+}
+
+Table public.evento_gateway [note: "Aviso recebido da Asaas (webhook)"] {
+  id_evento text [pk, not null, note: 'id do evento: idempotência']
+  tipo text [not null, note: 'PAYMENT_RECEIVED, PAYMENT_OVERDUE']
+  cobranca_id uuid [not null, note: '→ cobranca.id']
+  recebido_em timestamptz [not null, note: 'now()']
+}
+
+Table public.doacao_unica [note: "Doação avulsa de qualquer valor"] {
+  id uuid [pk, not null, note: 'gen_random_uuid()']
+  nome text [not null, note: '≥ 2 caracteres']
+  email text [note: 'opcional, minúsculo']
+  cpf_hash text [not null, note: 'HMAC-SHA256 do CPF']
+  telefone text
+  valor numeric(10,2) [not null, note: 'R$ 10 a R$ 50.000']
+  origem_id smallint [not null, note: '→ origem.id']
+  convite_usado text [note: 'código de quem convidou']
+  codigo_convite text [unique, not null, note: 'link pessoal de indicação']
+  status text [not null, note: 'pendente, paga, falhou']
+  consentimento_lgpd boolean [not null, note: 'obrigatório = true']
+  criada_em timestamptz [not null, note: 'now()']
+  paga_em timestamptz [note: 'só se paga']
+  id_externo_gateway text [unique, note: 'id na Asaas']
+}
+
+Table public.comunicacao [note: "Mensagem enviada ao Guardião (régua)"] {
+  id bigint [pk, not null, note: 'identity']
+  guardiao_id uuid [not null, note: '→ guardiao.id']
+  cobranca_id uuid [note: '→ cobranca.id']
+  competencia date [note: 'obrigatória no impacto mensal']
+  tipo text [not null, note: '9 tipos da régua']
+  canal text [not null, note: 'whatsapp, email, sms']
+  enviada_em timestamptz [not null, note: 'now()']
+  conteudo text
+}
+
+Table public.atividade [note: "Atividade do Instituto sustentada"] {
+  id smallint [pk, not null, note: 'identity']
+  nome text [unique, not null, note: 'Contraturno, Laboratório, Vivências']
+  descricao text
+  ativa boolean [not null, note: 'padrão true']
+}
+
+Table public.impacto_mensal [note: "Prestação de contas por atividade e mês"] {
+  atividade_id smallint [not null, note: '→ atividade.id']
+  competencia date [not null, note: '1º dia do mês']
+  texto text [not null, note: '10 a 600 caracteres']
+  atualizado_em timestamptz [not null, note: 'now()']
+  indexes {
+    (atividade_id, competencia) [pk]
+  }
+}
+
+Table public.parametro [note: "Parâmetros de negócio editáveis"] {
+  chave text [pk, not null, note: 'ex.: valor_guardiao']
+  valor numeric [not null]
+  descricao text [not null]
+}
+
+Table public.voluntario [note: "Quem pode entrar no painel"] {
+  email text [pk, not null, note: 'minúsculo; casa com o login']
+  nome text [not null]
+  ativo boolean [not null, note: 'padrão true']
+  criado_em timestamptz [not null, note: 'now()']
+}
+
+Table public.tentativa_acesso [note: "Registro de entradas na Minha Área"] {
+  id bigint [pk, not null, note: 'identity']
+  telefone_hash text [not null, note: 'HMAC do WhatsApp']
+  sucesso boolean [not null]
+  em timestamptz [not null, note: 'now()']
+}
+
+Table privado.segredo [note: "Chave do HMAC (esquema privado)"] {
+  chave text [pk, not null, note: 'cpf_hmac']
+  valor text [not null, note: 'segredo, nunca exposto']
+}
+
+Ref: public.guardiao.origem_id > public.origem.id
+Ref: public.doacao_unica.origem_id > public.origem.id
+Ref: public.assinatura.guardiao_id > public.guardiao.id [delete: restrict]
+Ref: public.guardiao.indicado_por > public.guardiao.id
+Ref: public.cobranca.assinatura_id > public.assinatura.id [delete: restrict]
+Ref: public.evento_gateway.cobranca_id > public.cobranca.id
+Ref: public.comunicacao.guardiao_id > public.guardiao.id [delete: restrict]
+Ref: public.comunicacao.cobranca_id > public.cobranca.id
+Ref: public.impacto_mensal.atividade_id > public.atividade.id
+
+// Relações lógicas, sem chave estrangeira:
+//   public.guardiao.convite_usado ~ public.doacao_unica.codigo_convite  (convite de doação única)
+//   public.doacao_unica.convite_usado ~ public.guardiao.codigo_convite  (convite de Guardião)
+//   public.doacao_unica.cpf_hash ~ public.guardiao.cpf_hash  (mesmo CPF: recibo anual)
+//   public.tentativa_acesso.telefone_hash ~ public.guardiao.telefone  (HMAC do WhatsApp)
