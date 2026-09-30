@@ -150,7 +150,7 @@ select c.id            as cobranca_id,
   join assinatura a on a.id = c.assinatura_id
   join guardiao g   on g.id = a.guardiao_id;
 
--- Resultado por canal de aquisição: mede as 56 h mensais de aquisição
+-- Resultado por canal de aquisição: mede as horas mensais de captação (56 h nas Fases 1 e 2, 72 h na Fase 3)
 create or replace view vw_origem_resultado as
 select o.nome                                                  as origem,
        o.tipo,

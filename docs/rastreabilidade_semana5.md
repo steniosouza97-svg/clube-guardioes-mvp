@@ -49,7 +49,7 @@ O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na sem
 | Dados sintéticos de 12 meses | Exigência do enunciado; calibrados com o business case | T19, T20 |
 | Operação do mês (gerar cobranças, simular a Asaas, enviar a notícia) | Mostra o ciclo mensal funcionando de ponta a ponta | E08, E09, E13 |
 | Base atual em Pix direto e migração para a Asaas | Os 35 Guardiões de hoje não passam pela Asaas (DT-15) | T25 a T28, E18 |
-| Canais de aquisição | Mede onde as 56 horas mensais de captação rendem mais | E15 |
+| Canais de aquisição | Mede onde as horas mensais de captação (56 h nas Fases 1 e 2, 72 h na Fase 3) rendem mais | E15 |
 | CPF cifrado | O CPF é o identificador único da semana 5, guardado sem expor o número (DT-14) | T23, S10 |
 | Doação única de qualquer valor | Porta de entrada para quem não pode doar todo mês, sem distorcer as métricas de recorrência (DT-17) | T33, S13, E22 |
 | Pausa em vez de cancelamento | Alternativa para quem passa por um aperto; volta sozinha em 1 a 3 meses (DT-17) | T34, T36, E23, E24 |

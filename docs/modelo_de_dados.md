@@ -96,7 +96,7 @@ erDiagram
 | `doacao_unica` | Doação avulsa de qualquer valor, de Guardião ou não (DT-17) | Valor de R$ 10 a R$ 50.000; CPF só cifrado; e-mail opcional e em minúsculas; consentimento LGPD obrigatório; status `pendente`, `paga` ou `falhou`, paga sempre com data; código de convite único e `convite_usado` |
 | `tentativa_acesso` | Cada tentativa de entrar na Minha Área (DT-18) | Telefone guardado só como impressão digital (HMAC com a chave do CPF); cinco erros em 15 minutos bloqueiam o mesmo WhatsApp |
 | `evento_gateway` | Eventos recebidos da Asaas | Um evento só produz efeito uma vez (idempotência do webhook) |
-| `origem` | Canal de aquisição | Mede o resultado das 56 horas mensais de aquisição |
+| `origem` | Canal de aquisição | Mede o resultado das horas mensais de captação (56 h nas Fases 1 e 2, 72 h na Fase 3) |
 | `parametro` | Números de negócio editáveis | Custeio de 2025, metas, taxas, limite de tentativas, valor do Guardião (`valor_guardiao` = 85), pausa máxima (`pausa_maxima_meses` = 3), meses por estrela (`meses_por_estrela` = 3) e `modo_demonstracao` (1 na demonstração, 0 em produção), alteráveis sem mexer em código |
 | `voluntario` | Quem pode operar o painel | Só e-mails desta tabela, com login, veem dados e executam o fluxo |
 | `privado.segredo` | Chave secreta do CPF | Gerada na instalação; esquema sem acesso pela API |
@@ -122,7 +122,7 @@ Os eventos tratados têm os nomes usados pela Asaas: `PAYMENT_RECEIVED` (pagamen
 | `vw_metricas_mensais` | Ativos, novos, cancelados, receita, ticket médio e churn por mês | Slides 8 e 9 |
 | `vw_painel_resumo` | Último mês fechado, Guardiões no Clube (ativos e pausados), Guardiões pausados, doações únicas do mês (quantidade e valor) e cobertura do custeio de 2025 | Indicador principal do projeto |
 | `vw_cobrancas_mes` | Cobranças de cada mês com o nome do Guardião | Rotina mensal e prestação de contas |
-| `vw_origem_resultado` | Guardiões, retenção e receita por canal de aquisição | Retorno das 56 h mensais de aquisição |
+| `vw_origem_resultado` | Guardiões, retenção e receita por canal de aquisição | Retorno das horas mensais de captação |
 | `vw_doacoes_unicas` | Doações únicas com valor, status, canal, quem convidou e indicações geradas, sem o CPF cifrado | Receita pontual, fora das métricas de recorrência |
 
 ## Funções do fluxo

@@ -11,7 +11,7 @@ O vídeo demonstrativo e as evidências de teste retratam uma versão exata do M
    - interface: `./tests/e2e/rodar_e2e.sh` (25 passos aprovados, conforme `evidencias/e2e/resultado_e2e.log`).
 3. **A evidência nova vai para `evidencias/`**, com a data no nome do arquivo.
 4. **A correção é avaliada contra o vídeo.** Se a tela mudar, o grupo decide entre regravar a cena ou registrar a diferença em `docs/casos_de_teste.md`.
-5. **Mudança no banco do Supabase só por migração versionada** (arquivos de `db/`), nunca pelo Table Editor. A última aplicada até 29/09 é a 25; a próxima correção entra como 26.
+5. **Mudança no banco do Supabase só por migração versionada** (arquivos de `db/`), nunca pelo Table Editor. A última aplicada até 30/09 é a 32; a próxima correção entra como 33.
 6. **O commit diz o defeito e o teste que o protege**, por exemplo: `Corrige X; protegido por T35`.
 
 ## Sempre, congelado ou não

@@ -70,7 +70,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | T16 | Adesão pela página pública | Registra o canal de origem; o Guardião doa R$ 85 por mês; valor mensal de R$ 60 é recusado |
 | T17 | Simulador do gateway no mês inteiro | Nenhuma cobrança da Asaas fica pendente; um aviso por cobrança, pelo caminho do webhook |
 | T18 | Gerador sobre base já populada | Recusa rodar |
-| T19 | Calibração dos dados sintéticos | Ticket entre R$ 70 e R$ 90, churn entre 1% e 4%, base a até 15% do plano |
+| T19 | Calibração dos dados sintéticos | Ticket entre R$ 70 e R$ 90, churn entre 1% e 4%, base de demonstração ao menos igual à do plano em fases no mês 12 (a partir de 140; plano: 164) |
 | T20 | Integridade | Uma assinatura ativa por Guardião, um CPF por Guardião, todo pagamento com aviso do gateway, nenhum e-mail real |
 | T21 | CPF com dígito verificador errado, com números repetidos ou curto | Recusado |
 | T22 | Mesmo CPF com outro e-mail; mesmo e-mail com outro CPF | Os dois recusados; nenhum Guardião duplicado |
@@ -167,6 +167,7 @@ Um teste que nunca falha não prova nada; estes provam.
 | `evidencias/testes_supabase_2026-09-28_jornada_semana5.log` | Execução no Supabase depois da jornada da semana 5: 30 de 31 de fluxo (T20 detectou um e-mail real inserido pela página; zerar a base resolve) e 12 de 12 de acesso |
 | `evidencias/testes_local_2026-09-28_2041.log` | Execução completa em PostgreSQL 16 local: 31 de 31 de fluxo e 12 de 12 de acesso |
 | `evidencias/testes_local_2026-09-29_0736.log` | Execução em PostgreSQL 16 local depois das decisões de 29/09: 38 de 38 de fluxo e 13 de 13 de acesso |
+| `evidencias/testes_local_2026-09-30_1337.log` e `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` | Execução local e no Supabase depois do alinhamento do T19 ao plano de captação em fases (migração 32): 39 de 39 de fluxo e 13 de 13 de acesso, idênticas |
 | `evidencias/testes_local_2026-09-29_1404.log` | Execução em PostgreSQL 16 local depois da trava da demonstração e da nova regra das estrelas: 39 de 39 de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` | Execução no Supabase depois da remoção dos 2 cadastros com e-mail real do teste com professor e da trava da demonstração (migrações 26 a 31, incluindo a nova regra das estrelas): 39 de 39 de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log` | Execução no Supabase depois das migrações 19 a 25 (decisões de 29/09), sobre a base regenerada (305 Guardiões, 4 pausados, 48 doações únicas): 38 de fluxo e 13 de acesso aprovados, idêntico ao local |

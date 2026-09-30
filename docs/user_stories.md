@@ -88,7 +88,7 @@ O login por WhatsApp e CPF serve para a demonstração com dados sintéticos. An
 
 ### US07. Saber quem precisa de contato hoje
 
-**Como** pessoa dedicada ao Clube, **quero** uma lista priorizada de quem está em risco, **para** usar bem as 24 horas mensais de retenção.
+**Como** pessoa dedicada ao Clube, **quero** uma lista priorizada de quem está em risco, **para** usar bem as horas mensais de retenção (24 h nas Fases 1 e 2, 48 h na Fase 3).
 
 | # | Critério de aceite | Teste |
 |---|---|---|

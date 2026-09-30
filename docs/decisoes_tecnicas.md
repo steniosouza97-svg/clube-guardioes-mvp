@@ -62,11 +62,13 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 
 ## DT-08. Dados sintéticos gerados dentro do banco
 
-**Decisão.** O gerador é uma função SQL (`fn_gerar_dados_sinteticos`, em `db/05_dados_sinteticos.sql`), com semente fixa, calibrada com os números do business case: 35 Guardiões iniciais (dado real), conversão de 30 doadores pontuais, 20 novos por mês e churn próximo de 2%.
+**Decisão.** O gerador é uma função SQL (`fn_gerar_dados_sinteticos`, em `db/05_dados_sinteticos.sql`), com semente fixa, calibrada com os números do business case vigentes em 28/09: 35 Guardiões iniciais (dado real), conversão de 30 doadores pontuais, 20 novos por mês e churn próximo de 2%.
 
 **Por quê.** A primeira versão era um script Python que gerava um arquivo SQL de 1,4 MB, grande demais para colar no SQL Editor do Supabase. A função roda dentro do banco e o Instituto regenera a demonstração com um comando. A mesma semente produz a mesma base no Supabase e localmente (verificado: 305 Guardiões e 2.222 cobranças nos dois).
 
-**Resultado verificado.** Ticket médio de R$ 76,73, churn médio de 1,55% ao mês e 275 Guardiões no mês 12, contra 267 projetados no modelo financeiro (teste T19).
+**Resultado verificado.** Ticket médio de R$ 76,73, churn médio de 1,55% ao mês e 275 Guardiões no mês 12 (teste T19).
+
+**Revisão de 30/09.** O plano de captação passou a crescer em fases (164 Guardiões no mês 12, em vez de 267). A base de demonstração não foi regenerada: ela fica acima do plano de propósito, para testar o painel com mais volume, e mantém estáveis o Guardião de demonstração, as contagens e as evidências. O T19 passou a conferir ticket e churn contra o plano e a exigir que a base de demonstração seja pelo menos a do plano no mês 12 (a partir de 140, 164 menos 15%).
 
 **Proteções.** A função se recusa a rodar se a base já tiver dados ou se encontrar qualquer e-mail fora do domínio reservado `example.com` (T18), e não pode ser chamada pela API (S08).
 

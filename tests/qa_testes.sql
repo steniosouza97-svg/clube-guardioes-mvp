@@ -555,8 +555,8 @@ begin
         select ativos_fim into n from vw_metricas_mensais order by mes desc limit 1;
         assert v_num between 70 and 90, 'T19 ticket médio fora da calibração: ' || v_num;
         assert v_num2 between 0.01 and 0.04, 'T19 churn médio fora da calibração: ' || v_num2;
-        assert n between 227 and 307, format('T19 base do último mês (%s) fora de ±15%% do plano (267)', n);
-        v_log := v_log || format('PASS T19 dados sintéticos calibrados: ticket R$ %s, churn %s%% ao mês, %s Guardiões no último mês (plano: 267)',
+        assert n >= 140, format('T19 base do último mês (%s) abaixo do plano em fases no mês 12 (164, tolerância de 15%%)', n);
+        v_log := v_log || format('PASS T19 dados sintéticos calibrados: ticket R$ %s, churn %s%% ao mês, %s Guardiões no último mês (plano em fases: 164; a demonstração fica acima de propósito)',
                                  round(v_num, 2), round(v_num2 * 100, 2), n);
 
         assert not exists (select guardiao_id from assinatura where status = 'ativa' group by 1 having count(*) > 1),

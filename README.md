@@ -37,7 +37,7 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 | Página de adesão (jornada da doadora, telas da semana 5) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html |
 | Dados | 305 Guardiões sintéticos (271 ativos, 4 pausados), 2.222 cobranças e 48 doações únicas, 12 meses de operação simulada (out/2025 a set/2026) |
-| Migrações aplicadas no Supabase | Até a 25 (as 19 a 25 trazem as decisões de 29/09) |
+| Migrações aplicadas no Supabase | Até a 32 (19 a 25: decisões de 29/09; 26 a 31: nome Guardiões do Futuro, total doado, trava de e-mail real e regra das estrelas; 32: T19 alinhado ao plano em fases) |
 
 ## Estrutura
 
@@ -109,7 +109,7 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 
 **Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 25 passos no navegador com Playwright (E01 a E24, com E07b): jornada da semana 5 (cadastro em 3 etapas, Pix, falha e nova tentativa, confirmação, Indique um novo Doador), doação única sem e-mail, Minha Área completa (nível, estrelas, impacto, histórico, pausa, retomada, cancelamento com motivo, reativação por R$ 85, recibo), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento, doações únicas e pausados no painel, celular e console sem erros. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais (29/09/2026): 39 de 39 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-29_1404.log`, `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` e `evidencias/e2e/resultado_e2e.log`.
+Evidências atuais (30/09/2026): 39 de 39 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-30_1337.log`, `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` e `evidencias/e2e/resultado_e2e.log`.
 
 **Testar a Minha Área:** na página pública, clicar em **Minha Área** no topo e depois em **Entrar como Guardião de demonstração**. Ou digitar os dados do Guardião sintético Carlos Barbosa: WhatsApp `(11) 90000-0040` e CPF `800.000.040-73` (fictício). Ele aparece como Guardião Prata (4 estrelas, 11 meses), a 1 estrela do Ouro, impacto, histórico e recibo. Cinco tentativas erradas em 15 minutos bloqueiam a entrada por esse WhatsApp.
 
@@ -143,7 +143,15 @@ O resultado deve ser "305 Guardiões (271 ativos, 4 pausados)", com 48 doações
 
 ## Operação depois da semana 10
 
-Quem opera: a pessoa dedicada ao Clube (80 horas por mês, 70% aquisição e 30% retenção). Competência necessária: usar o painel e a Asaas; não exige programação.
+Quem opera: a pessoa dedicada ao Clube. Competência necessária: usar o painel e a Asaas; não exige programação. O plano de captação cresce em três fases (planilha `Modelo_Financeiro_Clube_Guardioes_final_30-09`, Premissas, linhas 40 a 53):
+
+| Fase | Período | Horas por mês | Captação / retenção | Novos Guardiões por mês | Churn esperado |
+|---|---|---|---|---|---|
+| 1. Implantação e ajuste | fev a jul/2027 | 80 | 56 h / 24 h | 5 a 10, mais 5 pontuais convertidos | até 3% |
+| 2. Tração | ago/2027 a jul/2028 | 80 | 56 h / 24 h | 12 a 15 | até 2,5% |
+| 3. Maturidade | ago/2028 a jan/2030 | 120 (segundo voluntário de 40 h, focado em retenção) | 72 h / 48 h | 18 | até 2% |
+
+Passagem de fase: da 1 para a 2, 40 pontuais contatados, 80% dos 35 migrados para a Asaas e churn até 3%; da 2 para a 3, pelo menos 12 novos por mês em 3 meses seguidos e base acima de 200. Gatilhos de revisão: churn acima de 4% ao mês, base abaixo de 130 Guardiões no mês 12 (jan/2028) e custo de notificação acima de R$ 300 por mês. Os números de acompanhamento estão no **Resumo** e em **Canais** do painel.
 
 | Frequência | Tarefa | Onde |
 |---|---|---|
@@ -151,7 +159,8 @@ Quem opera: a pessoa dedicada ao Clube (80 horas por mês, 70% aquisição e 30%
 | Semanal | Registrar adesões presenciais; acompanhar **Canais** (o uso semanal também mantém o Supabase ativo) | Painel |
 | Mensal | **Doações únicas**: acompanhar a aba e convidar quem doou a virar Guardião. **Atividades**: registrar o que cada atividade sustentou no mês. **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
 | Jan a mar/2027 | Convidar cada Guardião da base atual a migrar para a Asaas; quem aceitar, botão **Migrar para Asaas** na aba Guardiões. Meta: 80% migrados (indicador "Base ainda em Pix direto" no Resumo) | Painel e WhatsApp |
-| Trimestral | Rodar os testes; revisar parâmetros e comparar com o plano do business case | SQL Editor |
+| Mensal | Comparar novos Guardiões e churn do mês com a curva da fase (tabela acima) | Painel, aba Resumo |
+| Trimestral | Rodar os testes; revisar parâmetros e decidir a passagem de fase com a diretoria | SQL Editor e painel |
 
 **Base atual (modelo híbrido, DT-15):** os Guardiões que já doam por Pix direto são cadastrados no painel marcando "Já doa por Pix direto" na adesão presencial. Não trocam a forma de pagar e recebem a mesma comunicação.
 
