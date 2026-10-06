@@ -32,6 +32,7 @@ Não são tratados: dados de cartão, dados sensíveis (art. 5º, II), dados de 
 | Só voluntários cadastrados acessam o painel | Lista de voluntários checada pelo banco | S05, S06 |
 | Toda gravação passa pelas regras do fluxo | Funções como única porta de escrita | S04, S07 |
 | Base de demonstração sem dados reais | E-mails no domínio reservado example.com; CPFs fictícios gravados só cifrados | T20 |
+| Demonstração recusa e-mail real | Com `modo_demonstracao` ligado, o banco só aceita e-mail terminado em `@example.com` ou em branco, e a página explica o motivo antes de enviar | T39, E01 |
 | E-mail não é obrigatório | Guardião e doação única aceitam cadastro sem e-mail; se informado, é validado | T32, E22 |
 | Doação única com os mesmos cuidados do Guardião | CPF só como HMAC; o visitante anônimo não lê a tabela; voluntário vê a lista sem o CPF cifrado (`vw_doacoes_unicas`) | T33, S13 |
 | Minha Área não expõe dados sensíveis | Entrada só com WhatsApp e CPF corretos; resposta genérica ("dados não conferem"); devolve só primeiro nome, status, valores e histórico, nunca e-mail, telefone ou CPF; bloqueio após 5 erros em 15 minutos | T35, S13, E23 |
@@ -77,7 +78,7 @@ Os 35 Guardiões de hoje entram no painel com CPF e consentimento colhidos na co
 
 ### Dado real na base de demonstração
 
-Durante uma validação ao vivo, entraram na base de demonstração dois cadastros com e-mail real. O T20 detectou; os registros, a mensagem associada e as tentativas de acesso do dia foram apagados, e a demonstração recusa e-mail fora de `@example.com` (T39). Lição para a operação real: a base de testes e a de produção devem ser projetos separados no Supabase, e ninguém testa a página de produção com dados de terceiros.
+Durante o teste com usuário real (professor Bryan, Inteli; ver [teste com usuários](teste_com_usuarios.md)), entraram na base de demonstração dois cadastros com e-mail real. O T20 detectou; os registros, a mensagem associada e as tentativas de acesso do dia foram apagados, e a demonstração recusa e-mail fora de `@example.com` (T39). Lição para a operação real: a base de testes e a de produção devem ser projetos separados no Supabase, e ninguém testa a página de produção com dados de terceiros.
 
 ## 4. Síntese
 
