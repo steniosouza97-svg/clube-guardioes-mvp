@@ -20,7 +20,7 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 | Implementa o modelo de dados | Tabelas com restrições, chave do CPF em esquema privado, views de métricas e funções como única porta de escrita. [Modelo de dados](docs/modelo_de_dados.md) e [desenho do banco em PDF](docs/diagramas/diagrama_banco_de_dados.pdf) |
 | Populado com dados sintéticos | 305 Guardiões (271 ativos, 4 pausados), 2.222 cobranças e 48 doações únicas, 12 meses de operação simulada, calibrados com o business case (teste T19). Nenhum dado real (T20) |
 | Passou por fase de teste | 39 testes de fluxo e 13 de acesso (local e Supabase), 25 passos de interface, 2 controles negativos e as telas principais conferidas em celular, tablet e computador ([telas em três tamanhos](docs/diagramas/telas_responsivas.png)). [Casos de teste](docs/casos_de_teste.md) |
-| Validado com usuários reais | Sessões com pessoas de fora do projeto, no perfil das personas Célia e Ana. [Teste com usuários](docs/teste_com_usuarios.md) |
+| Validado com usuário real | Teste ao vivo com o professor Bryan (Inteli), de fora do projeto: concluiu a adesão como Guardião e a doação única. Os dados reais foram apagados pela regra de dados sintéticos, e o teste gerou a trava de e-mail da demonstração. [Teste com usuários](docs/teste_com_usuarios.md) |
 | Opera de forma estável | No ar no Supabase e no GitHub Pages; testes repetíveis sem alterar dados |
 
 **Para testar a Minha Área:** página pública, **Minha Área** no topo, **Entrar como Guardião de demonstração** (Guardião sintético Carlos Barbosa: Guardião Prata, 4 estrelas e 11 meses, a 1 estrela do Ouro).
@@ -44,4 +44,4 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 
 ## Nota para a banca
 
-Durante uma validação ao vivo, entraram na base de demonstração dois cadastros com e-mail real. O teste de integridade T20 detectou o caso; os registros foram apagados e, desde então, a demonstração só aceita e-mail terminado em `@example.com` ou em branco (teste T39; DT-19).
+Durante o teste com usuário real (professor Bryan, Inteli), entraram na base de demonstração dois cadastros com e-mail real. O teste de integridade T20 detectou o caso; os registros foram apagados e, desde então, a demonstração só aceita e-mail terminado em `@example.com` ou em branco (teste T39; DT-19).

@@ -93,29 +93,36 @@ Uma ficha por sessão. Nenhum dado que identifique a pessoa além do primeiro no
 
 ## Resultados
 
-*Preenchido após as sessões.*
+### Sessão realizada
 
-### Quem participou
+Em 29/09/2026, o MVP publicado foi testado ao vivo pelo professor Bryan, da Inteli, pessoa de fora do grupo e sem vínculo com o Instituto. Ele usou a página como um doador faria, sem roteiro do grupo, e concluiu duas jornadas: a adesão como Guardião e uma doação única.
+
+Por usar o próprio e-mail e dados reais, o teste esbarrou na regra do MVP de manter só dados sintéticos na base de demonstração. O teste automático de integridade (T20) detectou os dois cadastros na mesma tarde, e eles foram apagados, junto com a mensagem associada e as tentativas de acesso do dia. Nenhum dado pessoal do participante foi guardado neste registro.
 
 | Código | Perfil | Relação com o Instituto | Formato | Data |
 |---|---|---|---|---|
-| P1 | | | | |
-| P2 | | | | |
-| P3 | | | | |
+| P1 | Professor da Inteli, avaliador externo | Nenhuma | Ao vivo, na página publicada, sem roteiro do grupo | 29/09/2026 |
 
 ### Hipóteses
 
 | # | Resultado | Evidência |
 |---|---|---|
-| H1 | | |
-| H2 | | |
-| H3 | | |
-| H4 | | |
-| H5 | | |
-| H6 | | |
+| H1 | Confirmada em parte | Concluiu a adesão como Guardião até a confirmação, na página publicada. Tempo e pedidos de ajuda não foram cronometrados |
+| H2 | Confirmada | Encontrou e concluiu também a doação única, separada da recorrência |
+| H3 | Não avaliada | O uso de "Indique um novo Doador" não foi observado |
+| H4 | Não avaliada | A Minha Área não fez parte da sessão |
+| H5 | Não avaliada | A pausa não fez parte da sessão |
+| H6 | Não avaliada | O participante não usou o painel |
 
 ### Aprendizados e o que muda
 
-| Aprendizado | Gravidade | Ajuste no MVP ou na fase 2 |
+| Aprendizado | Gravidade | Ajuste |
 |---|---|---|
-| | | |
+| Uma pessoa de fora concluiu as duas jornadas de doação sem intervenção do grupo: o fluxo principal funciona fora do ambiente de teste | Confirmação | Mantido |
+| O aviso no topo da página ("use dados fictícios") não impede que quem testa digite os próprios dados | Alta (LGPD) | Trava no banco: na demonstração, só e-mail terminado em `@example.com` ou em branco; a página explica o motivo antes de enviar (T39, E01, DT-19) |
+| O teste de integridade T20 detectou o dado real no mesmo dia | Confirmação | Mantido como parte da rotina de testes |
+| A base de demonstração e a de produção precisam ser separadas | Alta (LGPD) | Projetos distintos no Supabase na operação real; ninguém testa a produção com dados de terceiros ([LGPD](lgpd_pendencias.md)) |
+
+### Próximas sessões
+
+As hipóteses H3 a H6 seguem abertas. Os roteiros acima servem para sessões com pessoas no perfil da Célia e da Ana, que podem confirmar ou refutar essas hipóteses antes da operação real.
