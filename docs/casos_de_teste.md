@@ -140,6 +140,21 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | E23 | Minha Área: entra só com WhatsApp e CPF certos; mostra nível, estrelas, impacto e histórico; pausa, retoma, cancela com motivo, reativa por R$ 85 e emite o recibo | CPF errado não entra; cada ação muda o status; motivo do cancelamento gravado; reativação por R$ 85,00; recibo diz "sem dedução de Imposto de Renda" |
 | E24 | Painel mostra doações únicas, Guardiões pausados com a data de volta, nível e estrelas; equipe pausa e retoma a pedido | 9 indicadores; aba Doações únicas com a doação paga; filtro "pausado" mostra a data de volta; Pausar 1 mês (com confirmação) e Retomar funcionando |
 
+## Comportamento em diferentes tamanhos de tela
+
+A interface é uma página responsiva: o mesmo código se adapta ao celular, ao tablet e ao computador, sem versão separada. O teste `tests/e2e/telas_responsivas.py` abre as quatro telas principais em três larguras e confere que nenhuma tem rolagem lateral (a largura do conteúdo é igual à da tela).
+
+| Tela | Celular (390 px) | Tablet (768 px) | Computador (1440 px) |
+|---|---|---|---|
+| Página de adesão | Aprovado | Aprovado | Aprovado |
+| Cadastro | Aprovado | Aprovado | Aprovado |
+| Minha Área | Aprovado | Aprovado | Aprovado |
+| Painel do voluntário | Aprovado | Aprovado | Aprovado |
+
+O que muda em cada tamanho: no celular, a foto fica acima do texto, os cartões da Minha Área e os indicadores do painel ficam em uma coluna e as abas do painel rolam na horizontal; no tablet, os indicadores passam a três colunas; no computador, foto e texto ficam lado a lado e o painel mostra seis indicadores por linha.
+
+![MVP em três tamanhos de tela](diagramas/telas_responsivas.png)
+
 ## Controles negativos
 
 1. A idempotência do webhook foi deliberadamente quebrada numa cópia do banco. A suíte parou no T07 com "evento repetido não foi detectado".
@@ -167,3 +182,4 @@ Um teste que nunca falha não prova nada; estes provam.
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
 | `evidencias/e2e/resultado_e2e.log` | Os 25 passos de interface aprovados (E01 a E24, com E07b) |
 | `evidencias/e2e/*.png` | Capturas de tela de cada tela do roteiro |
+| `evidencias/responsivo/` | As quatro telas principais em celular, tablet e computador, e o resultado do teste de rolagem lateral (12 de 12 aprovados) |
