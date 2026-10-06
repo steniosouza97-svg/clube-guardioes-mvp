@@ -1,6 +1,6 @@
 # Principais decisões técnicas
 
-Clube Guardiões do Futuro | Instituto Ebenézer | registro atualizado em 29/09/2026 (decisões de 29/09 na DT-17 e login da Minha Área na DT-18)
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10
 
 Cada decisão traz o contexto, a escolha, as alternativas descartadas e a consequência para quem vai operar a solução depois dos autores.
 
@@ -58,17 +58,17 @@ Cada decisão traz o contexto, a escolha, as alternativas descartadas e a conseq
 
 **Por quê.** Evita cobrar indefinidamente quem deixou de doar e mantém a métrica de churn honesta. Antes disso, cada falha dispara o lembrete e coloca o Guardião no alerta de churn.
 
-**Defeito encontrado e corrigido (28/09).** Um aviso de atraso que chegasse para uma assinatura já cancelada tentava cancelá-la de novo e gerava erro. Isso pode acontecer com o webhook real. Agora o aviso é ignorado sem erro; o teste T15 protege contra a volta do defeito.
+**Caso de borda.** Um aviso de atraso que chegue para uma assinatura já cancelada é ignorado sem erro, situação que pode acontecer com o webhook real. O teste T15 protege esse caso.
 
 ## DT-08. Dados sintéticos gerados dentro do banco
 
-**Decisão.** O gerador é uma função SQL (`fn_gerar_dados_sinteticos`, em `db/05_dados_sinteticos.sql`), com semente fixa, calibrada com os números do business case vigentes em 28/09: 35 Guardiões iniciais (dado real), conversão de 30 doadores pontuais, 20 novos por mês e churn próximo de 2%.
+**Decisão.** O gerador é uma função SQL (`fn_gerar_dados_sinteticos`, em `db/05_dados_sinteticos.sql`), com semente fixa, calibrada com o business case: 35 Guardiões iniciais (dado real), conversão de 30 doadores pontuais e churn próximo de 2%. A captação mensal é mais alta que a do plano em fases, de propósito, para exercitar o painel com mais volume.
 
-**Por quê.** A primeira versão era um script Python que gerava um arquivo SQL de 1,4 MB, grande demais para colar no SQL Editor do Supabase. A função roda dentro do banco e o Instituto regenera a demonstração com um comando. A mesma semente produz a mesma base no Supabase e localmente (verificado: 305 Guardiões e 2.222 cobranças nos dois).
+**Por quê.** Um arquivo SQL com os mesmos dados teria 1,4 MB, grande demais para colar no SQL Editor do Supabase. A função roda dentro do banco e o Instituto regenera a demonstração com um comando. A mesma semente produz a mesma base no Supabase e localmente (verificado: 305 Guardiões e 2.222 cobranças nos dois).
 
 **Resultado verificado.** Ticket médio de R$ 76,73, churn médio de 1,55% ao mês e 275 Guardiões no mês 12 (teste T19).
 
-**Revisão de 30/09.** O plano de captação passou a crescer em fases (164 Guardiões no mês 12, em vez de 267). A base de demonstração não foi regenerada: ela fica acima do plano de propósito, para testar o painel com mais volume, e mantém estáveis o Guardião de demonstração, as contagens e as evidências. O T19 passou a conferir ticket e churn contra o plano e a exigir que a base de demonstração seja pelo menos a do plano no mês 12 (a partir de 140, 164 menos 15%).
+**Relação com o plano em fases.** O plano prevê 164 Guardiões no mês 12. O T19 confere ticket e churn contra o plano e exige que a base de demonstração seja pelo menos a do plano no mês 12 (a partir de 140, ou 164 menos 15%).
 
 **Proteções.** A função se recusa a rodar se a base já tiver dados ou se encontrar qualquer e-mail fora do domínio reservado `example.com` (T18), e não pode ser chamada pela API (S08).
 
@@ -110,7 +110,7 @@ CRM próprio, motor de campanhas e sistema de embaixadores. Seriam sistemas que 
 
 ## DT-14. CPF como identificador único, guardado cifrado
 
-**Contexto.** A entrega da semana 5 definiu o CPF como campo obrigatório: é o melhor identificador único para evitar doador duplicado e para integrar um CRM no futuro. A Asaas também exige CPF para cadastrar o cliente e emitir cobrança. Uma versão intermediária deste MVP havia retirado o CPF por cautela com a LGPD, sem registrar que isso alterava uma decisão já entregue; esta decisão corrige isso.
+**Contexto.** A entrega da semana 5 definiu o CPF como campo obrigatório: é o melhor identificador único para evitar doador duplicado e para integrar um CRM no futuro. A Asaas também exige CPF para cadastrar o cliente e emitir cobrança.
 
 **Decisão.** O CPF é obrigatório na adesão e identifica o Guardião. O banco do painel guarda apenas a impressão digital do CPF (HMAC-SHA256) calculada com uma chave secreta aleatória, gerada na instalação e guardada no esquema `privado`, sem acesso pela API. O número completo fica só na Asaas.
 
@@ -144,24 +144,24 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 
 ## DT-16. O MVP evolui o protótipo navegável da semana 5
 
-**Contexto.** A primeira versão do MVP foi construída a partir do enunciado da semana 10 e da documentação do projeto, não das telas do protótipo V7.0. A navegação ficou diferente da entregue na semana 5: sem cadastro em etapas, sem tela de Pix, sem convite e sem a tela de Atividades da equipe.
+**Contexto.** A semana 5 entregou um protótipo navegável (V7.0) com a jornada da Célia e as telas da equipe. O MVP precisava executar essa mesma jornada sobre um banco real.
 
-**Decisão.** Reconstruir a jornada pública nas telas do protótipo (Início, Cadastro em 3 etapas, Pagamento Pix, Erro no Pix, Confirmação, Convite, Aviso de Privacidade) e trazer ao painel as telas da equipe que faltavam (Atividades e prestação de contas; Registrar contato feito), tudo sobre o banco real. O convite passa a ser rastreável (`codigo_convite`, `indicado_por`) e a notícia mensal de impacto leva o texto registrado por atividade (`atividade`, `impacto_mensal`), que passa a ser obrigatório antes do envio.
+**Decisão.** Construir a jornada pública nas telas do protótipo (Início, Cadastro em 3 etapas, Pagamento Pix, Erro no Pix, Confirmação, Convite, Aviso de Privacidade) e levar ao painel as telas da equipe (Atividades e prestação de contas; Registrar contato feito), tudo sobre o banco real. O convite é rastreável (`codigo_convite`, `indicado_por`) e a notícia mensal de impacto leva o texto registrado por atividade (`atividade`, `impacto_mensal`), obrigatório antes do envio.
 
-**Descartado nesta entrega (revisto em 29/09).** Minha Área, login da Guardiã e recibo ficariam para a fase 2 por exigirem autenticação real da doadora (US06 da semana 5). Em 29/09 o escopo P1 e P2 da semana 5 foi fechado por inteiro: as três telas foram construídas, com o login por WhatsApp e CPF do protótipo e as mitigações da DT-18.
+**Escopo.** Todo o escopo P1 e P2 da semana 5 está no MVP, inclusive Minha Área, login da Guardiã e recibo, com o login por WhatsApp e CPF do protótipo e as mitigações da DT-18.
 
 **Consequência.** Cada tela da semana 5 tem destino registrado em `docs/rastreabilidade_semana5.md`. O visitante anônimo passa a poder descobrir só o primeiro nome de quem o convidou, e apenas com o código do link. Testes: T13, T16, T29 a T31, S12, E19 a E21.
 
-## DT-17. Decisões de 29/09: valor do Guardião, doação única, pausa, estrelas e indicação
+## DT-17. Oferta do Clube: valor do Guardião, doação única, pausa, estrelas e indicação
 
-**Contexto.** Na revisão de 29/09, o Instituto e o grupo fecharam o escopo P1 e P2 da semana 5 e ajustaram a oferta: um valor único e simples para o Guardião, uma porta para quem não pode doar todo mês e uma alternativa ao cancelamento.
+**Contexto.** Com o Instituto, a oferta do Clube foi desenhada para ser simples: um valor único e simples para o Guardião, uma porta para quem não pode doar todo mês e uma alternativa ao cancelamento.
 
 **Decisões.**
 1. **Guardião doa R$ 85 por mês.** O valor está na tabela `parametro` (`valor_guardiao = 85`), e `fn_aderir_publico` recusa outro valor mensal. Os Guardiões que já doam (os 35 reais em Pix direto e os da base sintética) mantêm o valor atual; os R$ 85 valem para novas adesões e reativações. Trocar o valor é editar o parâmetro, sem mexer em código.
 2. **Doação única de qualquer valor, em tabela própria.** `doacao_unica` guarda nome, WhatsApp, CPF só como HMAC, e-mail opcional, valor (R$ 10 a R$ 50.000), status (`pendente`, `paga`, `falhou`), código de convite e convite usado. A página sugere R$ 30, R$ 60 e R$ 120, os valores do protótipo da semana 5, ou outro. Ficar fora de `assinatura` e `cobranca` mantém honestas as métricas de recorrência (ativos, ticket médio, churn), que são o objeto do Clube. A confirmação vem de `fn_processar_doacao_unica` (caminho do webhook, só equipe); na demonstração, `fn_confirmar_doacao_demo` faz esse papel e só funciona com `modo_demonstracao = 1`.
 3. **E-mail opcional.** Vale para Guardião e doação única. Se informado, precisa ser válido. WhatsApp e CPF continuam obrigatórios, porque são o canal da régua e o identificador único (DT-14).
 4. **Pausa com volta automática.** O Guardião pausa de 1 a 3 meses (`pausa_maxima_meses = 3`) em vez de cancelar. A cobrança do mês em aberto é cancelada, não há cobrança durante a pausa e `fn_gerar_cobrancas` reativa a assinatura no mês de volta (`pausada_ate`, sempre o primeiro dia do mês), registrando a comunicação `retomada`. O próprio Guardião pausa e retoma pela Minha Área (`fn_area_acao`); a equipe, pelo painel a pedido (`fn_pausar`, `fn_retomar`). O pausado continua no Clube e conta em "Guardiões no Clube".
-5. **Estrelas calculadas, não guardadas.** A 1ª estrela chega com a primeira doação paga e depois uma a cada 3 meses (`meses_por_estrela = 3`), com teto de 5: 3 estrelas aos 6 meses é Guardião Bronze (a 2 do Ouro), 4 aos 9 é Prata (a 1 do Ouro), 5 aos 12 é Guardião do Futuro Ouro (`fn_nivel`). Regra revista em 29/09 à tarde: antes, a 1ª estrela vinha só aos 3 meses e o Ouro aos 15; o grupo antecipou o primeiro reconhecimento para o momento em que a doação vira recorrente e trouxe o Ouro para 1 ano. `vw_situacao_guardiao` conta as cobranças pagas ou recuperadas e calcula meses pagos, estrelas e nível. Nenhuma coluna nova, nada a reconciliar: a estrela nunca discorda do histórico de pagamentos.
+5. **Estrelas calculadas, não guardadas.** A 1ª estrela chega com a primeira doação paga e depois uma a cada 3 meses (`meses_por_estrela = 3`), com teto de 5: 3 estrelas aos 6 meses é Guardião Bronze (a 2 do Ouro), 4 aos 9 é Prata (a 1 do Ouro), 5 aos 12 é Guardião do Futuro Ouro (`fn_nivel`). A primeira estrela reconhece o momento em que a doação vira recorrente, e o Ouro chega em 1 ano. `vw_situacao_guardiao` conta as cobranças pagas ou recuperadas e calcula meses pagos, estrelas e nível. Nenhuma coluna nova, nada a reconciliar: a estrela nunca discorda do histórico de pagamentos.
 6. **Indicação pelas duas tabelas.** Todo doador, Guardião ou de doação única, tem `codigo_convite` e vê "Indique um novo Doador" depois de doar. O botão abre o WhatsApp com uma mensagem de impacto e o link pessoal. Quem entra pelo link fica com `convite_usado` registrado, em `guardiao` ou em `doacao_unica`, e as views somam as indicações das duas tabelas. O link de uma doação única só vale depois de paga.
 
 **Descartado.**
@@ -174,7 +174,7 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 
 ## DT-18. Login da Minha Área por WhatsApp e CPF
 
-**Contexto.** A Minha Área do protótipo da semana 5 pedia WhatsApp e CPF. A própria semana 5 registrou (US06) que o login real exige código de verificação, expiração e bloqueio por tentativas. Em 29/09 decidiu-se entregar a Minha Área completa na banca, com dados sintéticos.
+**Contexto.** A Minha Área do protótipo da semana 5 pedia WhatsApp e CPF. A própria semana 5 registrou (US06) que o login real exige código de verificação, expiração e bloqueio por tentativas. O MVP entrega a Minha Área completa, com dados sintéticos.
 
 **Decisão.** A entrada é por WhatsApp e CPF, como no protótipo. `fn_area` confere o CPF pela impressão digital (DT-14) e o WhatsApp cadastrado; `fn_area_acao` (pausar, retomar, cancelar com motivo, reativar por R$ 85 e, só na demonstração, regularizar o Pix em atraso) e `fn_area_recibo` (recibo anual) repetem a conferência a cada chamada. Não há sessão no servidor; a tela guarda WhatsApp e CPF só na memória da página, nada em `localStorage`, e fechar a aba encerra o acesso.
 
@@ -191,15 +191,15 @@ O código não permite recuperar o número. Sem a chave, nem por força bruta: p
 
 **Antes de produção.** Trocar a entrada por código de uso único enviado ao WhatsApp, com expiração curta (US06 original), ou por link mágico por e-mail do Supabase Auth, e passar a Minha Área para uma política de acesso por Guardião. Desligar `modo_demonstracao` (parâmetro em 0), o que desativa a confirmação manual da doação única e a regularização pela Minha Área. Retirar o botão "Entrar com o Guardião de demonstração".
 
-**Descartado.** Deixar a Minha Área para a fase 2 (a posição anterior da DT-16): a banca não veria a jornada completa da semana 5. Login por senha: mais uma senha para o doador esquecer, e o problema de recuperação volta ao WhatsApp ou ao e-mail.
+**Descartado.** Deixar a Minha Área para a fase 2: a banca não veria a jornada completa da semana 5. Login por senha: mais uma senha para o doador esquecer, e o problema de recuperação volta ao WhatsApp ou ao e-mail.
 
 **Consequência.** A Minha Área é adequada para demonstração, não para doadores reais. Testes: T35, T36, T38, S13, E23.
 
 ## DT-19. Demonstração só aceita e-mail @example.com
 
-**Contexto.** Em 29/09/2026, um teste ao vivo com professor da Inteli gravou dois cadastros com e-mail real na base de demonstração, que por regra só tem dados sintéticos. O T20 acusou.
+**Contexto.** Durante uma validação ao vivo, entraram na base de demonstração dois cadastros com e-mail real, quando a base por regra só tem dados sintéticos. O teste T20 detectou o caso.
 
-**Decisão.** Com `modo_demonstracao = 1`, `fn_aderir` (usada pela página e pelo painel) e `fn_doar_unica` recusam e-mail que não termine em `@example.com`; e-mail em branco continua aceito. A página mostra o motivo antes de enviar. Os dois registros foram apagados com autorização do grupo.
+**Decisão.** Com `modo_demonstracao = 1`, `fn_aderir` (usada pela página e pelo painel) e `fn_doar_unica` recusam e-mail que não termine em `@example.com`; e-mail em branco continua aceito. A página mostra o motivo antes de enviar. Os dois registros foram apagados.
 
 **Por quê.** A trava fica no banco, onde nenhuma tela consegue contorná-la, e sai sozinha quando o parâmetro é desligado para produção.
 

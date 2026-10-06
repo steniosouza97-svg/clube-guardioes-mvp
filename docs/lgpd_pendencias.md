@@ -1,6 +1,6 @@
 # Privacidade e LGPD: o que está feito e o que falta
 
-Clube Guardiões do Futuro | Instituto Ebenézer | registro de 28/09/2026, atualizado em 29/09/2026 (doação única, e-mail opcional, Minha Área, pausa, recibo)
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10
 
 Este documento separa o que o MVP já garante tecnicamente do que o Instituto precisa definir antes de operar com doadores reais. Não substitui a avaliação do jurídico do Instituto.
 
@@ -75,10 +75,10 @@ Os 35 Guardiões de hoje entram no painel com CPF e consentimento colhidos na co
 - **Minha Área:** usa WhatsApp e CPF só para conferir a identidade; não os devolve na tela. O registro de tentativas guarda a impressão digital do telefone, não o número. A troca por código de uso único (L11) é a pendência principal antes da produção.
 - **Recibo anual:** emitido só para o próprio Guardião, com nome, ano e valores pagos (doações mensais e doações únicas feitas com o mesmo CPF). Não traz CPF completo nem promete dedução de Imposto de Renda. O modelo final do recibo deve ser validado pelo contador do Instituto junto com L4.
 
-### Incidente de 29/09/2026 na demonstração
+### Dado real na base de demonstração
 
-Um teste de validação ao vivo com professor da Inteli gravou dois cadastros com e-mail real na base de demonstração. O T20 detectou; os registros, a mensagem associada e as tentativas de acesso do dia foram apagados com autorização do grupo, e a demonstração passou a recusar e-mail fora de `@example.com` (T39). Lição para a operação real: a base de testes e a de produção devem ser projetos separados no Supabase, e ninguém testa a página de produção com dados de terceiros.
+Durante uma validação ao vivo, entraram na base de demonstração dois cadastros com e-mail real. O T20 detectou; os registros, a mensagem associada e as tentativas de acesso do dia foram apagados, e a demonstração recusa e-mail fora de `@example.com` (T39). Lição para a operação real: a base de testes e a de produção devem ser projetos separados no Supabase, e ninguém testa a página de produção com dados de terceiros.
 
-## 4. O que dizer à banca
+## 4. Síntese
 
 O MVP trata o CPF como a semana 5 definiu, como identificador único, e resolve a tensão entre esse uso e o princípio da necessidade guardando só a impressão digital cifrada. A conformidade completa depende de decisões institucionais (política de privacidade, canal do titular, prazo de guarda) que estão listadas acima com dono e prazo.

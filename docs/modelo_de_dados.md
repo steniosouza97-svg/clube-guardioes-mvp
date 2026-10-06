@@ -1,16 +1,16 @@
 # Modelo de dados adotado
 
-Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10 | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10
 
 ## Princípio
 
 A Asaas, gateway de pagamento já contratado pelo Instituto, é a **fonte da verdade** sobre doadores e pagamentos. Este banco guarda uma **cópia mínima e reconstruível** dessas informações, acrescida do que a Asaas não registra: origem do Guardião, régua de relacionamento e métricas do Clube. Se o banco for perdido, ele é reconstruído pela API da Asaas sem perda de doador ou pagamento.
 
-Dado pessoal mínimo, por LGPD: nome, telefone, e-mail (opcional desde 29/09), CPF **cifrado** e o registro do consentimento. Nenhum dado de cartão. O CPF é o identificador único do Guardião, mas o banco só guarda a sua impressão digital com chave secreta (ver [DT-14](decisoes_tecnicas.md) e [LGPD](lgpd_pendencias.md)).
+Dado pessoal mínimo, por LGPD: nome, telefone, e-mail (opcional), CPF **cifrado** e o registro do consentimento. Nenhum dado de cartão. O CPF é o identificador único do Guardião, mas o banco só guarda a sua impressão digital com chave secreta (ver [DT-14](decisoes_tecnicas.md) e [LGPD](lgpd_pendencias.md)).
 
 ## Desenho oficial do banco (entrega)
 
-Lido do catálogo do Supabase em 30/09/2026 (PostgreSQL 17.6, migração 32):
+Lido do catálogo do Supabase (PostgreSQL 17.6, migração 32):
 
 - [`docs/diagramas/diagrama_banco_de_dados.pdf`](diagramas/diagrama_banco_de_dados.pdf): 3 páginas A3. (1) Diagrama entidade-relacionamento físico, notação pé de galinha, com as 13 tabelas, todas as colunas, tipos, chaves, relações e regras; (2) camadas de acesso: papéis, 34 funções, 7 views e matriz de permissões por tabela; (3) dicionário de dados de cada coluna, índices, regras CHECK e valores permitidos.
 - [`docs/diagramas/diagrama_banco_de_dados_erd.png`](diagramas/diagrama_banco_de_dados_erd.png): a página 1 em imagem.

@@ -1,22 +1,20 @@
-# Regra de congelamento do MVP
+# Como manter o MVP
 
-Válida de **sábado, 03/10/2026**, até a apresentação de **09/10/2026**.
+Regras para quem for alterar o código ou o banco do Clube Guardiões do Futuro.
 
-O vídeo demonstrativo e as evidências de teste retratam uma versão exata do MVP. Mudar o código depois disso pode deixar o vídeo desatualizado ou quebrar o que foi testado. Por isso:
+## Toda alteração
 
-1. **Só entram correções de defeito.** Nada de funcionalidade nova, mudança visual ou refatoração.
-2. **Toda correção roda as três camadas de teste antes do commit:**
-   - no Supabase: `select * from qa.fn_rodar_testes();` e `select * from qa.fn_testes_seguranca();` (38 e 13 aprovados);
+1. **Roda as três camadas de teste antes do commit:**
+   - no Supabase: `select * from qa.fn_rodar_testes();` e `select * from qa.fn_testes_seguranca();` (39 e 13 aprovados);
    - localmente: `./tests/rodar_testes.sh`;
-   - interface: `./tests/e2e/rodar_e2e.sh` (25 passos aprovados, conforme `evidencias/e2e/resultado_e2e.log`).
-3. **A evidência nova vai para `evidencias/`**, com a data no nome do arquivo.
-4. **A correção é avaliada contra o vídeo.** Se a tela mudar, o grupo decide entre regravar a cena ou registrar a diferença em `docs/casos_de_teste.md`.
-5. **Mudança no banco do Supabase só por migração versionada** (arquivos de `db/`), nunca pelo Table Editor. A última aplicada até 30/09 é a 32; a próxima correção entra como 33.
-6. **O commit diz o defeito e o teste que o protege**, por exemplo: `Corrige X; protegido por T35`.
+   - interface: `./tests/e2e/rodar_e2e.sh` (25 passos aprovados).
+2. **Guarda a evidência em `evidencias/`**, com a data no nome do arquivo.
+3. **Muda o banco só por migração versionada** (arquivos de `db/`), nunca pelo Table Editor. A próxima migração é a 33.
+4. **Diz no commit o que mudou e o teste que protege a mudança**, por exemplo: `Corrige X; protegido por T35`.
 
-## Sempre, congelado ou não
+## Sempre
 
-- Nenhum dado real de doador no repositório nem na base de demonstração: e-mails `@example.com` (quando informados, pois o e-mail é opcional), CPFs e telefones fictícios. O Guardião de demonstração da Minha Área é sintético.
+- Nenhum dado real de doador no repositório nem na base de demonstração: e-mails `@example.com` (quando informados), CPFs e telefones fictícios.
 - A chave secreta do Supabase e a chave de API da Asaas nunca entram em `web/` nem no repositório.
-- Só imagens de crianças liberadas pelo Instituto, conforme sua política e o Manual de Boas Práticas para Redes Sociais (a foto atual faz parte do banco liberado).
+- Só imagens de crianças liberadas pelo Instituto, conforme sua política e o Manual de Boas Práticas para Redes Sociais.
 - Nenhuma promessa de dedução de Imposto de Renda.

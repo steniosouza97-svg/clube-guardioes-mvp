@@ -14,7 +14,7 @@ página de adesão → cobrança mensal → Pix pago ou vencido → régua de re
                                                             cancelamento)
 ```
 
-O que o MVP faz hoje (decisões de 29/09/2026):
+O que o MVP faz:
 
 - **Guardião do Futuro:** doação mensal de R$ 85 por Pix, recorrente (parâmetro `valor_guardiao`). Guardiões da base atual mantêm o valor que já doam; R$ 85 vale para novas adesões e reativações.
 - **Doação única:** qualquer pessoa doa uma vez, de qualquer valor (referências de R$ 30, R$ 60, R$ 120 ou outro; mínimo técnico de R$ 10).
@@ -37,7 +37,7 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 | Página de adesão (jornada da doadora, telas da semana 5) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html |
 | Dados | 305 Guardiões sintéticos (271 ativos, 4 pausados), 2.222 cobranças e 48 doações únicas, 12 meses de operação simulada (out/2025 a set/2026) |
-| Migrações aplicadas no Supabase | Até a 32 (19 a 25: decisões de 29/09; 26 a 31: nome Guardiões do Futuro, total doado, trava de e-mail real e regra das estrelas; 32: T19 alinhado ao plano em fases) |
+| Migrações aplicadas no Supabase | 32, versionadas no histórico do projeto |
 
 ## Estrutura
 
@@ -47,7 +47,7 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 | `web/` | Interface: página pública (Guardião, doação única, Minha Área, recibo, Aviso de Privacidade) e painel do voluntário. HTML, CSS e JavaScript sem etapa de build |
 | `tests/` | Suítes de teste do banco (`qa_*.sql`) e teste ponta a ponta da interface (`e2e/`) |
 | `evidencias/` | Resultados das execuções: local, Supabase, controle negativo e capturas de tela |
-| `docs/` | Modelo de dados, decisões técnicas, casos de teste e roteiro do vídeo |
+| `docs/` | Modelo de dados, desenho do banco, decisões técnicas, casos de teste, teste com usuários e roteiro do vídeo |
 | `.github/workflows/` | Rotina que impede a pausa do Supabase gratuito |
 
 Documentação de handover:
@@ -59,9 +59,8 @@ Documentação de handover:
 - [Roteiro do vídeo demonstrativo](docs/roteiro_video.md)
 - [Privacidade e LGPD: feito e pendências](docs/lgpd_pendencias.md)
 - [User stories e critérios de aceite](docs/user_stories.md)
-- [Conferência cruzada deck × MVP](docs/coerencia_deck_mvp.md)
-- [Execução final na véspera](docs/execucao_final.md)
-- [Regra de congelamento](CONTRIBUTING.md)
+- [Teste com usuários reais](docs/teste_com_usuarios.md)
+- [Desenho do banco de dados (PDF)](docs/diagramas/diagrama_banco_de_dados.pdf)
 - [Pacote de entrega da semana 10](ENTREGA.md)
 
 ## Instalação no Supabase (uma vez, cerca de 20 minutos)
@@ -109,7 +108,7 @@ export PGHOST=localhost PGPORT=5432 PGUSER=postgres
 
 **Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 25 passos no navegador com Playwright (E01 a E24, com E07b): jornada da semana 5 (cadastro em 3 etapas, Pix, falha e nova tentativa, confirmação, Indique um novo Doador), doação única sem e-mail, Minha Área completa (nível, estrelas, impacto, histórico, pausa, retomada, cancelamento com motivo, reativação por R$ 85, recibo), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento, doações únicas e pausados no painel, celular e console sem erros. Gera capturas em `evidencias/e2e/`.
 
-Evidências atuais (30/09/2026): 39 de 39 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-30_1337.log`, `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` e `evidencias/e2e/resultado_e2e.log`.
+Evidências: 39 de 39 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-30_1337.log`, `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` e `evidencias/e2e/resultado_e2e.log`.
 
 **Testar a Minha Área:** na página pública, clicar em **Minha Área** no topo e depois em **Entrar como Guardião de demonstração**. Ou digitar os dados do Guardião sintético Carlos Barbosa: WhatsApp `(11) 90000-0040` e CPF `800.000.040-73` (fictício). Ele aparece como Guardião Prata (4 estrelas, 11 meses), a 1 estrela do Ouro, impacto, histórico e recibo. Cinco tentativas erradas em 15 minutos bloqueiam a entrada por esse WhatsApp.
 
@@ -143,7 +142,7 @@ O resultado deve ser "305 Guardiões (271 ativos, 4 pausados)", com 48 doações
 
 ## Operação depois da semana 10
 
-Quem opera: a pessoa dedicada ao Clube. Competência necessária: usar o painel e a Asaas; não exige programação. O plano de captação cresce em três fases (planilha `Modelo_Financeiro_Clube_Guardioes_final_30-09`, Premissas, linhas 40 a 53):
+Quem opera: a pessoa dedicada ao Clube. Competência necessária: usar o painel e a Asaas; não exige programação. O plano de captação cresce em três fases, conforme o modelo financeiro do business case:
 
 | Fase | Período | Horas por mês | Captação / retenção | Novos Guardiões por mês | Churn esperado |
 |---|---|---|---|---|---|
@@ -166,7 +165,7 @@ Passagem de fase: da 1 para a 2, 40 pontuais contatados, 80% dos 35 migrados par
 
 Parâmetros de negócio (valor do Guardião, pausa máxima, meses por estrela, metas, custeio de referência, taxas, limite de tentativas) ficam na tabela `parametro` e mudam sem mexer em código.
 
-**Se o Supabase pausar:** entrar no painel do Supabase e clicar em *Restore project*. O projeto pode ser restaurado em até um ano, sem perda de dados. A rotina `manter_ativo.yml` evita a pausa.
+**Se o Supabase pausar:** entrar no painel do Supabase e clicar em *Restore project*. O projeto pode ser restaurado em até um ano, sem perda de dados. A rotina `manter_ativo.yml` reduz o risco de pausa, mas não o elimina: confira o projeto antes de cada demonstração.
 
 **Se o banco for perdido:** recriar com os arquivos de `db/` (exceto o 05) e reimportar clientes, assinaturas e cobranças pela API da Asaas.
 

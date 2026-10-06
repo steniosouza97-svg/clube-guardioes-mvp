@@ -1,8 +1,8 @@
 # Da semana 5 à semana 10: rastreabilidade do protótipo ao MVP
 
-Clube Guardiões do Futuro | Instituto Ebenézer | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10
 
-O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na semana 5. O protótipo simulava as telas com dados de exemplo; o MVP executa o mesmo fluxo sobre um banco real, com dados sintéticos, regras de acesso e testes automatizados. Este documento mostra, tela a tela, o que foi implementado, o que evoluiu e o que ficou para a fase 2, com o motivo de cada decisão. Em 29/09 o escopo P1 e P2 da semana 5 foi fechado por inteiro: Login da Guardiã, Minha Área e Recibo, antes previstos para a fase 2, estão implementados (DT-17 e DT-18).
+O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na semana 5. O protótipo simulava as telas com dados de exemplo; o MVP executa o mesmo fluxo sobre um banco real, com dados sintéticos, regras de acesso e testes automatizados. Este documento mostra, tela a tela, o que foi implementado, o que evoluiu e o que ficou para a fase 2, com o motivo de cada decisão. Todo o escopo P1 e P2 da semana 5 está implementado, inclusive Login da Guardiã, Minha Área e Recibo (DT-17 e DT-18).
 
 ## Resumo
 
@@ -57,9 +57,9 @@ O MVP da semana 10 é a evolução do protótipo navegável V7.0 entregue na sem
 
 ## Diferenças deliberadas, e por quê
 
-1. **Minha Área com o login do protótipo, e não com código.** Em 28/09 a Minha Área, o login da Guardiã e o recibo tinham ficado para a fase 2, porque a semana 5 registrou (US06) que o login real exige código de verificação, expiração e bloqueio por tentativas. Em 29/09 decidiu-se entregá-los na banca, com a entrada por WhatsApp e CPF do protótipo, aceitável com dados sintéticos e protegida por bloqueio após 5 tentativas erradas, mensagem genérica e nenhum dado sensível devolvido. Antes de operar com doadores reais, a entrada passa a ser por código de uso único no WhatsApp ou link mágico por e-mail (DT-18).
-2. **Guardião de R$ 85 por mês e doação única de qualquer valor.** O protótipo oferecia R$ 30, R$ 60, R$ 120 ou outro valor mensal. Em 29/09 o Guardião passou a ter um valor único, R$ 85 por mês (parâmetro `valor_guardiao`), e os valores do protótipo voltaram como sugestão da doação única, de R$ 10 a R$ 50.000. Os Guardiões que já doam mantêm o valor atual (DT-17).
-3. **E-mail opcional.** A V4 do protótipo retirou o e-mail para reduzir atrito; a versão de 28/09 do MVP o exigia. Em 29/09 ficou opcional, para Guardião e doação única, validado quando informado. WhatsApp e CPF continuam obrigatórios. Sem e-mail, o recibo anual continua disponível na Minha Área.
+1. **Minha Área com o login do protótipo, e não com código.** A semana 5 registrou (US06) que o login real exige código de verificação, expiração e bloqueio por tentativas. O MVP usa a entrada por WhatsApp e CPF do protótipo, aceitável com dados sintéticos e protegida por bloqueio após 5 tentativas erradas, mensagem genérica e nenhum dado sensível devolvido. Antes de operar com doadores reais, a entrada passa a ser por código de uso único no WhatsApp ou link mágico por e-mail (DT-18).
+2. **Guardião de R$ 85 por mês e doação única de qualquer valor.** O protótipo oferecia R$ 30, R$ 60, R$ 120 ou outro valor mensal. O MVP tem um valor único para o Guardião, R$ 85 por mês (parâmetro `valor_guardiao`), e usa os valores do protótipo como sugestão da doação única, de R$ 10 a R$ 50.000. Os Guardiões que já doam mantêm o valor atual (DT-17).
+3. **E-mail opcional.** O protótipo retirou o e-mail para reduzir atrito. No MVP ele é opcional, para Guardião e doação única, e validado quando informado. WhatsApp e CPF continuam obrigatórios. Sem e-mail, o recibo anual continua disponível na Minha Área.
 4. **Asaas, e não Doare.** O protótipo citava a Doare para a semana 10. A análise financeira levou à Asaas, já contratada (DT-01).
 5. **Grupo de WhatsApp dos Guardiões.** O protótipo prometia inclusão automática no grupo. O MVP usa o WhatsApp para mensagens individuais (Pix, agradecimento, lembrete, notícia); o grupo continua sendo uma decisão do Instituto.
 6. **Doação vinculada a uma atividade.** O protótipo mostrava cada doação vinculada a uma atividade específica. O MVP presta contas por atividade de forma agregada para todos os Guardiões, que é o que a equipe consegue produzir todo mês; o vínculo individual é da fase 2. A Minha Área mostra a linha do tempo de impacto dos últimos 12 meses.

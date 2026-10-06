@@ -1,8 +1,8 @@
 # User stories e critérios de aceite
 
-Clube Guardiões do Futuro | Instituto Ebenézer | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10
 
-A numeração US01 a US06 é a mesma da semana 5 (protótipo navegável V7.0), para que a banca compare as duas entregas. Os critérios foram reescritos sobre o que o MVP executa, depois da decisão pela Asaas (DT-01), do CPF como identificador único (DT-14), da evolução das telas da semana 5 (DT-16) e das decisões de 29/09 (DT-17 e DT-18): Guardião doa R$ 85 por mês, doação única de qualquer valor, e-mail opcional, pausa, Minha Área, recibo anual, estrelas e "Indique um novo Doador". US07 a US10 são histórias novas da pessoa dedicada ao Clube; US11 a US15 vêm das decisões de 29/09. Cada critério aponta o teste que o comprova.
+A numeração US01 a US06 é a mesma da semana 5 (protótipo navegável V7.0), para que a banca compare as duas entregas. Os critérios descrevem o que o MVP executa, com a Asaas (DT-01), o CPF como identificador único (DT-14), as telas da semana 5 (DT-16) e a oferta do Clube (DT-17 e DT-18). US07 a US10 são da pessoa dedicada ao Clube; US11 a US15 cobrem doação única, pausa, Minha Área, estrelas e indicação. Cada critério aponta o teste que o comprova.
 
 ## Doadora (persona Célia)
 
@@ -131,7 +131,7 @@ O login por WhatsApp e CPF serve para a demonstração com dados sintéticos. An
 | 4 | Quem aceita migra para a Asaas mantendo valor, dia e histórico | T28, E18 |
 | 5 | Só voluntário cadastrado faz essas operações | S11 |
 
-## Decisões de 29/09 (DT-17 e DT-18)
+## Oferta do Clube e Minha Área (DT-17 e DT-18)
 
 ### US11. Doação única de qualquer valor
 

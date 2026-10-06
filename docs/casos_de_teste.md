@@ -1,6 +1,6 @@
 # Casos de teste e evidências
 
-Clube Guardiões do Futuro | Instituto Ebenézer | atualizado em 29/09/2026
+Clube Guardiões do Futuro | Instituto Ebenézer | MVP funcional, semana 10
 
 Três camadas de teste, todas automatizadas:
 
@@ -41,7 +41,7 @@ Os testes do banco rodam num bloco desfeito ao final: não alteram os dados. Usa
 | Jornada da semana 5: Pix, erro, confirmação, convite rastreável, Aviso de Privacidade | Slide 5, Passos 1 e 2 | T16, T29 | E19 |
 | Prestação de contas por atividade (tela Atividades da semana 5) | Slide 5, Passo 3 | T13, T30 | E20 |
 | Contato pessoal com quem está em atraso (tela Lembretes da semana 5) | Slide 5, Passo 4 | T31 | E21 |
-| Doação única de qualquer valor e "Indique um novo Doador" (decisões de 29/09) | Slide 5, Passos 1 e 2 | T29, T33, S13 | E19, E22 |
+| Doação única de qualquer valor e "Indique um novo Doador" | Slide 5, Passos 1 e 2 | T29, T33, S13 | E19, E22 |
 | Pausa em vez de cancelamento | Slide 5, Passo 4 | T34, T36 | E23, E24 |
 | Minha Área: entrar, status, histórico, impacto, pausar, cancelar, reativar, recibo anual | Slide 5, Passos 3 e 4 | T35, T36, T38, S13 | E23 |
 | Estrelas e níveis de Guardião | Slide 5, Passo 3 | T37 | E23, E24 |
@@ -149,28 +149,21 @@ Um teste que nunca falha não prova nada; estes provam.
 
 ## Defeitos encontrados pelos testes
 
-| Data | Defeito | Correção | Teste que protege |
-|---|---|---|---|
-| 28/09 | Aviso de atraso para assinatura já cancelada gerava erro | Aviso passa a ser ignorado | T15 |
-| 28/09 | Qualquer conta criada no Supabase leria a base de doadores | Acesso restrito à tabela de voluntários | S05 |
-| 28/09 | Tabela do mês podia mostrar resultado de filtro antigo ao trocar o filtro rápido | Só a consulta mais recente desenha a tabela | E12 |
-| 28/09 | Botões de simulação apareciam para cobranças de assinatura encerrada | Botões ocultos; aviso "assinatura encerrada" | E12 |
-| 28/09 | O próprio teste E11 lia o nome da cobrança antes de o filtro "Falhou" ser aplicado e registrava o Guardião errado no log | O teste espera o filtro antes de ler a linha | E11 |
+| Defeito | Correção | Teste que protege |
+|---|---|---|
+| Aviso de atraso para assinatura já cancelada gerava erro | Aviso passa a ser ignorado | T15 |
+| Qualquer conta criada no Supabase leria a base de doadores | Acesso restrito à tabela de voluntários | S05 |
+| Tabela do mês podia mostrar resultado de filtro antigo ao trocar o filtro rápido | Só a consulta mais recente desenha a tabela | E12 |
+| Botões de simulação apareciam para cobranças de assinatura encerrada | Botões ocultos; aviso "assinatura encerrada" | E12 |
+| O próprio teste E11 lia o nome da cobrança antes de o filtro "Falhou" ser aplicado e registrava o Guardião errado no log | O teste espera o filtro antes de ler a linha | E11 |
 
 ## Evidências
 
 | Arquivo | Conteúdo |
 |---|---|
-| `evidencias/testes_supabase_2026-09-28.log` | Primeira execução no Supabase: 24 de fluxo e 10 de acesso aprovados |
-| `evidencias/testes_local_2026-09-28_1612.log` | Mesma execução em PostgreSQL 16 local |
-| `evidencias/testes_supabase_2026-09-28_modelo_hibrido.log` | Execução no Supabase depois do modelo híbrido: 28 de fluxo e 11 de acesso aprovados |
-| `evidencias/testes_supabase_2026-09-28_jornada_semana5.log` | Execução no Supabase depois da jornada da semana 5: 30 de 31 de fluxo (T20 detectou um e-mail real inserido pela página; zerar a base resolve) e 12 de 12 de acesso |
-| `evidencias/testes_local_2026-09-28_2041.log` | Execução completa em PostgreSQL 16 local: 31 de 31 de fluxo e 12 de 12 de acesso |
-| `evidencias/testes_local_2026-09-29_0736.log` | Execução em PostgreSQL 16 local depois das decisões de 29/09: 38 de 38 de fluxo e 13 de 13 de acesso |
-| `evidencias/testes_local_2026-09-30_1337.log` e `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` | Execução local e no Supabase depois do alinhamento do T19 ao plano de captação em fases (migração 32): 39 de 39 de fluxo e 13 de 13 de acesso, idênticas |
-| `evidencias/testes_local_2026-09-29_1404.log` | Execução em PostgreSQL 16 local depois da trava da demonstração e da nova regra das estrelas: 39 de 39 de fluxo e 13 de 13 de acesso |
-| `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` | Execução no Supabase depois da remoção dos 2 cadastros com e-mail real do teste com professor e da trava da demonstração (migrações 26 a 31, incluindo a nova regra das estrelas): 39 de 39 de fluxo e 13 de 13 de acesso |
-| `evidencias/testes_supabase_2026-09-29_decisoes_29_09.log` | Execução no Supabase depois das migrações 19 a 25 (decisões de 29/09), sobre a base regenerada (305 Guardiões, 4 pausados, 48 doações únicas): 38 de fluxo e 13 de acesso aprovados, idêntico ao local |
+| `evidencias/testes_local_2026-09-30_1337.log` | Execução em PostgreSQL local: 39 de 39 testes de fluxo e 13 de 13 de acesso |
+| `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` | Mesma execução no Supabase, com resultado idêntico ao local |
+| `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` | Execução no Supabase que comprova a trava de e-mail da demonstração (T39) |
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
 | `evidencias/e2e/resultado_e2e.log` | Os 25 passos de interface aprovados (E01 a E24, com E07b) |
 | `evidencias/e2e/*.png` | Capturas de tela de cada tela do roteiro |
