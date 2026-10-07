@@ -10,7 +10,7 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 | Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
 | Página de adesão (MVP no ar) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ (Guardião, doação única e link **Minha Área** no topo) |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html (acesso restrito a voluntários cadastrados) |
-| Vídeo demonstrativo | **Pendente.** Inserir o link aqui e no README depois da gravação |
+| Vídeos demonstrativos | Dois vídeos gravados em 07/10/2026, na pasta `Tecnologia/semana 10/Video` do Drive da entrega |
 
 ## Como o MVP atende ao enunciado
 
