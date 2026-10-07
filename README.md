@@ -36,7 +36,7 @@ O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. N
 | Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
 | Página de adesão (jornada da doadora, telas da semana 5) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html |
-| Vídeos demonstrativos | Dois vídeos, na pasta `Tecnologia/semana 10/Video` do Drive da entrega |
+| Vídeos demonstrativos | Pasta `Tecnologia/semana 10/Video` do Drive da entrega: "MVP Demo_Doação & Engajamento" e "MVP Area Doador e Area Voluntario" |
 | Dados | 305 Guardiões sintéticos (271 ativos, 4 pausados), 2.222 cobranças e 48 doações únicas, 12 meses de operação simulada (out/2025 a set/2026) |
 | Migrações aplicadas no Supabase | 32, versionadas no histórico do projeto |
 
