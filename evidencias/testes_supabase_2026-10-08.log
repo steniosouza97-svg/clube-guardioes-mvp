@@ -1,0 +1,18 @@
+Execução no Supabase, projeto clube-guardioes (fakihzzncafuqtgxnqbi), 08/10/2026, véspera da apresentação
+Status do projeto: ACTIVE_HEALTHY
+
+select * from qa.fn_rodar_testes();
+INFO mês de teste: 2027-01-01 (último mês com movimento: 2026-10-01)
+PASS T01 a T18 e T21 a T39 (37 testes)
+PASS T19 dados sintéticos calibrados: ticket R$ 76.64, churn 1.42% ao mês, 277 Guardiões no último mês (plano em fases: 164; a demonstração fica acima de propósito)
+PASS T20 integridade: uma assinatura ativa por Guardião, um CPF por Guardião, todo pagamento rastreável, nenhum dado pessoal real
+INFO testes do fluxo desfeitos: nenhum dado foi alterado
+Resultado: 39 PASS, 0 FALHA
+
+select * from qa.fn_testes_seguranca();
+PASS S01 a S13 (13 testes)
+INFO testes de acesso desfeitos: nenhum dado foi alterado
+Resultado: 13 PASS, 0 FALHA
+
+Base de demonstração no momento da execução: 307 Guardiões (273 ativos, 4 pausados) e 48 doações únicas.
+Os 2 Guardiões acima dos 305 sintéticos vêm de cadastros feitos nos testes e na gravação dos vídeos (05/10 e 07/10), sem e-mail real (T20 aprovado).

@@ -178,6 +178,7 @@ Um teste que nunca falha não prova nada; estes provam.
 |---|---|
 | `evidencias/testes_local_2026-09-30_1337.log` | Execução em PostgreSQL local: 39 de 39 testes de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` | Mesma execução no Supabase, com resultado idêntico ao local |
+| `evidencias/testes_supabase_2026-10-08.log` | Execução final no Supabase, na véspera da apresentação: 39 de 39 testes de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` | Execução no Supabase que comprova a trava de e-mail da demonstração (T39) |
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
 | `evidencias/e2e/resultado_e2e.log` | Os 25 passos de interface aprovados (E01 a E24, com E07b) |
