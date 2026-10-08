@@ -32,6 +32,7 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 | Documento | Conteúdo |
 |---|---|
 | [README](README.md) | Instalação, acesso, testes, publicação, operação depois da semana 10 e passagem ao Instituto |
+| [Guia de instalação e validação](INSTALACAO.md) | Passo a passo para instalar do zero em outra conta do Supabase, com resultado esperado e roteiro de validação |
 | [Rastreabilidade semana 5 → 10](docs/rastreabilidade_semana5.md) | Cada tela do protótipo da semana 5 e onde está no MVP |
 | [User stories](docs/user_stories.md) | User stories com critérios de aceite ligados aos testes |
 | [Modelo de dados](docs/modelo_de_dados.md) e [desenho do banco](docs/diagramas/diagrama_banco_de_dados.pdf) | Tabelas, relações, views, permissões e dicionário de dados |

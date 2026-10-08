@@ -66,6 +66,8 @@ Documentação de handover:
 
 ## Instalação no Supabase (uma vez, cerca de 20 minutos)
 
+Para instalar e validar do zero em outra conta, com o resultado esperado em cada passo e um roteiro de validação, siga o **[guia de instalação e validação](INSTALACAO.md)**.
+
 1. Criar um projeto no plano gratuito, região São Paulo. Para a operação real, a conta deve pertencer ao Instituto (ver "Passagem para o Instituto").
 2. Em **SQL Editor**, executar os arquivos nesta ordem, colando o conteúdo de cada um:
 
