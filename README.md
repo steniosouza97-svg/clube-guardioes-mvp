@@ -1,194 +1,303 @@
-# Clube Guardiões do Futuro | MVP funcional
+# Clube Guardiões do Futuro
 
-Instituto de Cultura e Lazer Ebenézer | Jardim Ângela, São Paulo
-MBA Inteli, Módulo 3 | entrega da semana 10, trilha de Tecnologia
+Sistema de doação recorrente do Instituto de Cultura e Lazer Ebenézer, que atende 120 crianças no Jardim Ângela, em São Paulo. Ele capta novos doadores pessoa física pelo Pix, transforma a doação em vínculo (estrelas, níveis, prestação de contas mensal e indicação pelo WhatsApp) e dá à equipe do Instituto um painel com as métricas e os alertas para manter cada Guardião. É o MVP funcional da semana 10 do MBA Inteli, com banco de dados real, dados sintéticos e testes automatizados.
 
-## O que é
+![Telas do MVP: jornada do doador, área do doador e área do voluntário](docs/telas/00_visao_geral.png)
 
-Programa de doação recorrente de pessoa física para dar previsibilidade ao custeio do atendimento de 120 crianças. Este repositório contém o MVP que executa o fluxo principal do Clube, com banco de dados, interface, dados sintéticos e testes:
-
-```
-página de adesão → cobrança mensal → Pix pago ou vencido → régua de relacionamento → painel com alerta de churn
-                                                           (boas-vindas, agradecimento,
-                                                            lembrete, notícia de impacto,
-                                                            cancelamento)
-```
-
-O que o MVP faz:
-
-- **Guardião do Futuro:** doação mensal de R$ 85 por Pix, recorrente (parâmetro `valor_guardiao`). Guardiões da base atual mantêm o valor que já doam; R$ 85 vale para novas adesões e reativações.
-- **Doação única:** qualquer pessoa doa uma vez, de qualquer valor (referências de R$ 30, R$ 60, R$ 120 ou outro; mínimo técnico de R$ 10).
-- **Cadastro:** nome, WhatsApp e CPF obrigatórios; e-mail opcional (se informado, precisa ser válido). CPF guardado só cifrado.
-- **Minha Área:** o Guardião entra com WhatsApp e CPF e vê status, nível com estrelas, linha do tempo de impacto, histórico e recibo anual; pode pausar, retomar, cancelar com motivo ou reativar.
-- **Pausa em vez de cancelar:** de 1 a 3 meses, sem cobrança no período; a doação volta sozinha no mês escolhido.
-- **Estrelas:** a 1ª na primeira doação paga e mais uma a cada 3 meses: 3 estrelas aos 6 meses = Bronze (a 2 do Ouro), 4 aos 9 = Prata (a 1 do Ouro), 5 aos 12 = Guardião do Futuro Ouro.
-- **Indique um novo Doador:** depois de doar, a pessoa compartilha pelo WhatsApp uma mensagem de impacto com link pessoal; o painel conta as indicações.
-- **Painel do voluntário:** 9 indicadores (inclui Guardiões pausados e doações únicas do mês), aba de doações únicas, nível de cada Guardião, pausar e retomar a pedido.
-
-O pagamento real acontece na **Asaas**, gateway que o Instituto já contratou. No MVP, os avisos da Asaas são simulados com os nomes reais dos eventos (`PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`) e passam pela mesma função que o webhook real vai chamar. O banco guarda uma cópia mínima e reconstruível; a Asaas é a fonte da verdade.
-
-## Ambiente de demonstração
-
-| Item | Valor |
+| Acesse | Endereço |
 |---|---|
-| Banco e API | Supabase, projeto `clube-guardioes`, região São Paulo, plano gratuito |
-| Endereço da API | `https://fakihzzncafuqtgxnqbi.supabase.co` |
-| Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
-| Página de adesão (jornada da doadora, telas da semana 5) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
-| Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html |
+| Página do doador (MVP no ar) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
+| Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html (acesso restrito a voluntários cadastrados) |
 | Vídeos demonstrativos | Pasta `Tecnologia/semana 10/Video` do Drive da entrega: "MVP Demo_Doação & Engajamento" e "MVP Area Doador e Area Voluntario" |
-| Dados | 305 Guardiões sintéticos (271 ativos, 4 pausados), 2.222 cobranças e 48 doações únicas, 12 meses de operação simulada (out/2025 a set/2026) |
-| Migrações aplicadas no Supabase | 32, versionadas no histórico do projeto |
+| Pacote de entrega | [ENTREGA.md](ENTREGA.md) |
 
-## Estrutura
+> **Ambiente de demonstração.** A base tem só dados sintéticos e nenhum valor é cobrado. Para testar, deixe o e-mail em branco (ou use um terminado em `@example.com`) e use um CPF fictício, como `900.000.001-75`.
 
-| Pasta | Conteúdo |
-|---|---|
-| `db/` | Esquema, funções do fluxo, views de métricas, dados de referência, gerador de dados sintéticos e regras de acesso |
-| `web/` | Interface: página pública (Guardião, doação única, Minha Área, recibo, Aviso de Privacidade) e painel do voluntário. HTML, CSS e JavaScript sem etapa de build |
-| `tests/` | Suítes de teste do banco (`qa_*.sql`) e teste ponta a ponta da interface (`e2e/`) |
-| `evidencias/` | Resultados das execuções: local, Supabase, controle negativo e capturas de tela |
-| `docs/` | Modelo de dados, desenho do banco, decisões técnicas, casos de teste, teste com usuários e roteiro do vídeo |
-| `.github/workflows/` | Rotina que impede a pausa do Supabase gratuito |
+## Sumário
 
-Documentação de handover:
+1. [Autoria](#autoria)
+2. [Telas do MVP](#telas-do-mvp)
+3. [Como instalar e rodar](#como-instalar-e-rodar)
+4. [Visão geral da arquitetura](#visão-geral-da-arquitetura)
+5. [Decisões técnicas e o valor para o Instituto](#decisões-técnicas-e-o-valor-para-o-instituto)
+6. [Testes e evidências](#testes-e-evidências)
+7. [Próximos passos](#próximos-passos)
+8. [Dados e privacidade](#dados-e-privacidade)
+9. [Documentação completa](#documentação-completa)
 
-- [Da semana 5 à semana 10: rastreabilidade do protótipo ao MVP](docs/rastreabilidade_semana5.md)
-- [Modelo de dados](docs/modelo_de_dados.md)
-- [Principais decisões técnicas](docs/decisoes_tecnicas.md)
-- [Casos de teste e evidências](docs/casos_de_teste.md)
-- [Roteiro do vídeo demonstrativo](docs/roteiro_video.md)
-- [Privacidade e LGPD: feito e pendências](docs/lgpd_pendencias.md)
-- [User stories e critérios de aceite](docs/user_stories.md)
-- [Teste com usuários reais](docs/teste_com_usuarios.md)
-- [Desenho do banco de dados (PDF)](docs/diagramas/diagrama_banco_de_dados.pdf)
-- [Pacote de entrega da semana 10](ENTREGA.md)
+---
 
-## Instalação no Supabase (uma vez, cerca de 20 minutos)
+## Autoria
 
-Para instalar e validar do zero em outra conta, com o resultado esperado em cada passo e um roteiro de validação, siga o **[guia de instalação e validação](INSTALACAO.md)**.
+**Grupo 2, MBA Inteli, Módulo 3** (entrega da semana 10, trilha de Tecnologia):
 
-1. Criar um projeto no plano gratuito, região São Paulo. Para a operação real, a conta deve pertencer ao Instituto (ver "Passagem para o Instituto").
-2. Em **SQL Editor**, executar os arquivos nesta ordem, colando o conteúdo de cada um:
+- Allan Oliveira
+- Guilherme Souza
+- Ivan Hasse
+- Stenio Souza
 
-   | Arquivo | O que faz | Em produção |
-   |---|---|---|
-   | `db/01_schema.sql` | Tabelas, restrições e índices | Sim |
-   | `db/02_funcoes.sql` | Fluxo principal, adesão pública e simulador | Sim |
-   | `db/03_views.sql` | Métricas do painel | Sim |
-   | `db/04_dados_referencia.sql` | Parâmetros e canais reais | Sim |
-   | `db/05_dados_sinteticos.sql` | Cria e roda o gerador de dados sintéticos | **Não** |
-   | `db/06_supabase_seguranca.sql` | Regras de acesso | Sim |
-   | `tests/qa_testes.sql` e `tests/qa_seguranca.sql` | Instalam as suítes de teste no esquema `qa` | Sim |
+Organização parceira: Instituto de Cultura e Lazer Ebenézer, Jardim Ângela, São Paulo.
 
-3. Em **Authentication > Users > Add user**, criar o usuário da pessoa dedicada ao Clube (e-mail e senha, marcando o e-mail como confirmado).
-4. Autorizar esse e-mail como voluntário, no SQL Editor:
-   ```sql
-   insert into voluntario (email, nome) values ('email.da.pessoa@dominio.org', 'Nome da pessoa');
-   ```
-   Criar conta não dá acesso: só e-mails desta tabela veem dados e operam o painel.
-5. Em **Authentication > Sign In / Providers**, desligar **Allow new users to sign up**. O banco já barra quem não é voluntário; desligar o cadastro evita contas inúteis.
-6. Em **Project Settings > API Keys**, copiar a chave publicável (`sb_publishable_...`) e a URL para `web/config.js`. A chave secreta e a chave de API da Asaas **nunca** vão para a interface.
-7. Rodar os testes (próxima seção) e guardar o resultado em `evidencias/`.
+---
 
-## Testes
+## Telas do MVP
 
-**No Supabase (SQL Editor):**
+Capturas do MVP em funcionamento, com dados sintéticos de demonstração.
 
-```sql
-select * from qa.fn_rodar_testes();       -- 39 testes do fluxo (T01 a T39)
-select * from qa.fn_testes_seguranca();   -- 13 testes de acesso (S01 a S13)
-```
+### 1. Jornada do Doador
 
-Cada linha traz `PASS`, `INFO` ou `FALHA`. Os testes rodam num bloco desfeito ao final: nenhum dado é alterado. Usam um mês futuro sem movimento, então podem ser repetidos a qualquer momento, inclusive depois da demonstração.
+Quem chega pela página escolhe ser Guardião (R$ 85 por mês no Pix) ou fazer uma doação única de qualquer valor, conclui em três passos e já sai convidando outra pessoa.
 
-**Localmente (PostgreSQL 14+):**
+| Página inicial | Convite para o Ouro | Cadastro | Pix |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/telas/01_inicio.png" width="190" alt="Página inicial"> | <img src="docs/telas/02_convite_ouro.png" width="190" alt="Convite para ser Guardião do Futuro Ouro"> | <img src="docs/telas/03_cadastro.png" width="190" alt="Cadastro em etapas"> | <img src="docs/telas/04_pix.png" width="190" alt="Pagamento por Pix com QR Code"> |
+| A causa e o convite para doar todo mês | A trilha das 5 estrelas até o Ouro | Guardião ou doação única; e-mail opcional | QR Code e copia e cola |
 
-```bash
-export PGHOST=localhost PGPORT=5432 PGUSER=postgres
-./tests/rodar_testes.sh              # recria o banco, carrega tudo e roda as duas suítes
-```
+| Confirmação | Indique um novo Doador | Doação única |
+|:---:|:---:|:---:|
+| <img src="docs/telas/05_confirmacao.png" width="190" alt="Confirmação da doação"> | <img src="docs/telas/06_indique_doador.png" width="190" alt="Mensagem de indicação pelo WhatsApp"> | <img src="docs/telas/07_doacao_unica.png" width="190" alt="Doação única de qualquer valor"> |
+| Agradecimento e resumo | Mensagem de impacto com link pessoal | R$ 30, R$ 60, R$ 120 ou outro valor |
 
-**Interface, ponta a ponta (local):** `tests/e2e/rodar_e2e.sh` sobe o banco com o PostgREST (o mesmo motor de API do Supabase) e percorre 25 passos no navegador com Playwright (E01 a E24, com E07b): jornada da semana 5 (cadastro em 3 etapas, Pix, falha e nova tentativa, confirmação, Indique um novo Doador), doação única sem e-mail, Minha Área completa (nível, estrelas, impacto, histórico, pausa, retomada, cancelamento com motivo, reativação por R$ 85, recibo), consulta de CPF, login, resumo, exportação, operação do mês, alerta, recuperação, inadimplência, cancelamento, doações únicas e pausados no painel, celular e console sem erros. Gera capturas em `evidencias/e2e/`. Com a réplica no ar, `tests/e2e/telas_responsivas.py` confere as telas principais em celular, tablet e computador e gera as capturas em `evidencias/responsivo/`.
+### 2. Área do Doador (Minha Área)
 
-Evidências: 39 de 39 testes do fluxo e 13 de 13 de acesso no Supabase e localmente, 25 de 25 passos de interface, e dois controles negativos que provam que a suíte detecta defeitos (idempotência do webhook e cifragem do CPF). Arquivos: `evidencias/testes_local_2026-09-30_1337.log`, `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` e `evidencias/e2e/resultado_e2e.log`.
+O Guardião entra com WhatsApp e CPF, vê o nível e quanto falta para o Ouro, o que a doação sustentou mês a mês e o histórico; pode pausar em vez de cancelar e emitir o recibo anual.
 
-**Testar a Minha Área:** na página pública, clicar em **Minha Área** no topo e depois em **Entrar como Guardião de demonstração**. Ou digitar os dados do Guardião sintético Carlos Barbosa: WhatsApp `(11) 90000-0040` e CPF `800.000.040-73` (fictício). Ele aparece como Guardião Prata (4 estrelas, 11 meses), a 1 estrela do Ouro, impacto, histórico e recibo. Cinco tentativas erradas em 15 minutos bloqueiam a entrada por esse WhatsApp.
+| Entrada | Conquista e nível | Jornada até o Ouro |
+|:---:|:---:|:---:|
+| <img src="docs/telas/08_entrar_minha_area.png" width="190" alt="Entrada da Minha Área"> | <img src="docs/telas/09_minha_area_conquista.png" width="190" alt="Carlos, você já é um Guardião Prata"> | <img src="docs/telas/10_jornada_estrelas.png" width="190" alt="Trilha de estrelas e previsão do Ouro"> |
 
-## Publicar a interface
+| Prestação de contas | Histórico e pausa | Recibo anual |
+|:---:|:---:|:---:|
+| <img src="docs/telas/11_impacto.png" width="190" alt="O que as doações sustentaram"> | <img src="docs/telas/12_historico_pausa.png" width="190" alt="Histórico de doações e opção de pausa"> | <img src="docs/telas/13_recibo.png" width="190" alt="Recibo anual de doações"> |
 
-A pasta `web/` é estática. Neste repositório, a rotina `.github/workflows/publicar_interface.yml` publica a pasta no GitHub Pages a cada alteração (configuração única: Settings > Pages > Source: GitHub Actions).
+### 3. Área do Voluntário (painel)
 
-Alternativa sem GitHub: em app.netlify.com/drop, arrastar a pasta `web/`.
+A pessoa dedicada ao Clube acompanha as métricas contra a meta e o custeio, contata quem atrasou o Pix, vê de onde vêm os Guardiões e registra a prestação de contas do mês.
 
-Depois de publicar, gerar os links de cada canal para medir a aquisição:
+| Resumo | Alerta de churn |
+|:---:|:---:|
+| <img src="docs/telas/15_painel_resumo.png" width="420" alt="Resumo do painel"> | <img src="docs/telas/16_alerta_churn.png" width="420" alt="Alerta de churn"> |
+| Indicadores, meta de 100 Guardiões, custeio coberto e exportação para prestação de contas | Quem atrasou o Pix, por prioridade, com contato pelo WhatsApp |
 
-| Canal | Link |
-|---|---|
-| QR Code na comunidade | `.../index.html?origem=qr` |
-| Instagram | `.../index.html?origem=instagram` |
-| WhatsApp | `.../index.html?origem=whatsapp` |
-| Indicação de Guardião | `.../index.html?origem=indicacao` |
-| Campanha Dia das Crianças | `.../index.html?origem=criancas` |
-| Campanha de Natal | `.../index.html?origem=natal` |
+| Guardiões | Doações únicas |
+|:---:|:---:|
+| <img src="docs/telas/17_guardioes.png" width="420" alt="Lista de Guardiões"> | <img src="docs/telas/18_doacoes_unicas.png" width="420" alt="Doações únicas"> |
+| Busca, consulta de CPF sem revelar o número, nível, pausa e cancelamento | Quem doou uma vez: candidatos a Guardião |
 
-## Zerar a demonstração
+| Canais | Atividades e prestação de contas |
+|:---:|:---:|
+| <img src="docs/telas/19_canais.png" width="420" alt="Resultado por canal"> | <img src="docs/telas/20_atividades.png" width="420" alt="Atividades e prestação de contas"> |
+| Captação e retenção por canal de origem | O que cada atividade sustentou no mês |
 
-Antes de cada ensaio ou gravação, no SQL Editor do Supabase:
+| Operação do mês | Entrada do painel |
+|:---:|:---:|
+| <img src="docs/telas/21_operacao_mes.png" width="420" alt="Operação do mês"> | <img src="docs/telas/14_painel_login.png" width="420" alt="Login do painel"> |
+| Cobranças, retorno da Asaas (simulado no MVP) e notícia de impacto | Só voluntários cadastrados entram |
 
-```sql
-truncate evento_gateway, comunicacao, cobranca, assinatura, doacao_unica, tentativa_acesso, impacto_mensal, guardiao restart identity;
-select fn_gerar_dados_sinteticos();
-```
+As mesmas telas foram conferidas em celular, tablet e computador: [telas em três tamanhos](docs/diagramas/telas_responsivas.png).
 
-O resultado deve ser "305 Guardiões (271 ativos, 4 pausados)", com 48 doações únicas. Voluntários, logins e a chave do CPF são preservados. Na demonstração, o e-mail é opcional; se preencher, use `@example.com`. Use CPFs fictícios válidos, por exemplo `600.000.001-40`, `600.000.002-21` ou `600.000.003-02`.
+---
 
-## Operação depois da semana 10
+## Como instalar e rodar
 
-Quem opera: a pessoa dedicada ao Clube. Competência necessária: usar o painel e a Asaas; não exige programação. O plano de captação cresce em três fases, conforme o modelo financeiro do business case:
+O passo a passo completo, com o resultado esperado em cada etapa e um roteiro de validação de 20 passos, está no **[guia de instalação e validação](INSTALACAO.md)**.
 
-| Fase | Período | Horas por mês | Captação / retenção | Novos Guardiões por mês | Churn esperado |
-|---|---|---|---|---|---|
-| 1. Implantação e ajuste | fev a jul/2027 | 80 | 56 h / 24 h | 5 a 10, mais 5 pontuais convertidos | até 3% |
-| 2. Tração | ago/2027 a jul/2028 | 80 | 56 h / 24 h | 12 a 15 | até 2,5% |
-| 3. Maturidade | ago/2028 a jan/2030 | 120 (segundo voluntário de 40 h, focado em retenção) | 72 h / 48 h | 18 | até 2% |
+### Requisitos e versões
 
-Passagem de fase: da 1 para a 2, 40 pontuais contatados, 80% dos 35 migrados para a Asaas e churn até 3%; da 2 para a 3, pelo menos 12 novos por mês em 3 meses seguidos e base acima de 200. Gatilhos de revisão: churn acima de 4% ao mês, base abaixo de 130 Guardiões no mês 12 (jan/2028) e custo de notificação acima de R$ 300 por mês. Os números de acompanhamento estão no **Resumo** e em **Canais** do painel.
-
-| Frequência | Tarefa | Onde |
+| Item | Versão | Para quê |
 |---|---|---|
-| Diária (10 min) | Aba **Alerta de churn**: contatar pelo WhatsApp os Guardiões de prioridade alta e clicar em **Registrar contato**. Pedido de pausa por WhatsApp: botão **Pausar 1 mês** na aba Guardiões (ou **Retomar**) | Painel |
-| Semanal | Registrar adesões presenciais; acompanhar **Canais** (o uso semanal também mantém o Supabase ativo) | Painel |
-| Mensal | **Doações únicas**: acompanhar a aba e convidar quem doou a virar Guardião. **Atividades**: registrar o que cada atividade sustentou no mês. **Operação do mês**: gerar cobranças (só no MVP), enviar a notícia de impacto; conferir no extrato o Pix direto de quem ainda não migrou e marcar "Recebido no extrato" ou "Não recebido"; **Resumo**: baixar o CSV para a prestação de contas | Painel e extrato bancário |
-| Jan a mar/2027 | Convidar cada Guardião da base atual a migrar para a Asaas; quem aceitar, botão **Migrar para Asaas** na aba Guardiões. Meta: 80% migrados (indicador "Base ainda em Pix direto" no Resumo) | Painel e WhatsApp |
-| Mensal | Comparar novos Guardiões e churn do mês com a curva da fase (tabela acima) | Painel, aba Resumo |
-| Trimestral | Rodar os testes; revisar parâmetros e decidir a passagem de fase com a diretoria | SQL Editor e painel |
+| Conta no Supabase | Plano gratuito (PostgreSQL 17) | Banco de dados, API e login do painel |
+| Navegador | Chrome, Edge ou Firefox atuais | Usar a interface e o painel do Supabase |
+| `supabase-js` | 2.117.2, já incluída em `web/vendor/` | Ligação da interface com o Supabase; não precisa instalar |
+| Publicação da interface | Netlify Drop ou GitHub Pages (sem instalação), ou Python 3 para rodar localmente | Servir a pasta `web/` |
+| Testes locais (opcional) | PostgreSQL 14 ou superior e terminal bash | Rodar `tests/rodar_testes.sh` sem Supabase |
+| Teste de interface (opcional) | PostgREST 12, Python 3 e Playwright 1.56 | Rodar `tests/e2e/rodar_e2e.sh` |
 
-**Base atual (modelo híbrido, DT-15):** os Guardiões que já doam por Pix direto são cadastrados no painel marcando "Já doa por Pix direto" na adesão presencial. Não trocam a forma de pagar e recebem a mesma comunicação.
+### Resumo da instalação
 
-Parâmetros de negócio (valor do Guardião, pausa máxima, meses por estrela, metas, custeio de referência, taxas, limite de tentativas) ficam na tabela `parametro` e mudam sem mexer em código.
+1. Criar um projeto gratuito no Supabase (região São Paulo).
+2. No **SQL Editor**, rodar na ordem: `db/01_schema.sql`, `db/02_funcoes.sql`, `db/03_views.sql`, `db/04_dados_referencia.sql`, `db/05_dados_sinteticos.sql` (só na demonstração), `db/06_supabase_seguranca.sql`, `tests/qa_testes.sql` e `tests/qa_seguranca.sql`.
+3. Criar o usuário do voluntário em **Authentication** e autorizá-lo com `insert into voluntario (email, nome) values (...)`; desligar o cadastro público.
+4. Copiar a **Project URL** e a **Publishable key** para `web/config.js`. A chave secreta e a chave da Asaas nunca vão para a interface.
+5. Publicar a pasta `web/` (Netlify Drop, GitHub Pages ou `python -m http.server` dentro de `web/`).
 
-**Se o Supabase pausar:** entrar no painel do Supabase e clicar em *Restore project*. O projeto pode ser restaurado em até um ano, sem perda de dados. A rotina `manter_ativo.yml` reduz o risco de pausa, mas não o elimina: confira o projeto antes de cada demonstração.
+### Como verificar que funcionou
 
-**Se o banco for perdido:** recriar com os arquivos de `db/` (exceto o 05) e reimportar clientes, assinaturas e cobranças pela API da Asaas.
+| Verificação | Resultado esperado |
+|---|---|
+| Contagem da base | 305 Guardiões, 271 ativos, 4 pausados, 48 doações únicas |
+| `select * from qa.fn_rodar_testes();` | 39 testes `PASS`, nenhuma `FALHA` |
+| `select * from qa.fn_testes_seguranca();` | 13 testes `PASS`, nenhuma `FALHA` |
+| Página e painel | Roteiro V1 a V20 do [guia](INSTALACAO.md#8-roteiro-de-validação-20-a-30-min) |
 
-## Passagem para o Instituto
+---
 
-O projeto de demonstração foi criado na conta Supabase do grupo. Para a operação real:
+## Visão geral da arquitetura
 
-1. O Instituto cria sua própria conta no Supabase, com e-mail institucional.
-2. Transfere-se o projeto para a organização do Instituto (Supabase: *Project Settings > General > Transfer project*) ou recria-se o projeto seguindo a instalação acima, sem o arquivo 05.
-3. A pessoa dedicada é cadastrada como voluntária (passos 3 e 4 da instalação).
+### Tela, servidor e banco
 
-## Passo para produção (fora do escopo do MVP)
+```mermaid
+flowchart LR
+  subgraph Navegador["Navegador (front-end, pasta web/)"]
+    P["Página do doador<br/>e Minha Área<br/>index.html"]
+    V["Painel do voluntário<br/>painel.html"]
+  end
+  subgraph Supabase["Supabase (back-end gerenciado)"]
+    API["API REST automática<br/>(PostgREST)"]
+    AUTH["Login do voluntário<br/>(Supabase Auth)"]
+    subgraph DB["PostgreSQL"]
+      F["Funções do fluxo<br/>(única porta de escrita)"]
+      T["13 tabelas<br/>com regras e RLS"]
+      W["7 views de métricas"]
+    end
+  end
+  ASAAS["Asaas<br/>(gateway de Pix)"]
+  P -- "supabase-js, chave publicável" --> API
+  V -- "supabase-js + login" --> AUTH
+  V --> API
+  API --> F
+  API --> W
+  F --> T
+  W --> T
+  ASAAS -. "webhook de pagamento<br/>(simulado no MVP)" .-> F
+```
 
-Uma Edge Function do Supabase recebe o webhook da Asaas, valida o token configurado na Asaas e chama `fn_processar_evento` com a chave de serviço. A cobrança mensal passa a ser criada pela assinatura da Asaas (evento `PAYMENT_CREATED`), e `fn_gerar_cobrancas` e o simulador deixam de ser usados. A página de adesão passa a encaminhar para o checkout da Asaas, e a doação única é confirmada pelo webhook (`fn_processar_doacao_unica`). Em `web/config.js`, `demonstracao: false` esconde o aviso, o simulador e o Guardião de demonstração; no banco, `parametro.modo_demonstracao = 0` desliga a confirmação de doação sem a Asaas. A entrada na Minha Área por WhatsApp e CPF deve ser trocada por código de uso único enviado ao WhatsApp (ou link mágico por e-mail) antes de operar com doadores reais. Detalhes em [DT-04](docs/decisoes_tecnicas.md).
+- **Front-end:** HTML, CSS e JavaScript sem etapa de build, hospedados como arquivos estáticos (GitHub Pages).
+- **Back-end:** o próprio Supabase. A API é gerada a partir do banco; não há servidor próprio para manter.
+- **Regra de negócio:** em funções SQL. A interface só lê views e chama funções; nenhum usuário grava direto nas tabelas.
+- **Pagamento:** na Asaas, gateway que o Instituto já contratou. No MVP, os avisos de "Pix pago" e "Pix vencido" são simulados com os nomes reais dos eventos e passam pela mesma função que o webhook real vai chamar.
+
+### Estrutura de pastas
+
+```
+clube-guardioes-mvp/
+├── README.md                 porta de entrada (este arquivo)
+├── INSTALACAO.md             guia de instalação e validação do zero
+├── ENTREGA.md                pacote de entrega da semana 10
+├── CONTRIBUTING.md           como manter e alterar o MVP com segurança
+├── db/                       banco de dados, na ordem de instalação
+│   ├── 01_schema.sql         tabelas, regras e índices
+│   ├── 02_funcoes.sql        fluxo: adesão, cobrança, Pix, régua, Minha Área
+│   ├── 03_views.sql          métricas do painel
+│   ├── 04_dados_referencia.sql  parâmetros e canais
+│   ├── 05_dados_sinteticos.sql  gerador de dados fictícios (só demonstração)
+│   └── 06_supabase_seguranca.sql  regras de acesso (RLS e permissões)
+├── web/                      interface (front-end)
+│   ├── index.html            página do doador, Minha Área e recibo
+│   ├── painel.html           painel do voluntário
+│   ├── privacidade.html      Aviso de Privacidade
+│   ├── config.js             URL e chave publicável do Supabase
+│   ├── css/  js/  img/       estilo, lógica das telas e imagens
+│   └── vendor/               biblioteca supabase-js
+├── tests/                    testes do banco (qa_*.sql) e da interface (e2e/)
+├── evidencias/               resultados das execuções de teste
+├── docs/                     documentação técnica, diagramas e telas
+└── .github/workflows/        publicação da interface e rotina do Supabase
+```
+
+### Entidades do banco e relações
+
+![Diagrama entidade-relacionamento](docs/diagramas/diagrama_banco_de_dados_erd.png)
+
+| Grupo | Tabelas |
+|---|---|
+| Doador e recorrência | `guardiao` (o Guardião, com CPF só cifrado), `assinatura` (doação mensal, ativa, pausada ou cancelada), `cobranca` (o Pix de cada mês) |
+| Pagamento | `evento_gateway` (avisos da Asaas, com proteção contra repetição) |
+| Doação única | `doacao_unica` |
+| Relacionamento e prestação de contas | `comunicacao` (boas-vindas, agradecimento, lembrete, notícia de impacto), `atividade` e `impacto_mensal` (o que cada atividade sustentou no mês) |
+| Configuração e acesso | `origem` (canais de captação), `parametro` (valor do Guardião, metas, limites), `voluntario` (quem acessa o painel), `tentativa_acesso` (bloqueio da Minha Área), `privado.segredo` (chave do CPF, sem acesso externo) |
+
+O desenho completo, com permissões, funções e dicionário de dados, está em [docs/diagramas/diagrama_banco_de_dados.pdf](docs/diagramas/diagrama_banco_de_dados.pdf) e em [docs/modelo_de_dados.md](docs/modelo_de_dados.md).
+
+---
+
+## Decisões técnicas e o valor para o Instituto
+
+Cada escolha técnica explicada também pelo valor que gera para a organização. O registro completo, com alternativas e consequências, está em [docs/decisoes_tecnicas.md](docs/decisoes_tecnicas.md).
+
+| Decisão técnica | Razão técnica | Valor para o Instituto | Alternativa considerada |
+|---|---|---|---|
+| **Guardar os dados em um banco de dados** (PostgreSQL no Supabase) | Integridade garantida por regras: um CPF por Guardião, um Pix por mês, todo pagamento rastreável | Métricas confiáveis (Guardiões ativos, churn, custeio coberto) e prestação de contas com dado, que é o que o financiador cobra. Sem o banco, voltaria à planilha manual: sem histórico confiável, sem alerta de quem atrasou e sem como mostrar resultado | Google Sheets com Apps Script, mais familiar, mas sem integridade nem testes automáticos |
+| **Separar a tela (front-end) do servidor (back-end)** | A interface só exibe e chama funções; as regras ficam no banco, testadas de forma independente | Trocar textos, cores ou até a tela inteira não mexe em regra nenhuma; dá para ligar outro canal (checkout da Asaas, app) reaproveitando o mesmo banco | Sistema único com tela e regra misturadas, mais difícil de manter por voluntários |
+| **Validar os dados antes de salvar** | CPF com dígito verificador, e-mail válido, consentimento LGPD obrigatório, valor mínimo, CPF duplicado barrado, e-mail real recusado na demonstração | Evita doador duplicado (contaria o mesmo Guardião duas vezes e mandaria mensagem em dobro), cobrança errada e cadastro sem consentimento, que é risco legal pela LGPD | Validar só na tela, que pode ser contornada |
+| **Versionar o projeto em um repositório** (GitHub público) | Todo o histórico de mudanças, migrações do banco numeradas, testes e publicação automática da interface | Nada se perde e o Instituto não depende dos autores: qualquer pessoa reinstala do zero seguindo o guia e sabe o que mudou, quando e por quê | Arquivos soltos em pastas, sem histórico |
+| **Asaas como gateway de Pix** | Sem mensalidade; R$ 1,99 por Pix e R$ 0,55 por mensagem | Já contratada pelo Instituto; custo de R$ 3,09 por Guardião ao mês, que nasce junto com a receita | Plataforma completa com mensalidade, que consumiria 28,9% da arrecadação atual |
+| **CPF guardado só cifrado** | Impressão digital HMAC-SHA256 com chave secreta | Identifica o doador e barra duplicidade sem expor o CPF de ninguém em caso de vazamento | CPF em texto aberto ou não pedir CPF |
+| **Interface sem etapa de build** | HTML, CSS e JavaScript puros, biblioteca copiada para o projeto | Hospedagem gratuita e manutenção por quem tem noções básicas de web, sem ferramentas que envelhecem | React ou Next.js, que exigem build e atualização constante de dependências |
+
+---
+
+## Testes e evidências
+
+| Camada | O que cobre | Resultado |
+|---|---|---|
+| Fluxo (`qa.fn_rodar_testes()`) | Adesão, cobrança, Pix pago e vencido, recuperação, cancelamento, Minha Área, pausa, estrelas, recibo, dados sintéticos e integridade | 39 de 39 aprovados no Supabase e localmente |
+| Acesso (`qa.fn_testes_seguranca()`) | Visitante anônimo, conta sem cadastro de voluntário, voluntário, CPF e chave protegidos | 13 de 13 aprovados |
+| Interface (Playwright) | 25 passos no navegador, do cadastro ao painel | 25 de 25 aprovados |
+| Telas em três tamanhos | Celular, tablet e computador, sem rolagem lateral | 12 de 12 aprovados |
+| Controles negativos | Defeitos introduzidos de propósito são detectados pela suíte | 2 de 2 detectados |
+| Usuário real | Teste ao vivo com pessoa de fora do projeto | Registrado em [teste com usuários](docs/teste_com_usuarios.md) |
+
+Os testes do banco rodam num bloco desfeito ao final e podem ser repetidos a qualquer momento. Detalhes e evidências em [docs/casos_de_teste.md](docs/casos_de_teste.md) e na pasta `evidencias/`.
+
+---
+
+## Próximos passos
+
+### O que falta para começar a usar com doadores reais
+
+1. **Conta do Instituto no Supabase**, com e-mail institucional, e instalação seguindo o [guia](INSTALACAO.md) sem o arquivo 5 (dados sintéticos).
+2. **Ligar a Asaas de verdade:** uma Edge Function do Supabase recebe o webhook e a página encaminha para o checkout da Asaas ([DT-04](docs/decisoes_tecnicas.md)).
+3. **Trocar a entrada da Minha Área** por código de uso único no WhatsApp ou link por e-mail ([DT-18](docs/decisoes_tecnicas.md)).
+4. **Fechar as pendências de LGPD** (política de privacidade, canal do titular, prazo de guarda, exclusão): [docs/lgpd_pendencias.md](docs/lgpd_pendencias.md).
+5. **Desligar o modo de demonstração:** `demonstracao: false` em `web/config.js` e `modo_demonstracao = 0` no banco.
+6. **Designar a pessoa dedicada ao Clube** (80 horas por mês) e cadastrá-la como voluntária. A rotina de operação está em [docs/operacao.md](docs/operacao.md).
+
+### Melhorias por prioridade
+
+| Prioridade | Melhoria |
+|---|---|
+| Alta | Webhook e checkout reais da Asaas, incluindo doação única como cobrança avulsa e pausa espelhada na assinatura |
+| Alta | Login da Minha Área por código de uso único |
+| Média | Modelo oficial do recibo anual, validado pelo contador do Instituto |
+| Média | Chave do CPF no cofre do Supabase (Vault) |
+| Baixa | Doação de pessoa jurídica e comprovação fiscal corporativa |
+| Baixa | Vínculo individual da doação a uma atividade específica |
+
+### Riscos e limitações conhecidos
+
+- **Pagamento simulado:** no MVP, os avisos da Asaas são simulados; nenhum valor é cobrado.
+- **Entrada da Minha Área por WhatsApp e CPF:** adequada para demonstração com dados sintéticos, não para doadores reais.
+- **Plano gratuito do Supabase pausa por inatividade:** o projeto é restaurado sem perda de dados; o uso frequente do painel evita a pausa e, em operação, o plano pago elimina o risco.
+- **Dependência de uma pessoa:** mitigada por processo documentado, régua automática e um segundo voluntário a partir da terceira fase do plano.
+- **Base de demonstração maior que o plano:** 275 Guardiões no mês 12, contra 164 previstos, de propósito, para exercitar o painel com volume.
+- **Sem dedução de Imposto de Renda:** doação direta ao Instituto não é dedutível para pessoa física, e a página e o recibo dizem isso.
+- **Fora do escopo do MVP:** CRM próprio, motor de campanhas e sistema de embaixadores, que o Instituto não conseguiria manter sem os autores.
+
+---
 
 ## Dados e privacidade
 
-- Dados sintéticos: nomes aleatórios, e-mails no domínio reservado `example.com`, telefones fictícios. Nenhum dado real de doador está neste repositório. O teste T20 verifica isso.
-- Em produção: nome, CPF, WhatsApp, e-mail (opcional) e registro do consentimento LGPD. Nenhum dado de cartão.
-- **CPF cifrado:** o CPF é obrigatório e identifica o Guardião (decisão da semana 5; a Asaas também o exige). O banco guarda só a impressão digital HMAC-SHA256 com chave secreta: barra duplicidade e responde "este CPF já é Guardião?", mas não permite ler o número. O CPF completo fica só na Asaas. Detalhes em [DT-14](docs/decisoes_tecnicas.md).
-- **Pendências de LGPD para operar com doadores reais** (política de privacidade, canal do titular, prazo de guarda, procedimento de exclusão, entre outras): [docs/lgpd_pendencias.md](docs/lgpd_pendencias.md).
-- Identidade visual da entrega da semana 5 (verde do Instituto, logo da árvore e a mesma foto de atividade). A foto faz parte do banco de imagens liberado pelo Instituto para uso conforme sua política e o Manual de Boas Práticas para Redes Sociais. Qualquer foto nova de criança precisa da mesma liberação.
-- A página e o recibo não prometem dedução de Imposto de Renda: doação direta ao Instituto não é dedutível para pessoa física, e o recibo diz isso.
+- **Dados sintéticos:** nomes aleatórios, e-mails no domínio reservado `example.com` e telefones fictícios. Nenhum dado real de doador está neste repositório; o teste T20 verifica isso. Enquanto o modo de demonstração estiver ligado, o banco recusa e-mail real.
+- **Sem senhas nem chaves secretas no repositório:** `web/config.js` traz só a URL e a chave publicável do Supabase, feita para ficar no navegador; quem protege os dados são as regras do banco. A chave secreta do Supabase e a chave da Asaas nunca entram no projeto.
+- **CPF cifrado:** o banco guarda só a impressão digital do CPF; o número completo fica na Asaas ([DT-14](docs/decisoes_tecnicas.md)).
+- **Imagens:** só fotos do banco liberado pelo Instituto, conforme sua política e o Manual de Boas Práticas para Redes Sociais.
+
+---
+
+## Documentação completa
+
+| Documento | Conteúdo |
+|---|---|
+| [INSTALACAO.md](INSTALACAO.md) | Instalação do zero e roteiro de validação |
+| [ENTREGA.md](ENTREGA.md) | Como o MVP atende a cada exigência do enunciado |
+| [docs/operacao.md](docs/operacao.md) | Rotina de operação, publicação, passagem ao Instituto e passo para produção |
+| [docs/rastreabilidade_semana5.md](docs/rastreabilidade_semana5.md) | Cada tela do protótipo da semana 5 e onde está no MVP |
+| [docs/user_stories.md](docs/user_stories.md) | User stories com critérios de aceite ligados aos testes |
+| [docs/modelo_de_dados.md](docs/modelo_de_dados.md) e [desenho do banco](docs/diagramas/diagrama_banco_de_dados.pdf) | Tabelas, relações, views, permissões e dicionário de dados |
+| [docs/decisoes_tecnicas.md](docs/decisoes_tecnicas.md) | Decisões numeradas, com alternativas e consequências |
+| [docs/casos_de_teste.md](docs/casos_de_teste.md) | Cenários, resultados, defeitos encontrados e evidências |
+| [docs/teste_com_usuarios.md](docs/teste_com_usuarios.md) | Teste com usuário real: hipóteses, participante e aprendizados |
+| [docs/lgpd_pendencias.md](docs/lgpd_pendencias.md) | O que o MVP garante e as pendências para operar com doadores reais |
+| [docs/roteiro_video.md](docs/roteiro_video.md) | Roteiro do vídeo demonstrativo |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Como alterar o código e o banco com segurança |

@@ -31,7 +31,7 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 
 | Documento | Conteúdo |
 |---|---|
-| [README](README.md) | Instalação, acesso, testes, publicação, operação depois da semana 10 e passagem ao Instituto |
+| [README](README.md) | Porta de entrada: o que é, autoria, telas do MVP, instalação, arquitetura, decisões e próximos passos |
 | [Guia de instalação e validação](INSTALACAO.md) | Passo a passo para instalar do zero em outra conta do Supabase, com resultado esperado e roteiro de validação |
 | [Rastreabilidade semana 5 → 10](docs/rastreabilidade_semana5.md) | Cada tela do protótipo da semana 5 e onde está no MVP |
 | [User stories](docs/user_stories.md) | User stories com critérios de aceite ligados aos testes |
@@ -41,6 +41,7 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 | [Teste com usuários](docs/teste_com_usuarios.md) | Hipóteses, participantes, condução e aprendizados |
 | [Privacidade e LGPD](docs/lgpd_pendencias.md) | O que o MVP garante e as pendências para operar com doadores reais |
 | [Roteiro do vídeo](docs/roteiro_video.md) | Cenas, tempos e falas |
+| [Operação](docs/operacao.md) | Rotina de quem opera o Clube, publicação, passagem ao Instituto e passo para produção |
 | [Como manter o MVP](CONTRIBUTING.md) | Regras para alterar o código e o banco com segurança |
 
 ## Nota para a banca

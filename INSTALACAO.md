@@ -237,7 +237,7 @@ Preencha e devolva ao grupo junto com os arquivos `testes_fluxo.csv` e `testes_a
 ## 11. Depois da validação
 
 - **Para quem validou:** o projeto de teste pode ser apagado ou deixado pausado; ele só tem dados fictícios.
-- **Para o Instituto, na operação real:** seguir este mesmo guia com a conta institucional, com três diferenças: **não** rodar o arquivo 5 (dados sintéticos); em `web/config.js`, usar `demonstracao: false`; e, no SQL Editor, desligar o modo de demonstração com `update parametro set valor = 0 where chave = 'modo_demonstracao';`. Antes de receber doadores reais, ver "Passo para produção" no README e as pendências de LGPD em `docs/lgpd_pendencias.md`.
+- **Para o Instituto, na operação real:** seguir este mesmo guia com a conta institucional, com três diferenças: **não** rodar o arquivo 5 (dados sintéticos); em `web/config.js`, usar `demonstracao: false`; e, no SQL Editor, desligar o modo de demonstração com `update parametro set valor = 0 where chave = 'modo_demonstracao';`. Antes de receber doadores reais, ver "Passo para produção" em `docs/operacao.md` e as pendências de LGPD em `docs/lgpd_pendencias.md`.
 
 ## Validação local (opcional, para quem tem PostgreSQL)
 

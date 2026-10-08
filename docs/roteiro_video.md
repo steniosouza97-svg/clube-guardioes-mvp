@@ -11,7 +11,7 @@ Objetivo: mostrar o fluxo principal rodando de ponta a ponta sobre o banco real 
 - WhatsApp Web aberto (ou celular espelhado) só para mostrar a mensagem de indicação montada, sem enviar a ninguém.
 - Mês de competência do painel no mês seguinte ao último com cobranças (o painel já abre assim).
 - SQL Editor do Supabase aberto em uma terceira aba.
-- Zerar a demonstração antes de gravar (README, seção "Zerar a demonstração").
+- Zerar a demonstração antes de gravar ([operação](operacao.md), seção "Zerar a demonstração").
 
 ## Cenas
 
@@ -31,7 +31,7 @@ Objetivo: mostrar o fluxo principal rodando de ponta a ponta sobre o banco real 
 | 12 | 5:15 a 5:45 | Painel, Alerta de churn | Mostrar a prioridade e o link de WhatsApp; voltar à operação e marcar "Pix pago" em um atraso | "Quem não pagou recebe o lembrete automático e entra no alerta. A pessoa dedicada ao Clube liga para os de prioridade alta. Quando o Pix chega, a cobrança vira recuperada e o Guardião sai do alerta." |
 | 13 | 5:45 a 6:10 | Painel, Atividades e Operação do mês | Registrar o texto de uma atividade; enviar a notícia de impacto duas vezes | "A equipe registra o que cada atividade sustentou no mês, como no painel da Ana da semana 5. Esse texto chega a cada Guardião uma única vez e alimenta a linha do tempo da Minha Área." |
 | 14 | 6:10 a 6:40 | SQL Editor do Supabase | Rodar `select * from qa.fn_rodar_testes();` e depois `qa.fn_testes_seguranca()` | "Trinta e nove testes do fluxo e treze de acesso, rodando no próprio Supabase, mais 25 passos de interface no navegador e as telas conferidas no celular, no tablet e no computador. Um visitante não enxerga dados de doadores, só entra na Minha Área com os dados certos, e criar uma conta não dá acesso ao painel." (Fase de testes, evidências) |
-| 15 | 6:40 a 7:00 | README no repositório | Mostrar a estrutura e o manual de operação | "O repositório traz modelo de dados, decisões técnicas, instalação e o manual para a pessoa que vai operar o Clube depois de nós." (Handover) |
+| 15 | 6:40 a 7:00 | README no repositório | Mostrar as telas, a arquitetura e o manual de operação | "O repositório traz modelo de dados, decisões técnicas, instalação e o manual para a pessoa que vai operar o Clube depois de nós." (Handover) |
 
 ## Cuidados
 
