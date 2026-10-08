@@ -10,7 +10,8 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 | Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
 | Página de adesão (MVP no ar) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ (Guardião, doação única e link **Minha Área** no topo) |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html (acesso restrito a voluntários cadastrados) |
-| Vídeos demonstrativos | Pasta `Tecnologia/semana 10/Video` do Drive da entrega: **1. "MVP Demo_Doação & Engajamento"**, a jornada de quem doa, da adesão à indicação; **2. "MVP Area Doador e Area Voluntario"**, a Minha Área do Guardião e o painel do voluntário |
+| Vídeo 1: Jornada do Doador | [MVP Demo_Doação & Engajamento](https://drive.google.com/file/d/1EtYiiV-Fetb1uSzP94Od8su2yus-Frc9/view?usp=drive_link): a jornada de quem doa, da adesão à indicação |
+| Vídeo 2: Área do Doador e Área do Voluntário | [MVP Area Doador e Area Voluntario](https://drive.google.com/file/d/1K4rVhU5vPgPPXFC9E9guDf6terbYcPmd/view?usp=drive_link): a Minha Área do Guardião e o painel do voluntário |
 
 ## Como o MVP atende ao enunciado
 

@@ -8,7 +8,8 @@ Sistema de doação recorrente do Instituto de Cultura e Lazer Ebenézer, que at
 |---|---|
 | Página do doador (MVP no ar) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ |
 | Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html (acesso restrito a voluntários cadastrados) |
-| Vídeos demonstrativos | Pasta `Tecnologia/semana 10/Video` do Drive da entrega: "MVP Demo_Doação & Engajamento" e "MVP Area Doador e Area Voluntario" |
+| Vídeo 1: Jornada do Doador | [MVP Demo_Doação & Engajamento](https://drive.google.com/file/d/1EtYiiV-Fetb1uSzP94Od8su2yus-Frc9/view?usp=drive_link): da adesão à indicação de um novo doador |
+| Vídeo 2: Área do Doador e Área do Voluntário | [MVP Area Doador e Area Voluntario](https://drive.google.com/file/d/1K4rVhU5vPgPPXFC9E9guDf6terbYcPmd/view?usp=drive_link): Minha Área do Guardião e painel do voluntário |
 | Pacote de entrega | [ENTREGA.md](ENTREGA.md) |
 
 > **Ambiente de demonstração.** A base tem só dados sintéticos e nenhum valor é cobrado. Para testar, deixe o e-mail em branco (ou use um terminado em `@example.com`) e use um CPF fictício, como `900.000.001-75`.
@@ -42,7 +43,7 @@ Organização parceira: Instituto de Cultura e Lazer Ebenézer, Jardim Ângela, 
 
 ## Telas do MVP
 
-Capturas do MVP em funcionamento, com dados sintéticos de demonstração.
+Capturas do MVP em funcionamento, com dados sintéticos de demonstração. Para ver o fluxo em movimento: [vídeo 1, Jornada do Doador](https://drive.google.com/file/d/1EtYiiV-Fetb1uSzP94Od8su2yus-Frc9/view?usp=drive_link) e [vídeo 2, Área do Doador e Área do Voluntário](https://drive.google.com/file/d/1K4rVhU5vPgPPXFC9E9guDf6terbYcPmd/view?usp=drive_link). Os vídeos estão no Google Drive da Inteli e abrem com a conta institucional.
 
 ### 1. Jornada do Doador
 
