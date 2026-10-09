@@ -162,6 +162,35 @@ O que muda em cada tamanho: no celular, a foto fica acima do texto, os cartões 
 
 Um teste que nunca falha não prova nada; estes provam.
 
+## Instalação do zero em outra máquina
+
+Para provar que o MVP não depende do computador nem da conta de quem o construiu, outro integrante do grupo seguiu o [guia de instalação](../INSTALACAO.md) do início ao fim, numa conta própria do Supabase, sem ajuda de quem desenvolveu.
+
+| Campo | Registro |
+|---|---|
+| Quem validou | Ivan Hasse (Grupo 2) |
+| Quando | 08/10/2026, 23h50, a 09/10/2026, 00h29 |
+| Computador e navegador | Dell com Windows, Microsoft Edge |
+| Publicação da interface | Opção A, Netlify Drop |
+| Banco | Projeto novo no Supabase, na conta do próprio integrante |
+
+| Passo | Resultado |
+|---|---|
+| Projeto criado e oito arquivos do banco rodados sem erro | OK |
+| Conferência da base: 305 Guardiões, 271 ativos, 4 pausados, 48 doações únicas | OK |
+| Testes de fluxo: 39 PASS, sem FALHA (mais 2 linhas informativas) | OK |
+| Testes de acesso: 13 testes PASS, sem FALHA | OK |
+| Voluntário criado, cadastro público desligado, `config.js` apontando para o novo projeto | OK |
+| V1 a V7, página do doador | OK |
+| V8 a V11, Minha Área | OK |
+| V12 a V18, painel do voluntário (00h05) | OK |
+| V19, celular (00h25) | OK |
+| V20, testes repetidos sem alterar dados (00h29) | OK |
+
+**Por que o resultado prova uma instalação independente.** Os números dos arquivos devolvidos são os de uma base recém-gerada, e não os da base de demonstração publicada: ticket médio de R$ 76,73, churn de 1,55% e 275 Guardiões no Clube (T19), receita de setembro de R$ 18.230,00 (T14) e último mês com cobranças em 09/2026. No teste de acesso, S06 lê 306 Guardiões e S13 lê 49 doações únicas: são os 305 e 48 da base limpa mais o registro que cada teste cria e desfaz no próprio bloco. A base publicada, já usada em gravações, tem 307 Guardiões.
+
+Evidências em `evidencias/validacao_outra_maquina/`: a ficha preenchida e os dois resultados exportados do SQL Editor.
+
 ## Defeitos encontrados pelos testes
 
 | Defeito | Correção | Teste que protege |
@@ -179,6 +208,7 @@ Um teste que nunca falha não prova nada; estes provam.
 | `evidencias/testes_local_2026-09-30_1337.log` | Execução em PostgreSQL local: 39 de 39 testes de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-30_plano_em_fases.log` | Mesma execução no Supabase, com resultado idêntico ao local |
 | `evidencias/testes_supabase_2026-10-08.log` | Execução final no Supabase, na véspera da apresentação: 39 de 39 testes de fluxo e 13 de 13 de acesso |
+| `evidencias/validacao_outra_maquina/` | Instalação do zero em outra máquina (Ivan Hasse, 08/10/2026): ficha de validação, 39 de 39 testes de fluxo e 13 de 13 de acesso |
 | `evidencias/testes_supabase_2026-09-29_trava_demonstracao.log` | Execução no Supabase que comprova a trava de e-mail da demonstração (T39) |
 | `evidencias/controle_negativo_2026-09-28.log` | Os dois controles negativos |
 | `evidencias/e2e/resultado_e2e.log` | Os 25 passos de interface aprovados (E01 a E24, com E07b) |

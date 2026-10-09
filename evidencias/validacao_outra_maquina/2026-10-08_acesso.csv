@@ -1,0 +1,16 @@
+﻿ordem,resultado
+1,PASS S01 anônimo lê as origens e não lê dados de Guardiões
+2,PASS S02 anônimo não executa funções do painel
+3,PASS S03 anônimo consegue aderir pela página pública
+4,PASS S04 anônimo não grava direto nas tabelas
+5,PASS S09 anônimo não consulta CPF
+6,PASS S13 anônimo faz doação única e entra na Minha Área só com WhatsApp e CPF corretos; não lê doações nem pausa pelo painel
+7,"PASS S05 conta criada por terceiro, sem cadastro de voluntário, não vê dados nem executa o fluxo"
+8,"PASS S11 só voluntário cadastrado registra Pix direto, cadastra a base e migra para a Asaas"
+9,PASS S06 voluntário cadastrado lê o painel (306 Guardiões) e executa o fluxo
+10,PASS S13 voluntário lê as 49 doações únicas sem o CPF cifrado
+11,PASS S12 convite só revela o primeiro nome; prestação de contas e contatos só pela equipe cadastrada
+12,PASS S07 voluntário não altera tabelas sem passar pelas funções
+13,"PASS S10 voluntário não lê o CPF cifrado, nem a chave, nem calcula impressões digitais"
+14,PASS S08 gerador de dados sintéticos bloqueado fora do SQL Editor
+15,INFO testes de acesso desfeitos: nenhum dado foi alterado

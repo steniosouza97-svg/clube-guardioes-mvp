@@ -208,6 +208,8 @@ Faça na ordem e marque cada passo na ficha da seção 10. Os dados abaixo são 
 
 Preencha e devolva ao grupo junto com os arquivos `testes_fluxo.csv` e `testes_acesso.csv` (ou prints).
 
+Este guia já foi validado por um integrante que não participou do desenvolvimento, em 08/10/2026, com todos os passos aprovados ([registro](docs/casos_de_teste.md#instalação-do-zero-em-outra-máquina)).
+
 | Campo | Registro |
 |---|---|
 | Quem validou | |

@@ -237,6 +237,7 @@ Cada escolha técnica explicada também pelo valor que gera para a organização
 | Interface (Playwright) | 25 passos no navegador, do cadastro ao painel | 25 de 25 aprovados |
 | Telas em três tamanhos | Celular, tablet e computador, sem rolagem lateral | 12 de 12 aprovados |
 | Controles negativos | Defeitos introduzidos de propósito são detectados pela suíte | 2 de 2 detectados |
+| Instalação do zero em outra máquina | Outro integrante instalou banco e interface na própria conta do Supabase (Windows, Edge, Netlify), seguindo o [guia](INSTALACAO.md), e passou pelos 20 passos de validação | Aprovada em 08/10/2026, 39 de 39 e 13 de 13 ([evidências](docs/casos_de_teste.md#instalação-do-zero-em-outra-máquina)) |
 | Usuário real | Teste ao vivo com pessoa de fora do projeto | Registrado em [teste com usuários](docs/teste_com_usuarios.md) |
 
 Os testes do banco rodam num bloco desfeito ao final e podem ser repetidos a qualquer momento. Detalhes e evidências em [docs/casos_de_teste.md](docs/casos_de_teste.md) e na pasta `evidencias/`.
