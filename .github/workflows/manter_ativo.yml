@@ -1,6 +1,6 @@
 # Mantém o projeto Supabase (plano gratuito) ativo.
 # O plano gratuito pausa projetos com baixa atividade de banco por uma semana.
-# Esta rotina faz uma consulta leve a cada 3 dias. Custo: zero.
+# Esta rotina faz uma consulta leve todos os dias (a cada 3 dias não bastou: o projeto pausou em 05/10 e em 13/10). Custo: zero.
 #
 # Usa a URL e a chave PUBLICÁVEL do projeto (as mesmas de web/config.js).
 # Para outro projeto, cadastre os segredos SUPABASE_URL e SUPABASE_ANON_KEY
@@ -8,7 +8,7 @@
 name: manter-supabase-ativo
 on:
   schedule:
-    - cron: "17 11 */3 * *"
+    - cron: "17 11 * * *"
   workflow_dispatch: {}
   push:
     branches: [main]

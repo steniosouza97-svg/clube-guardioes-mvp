@@ -9,7 +9,7 @@ Regras para quem for alterar o código ou o banco do Clube Guardiões do Futuro.
    - localmente: `./tests/rodar_testes.sh`;
    - interface: `./tests/e2e/rodar_e2e.sh` (25 passos aprovados).
 2. **Guarda a evidência em `evidencias/`**, com a data no nome do arquivo.
-3. **Muda o banco só por migração versionada** (arquivos de `db/`), nunca pelo Table Editor. A próxima migração é a 33.
+3. **Muda o banco só por migração versionada** (arquivos de `db/`), nunca pelo Table Editor. A próxima migração é a 34.
 4. **Diz no commit o que mudou e o teste que protege a mudança**, por exemplo: `Corrige X; protegido por T35`.
 
 ## Sempre

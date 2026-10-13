@@ -21,6 +21,12 @@ Depois de publicar, gerar os links de cada canal para medir a aquisição:
 | Campanha Dia das Crianças | `.../index.html?origem=criancas` |
 | Campanha de Natal | `.../index.html?origem=natal` |
 
+## Conta de avaliação do painel
+
+O projeto de demonstração tem um voluntário só para a banca: `avaliacao@example.com`, senha `Guardioes@2026`, publicada no README. Ele foi autorizado pela migração 33 (`insert into voluntario`) e criado em Authentication > Users, com Auto Confirm. Enxerga apenas dados sintéticos.
+
+Depois da avaliação, desative a conta: em Authentication > Users, apague o usuário, e no SQL Editor rode `update voluntario set ativo = false where email = 'avaliacao@example.com';`. Essa conta nunca deve existir no projeto de produção.
+
 ## Zerar a demonstração
 
 Antes de cada ensaio ou gravação, no SQL Editor do Supabase:

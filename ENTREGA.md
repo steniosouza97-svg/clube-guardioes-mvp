@@ -9,7 +9,7 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 |---|---|
 | Repositório | https://github.com/steniosouza97-svg/clube-guardioes-mvp |
 | Página de adesão (MVP no ar) | https://steniosouza97-svg.github.io/clube-guardioes-mvp/ (Guardião, doação única e link **Minha Área** no topo) |
-| Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html (acesso restrito a voluntários cadastrados) |
+| Painel do voluntário | https://steniosouza97-svg.github.io/clube-guardioes-mvp/painel.html, login de demonstração: e-mail `avaliacao@example.com` e senha `Guardioes@2026` |
 | Vídeo 1: Jornada do Doador | [MVP Demo_Doação & Engajamento](https://drive.google.com/file/d/1EtYiiV-Fetb1uSzP94Od8su2yus-Frc9/view?usp=drive_link): a jornada de quem doa, da adesão à indicação |
 | Vídeo 2: Área do Doador e Área do Voluntário | [MVP Area Doador e Area Voluntario](https://drive.google.com/file/d/1K4rVhU5vPgPPXFC9E9guDf6terbYcPmd/view?usp=drive_link): a Minha Área do Guardião e o painel do voluntário |
 
@@ -23,6 +23,8 @@ Grupo 2: Allan Oliveira, Guilherme Souza, Ivan Hasse e Stenio Souza
 | Passou por fase de teste | 39 testes de fluxo e 13 de acesso (local e Supabase), 25 passos de interface, 2 controles negativos e as telas principais conferidas em celular, tablet e computador ([telas em três tamanhos](docs/diagramas/telas_responsivas.png)). Instalação do zero em outra máquina e outra conta do Supabase, feita por outro integrante seguindo o [guia](INSTALACAO.md): aprovada em 08/10/2026, com os 20 passos de validação e os mesmos 39 e 13 testes. [Casos de teste](docs/casos_de_teste.md) |
 | Validado com usuário real | Teste ao vivo com o professor Bryan (Inteli), de fora do projeto: concluiu a adesão como Guardião e a doação única. Os dados reais foram apagados pela regra de dados sintéticos, e o teste gerou a trava de e-mail da demonstração. [Teste com usuários](docs/teste_com_usuarios.md) |
 | Opera de forma estável | No ar no Supabase e no GitHub Pages; testes repetíveis sem alterar dados |
+
+**Para testar o painel do voluntário:** entre com e-mail `avaliacao@example.com` e senha `Guardioes@2026`. A conta só existe na demonstração e enxerga apenas dados sintéticos.
 
 **Para testar a Minha Área:** página pública, **Minha Área** no topo, **Entrar como Guardião de demonstração** (Guardião sintético Carlos Barbosa: Guardião Prata, 4 estrelas e 11 meses, a 1 estrela do Ouro).
 
